@@ -159,16 +159,6 @@ header {
     color: #65717d;
 }
 
-.profile-details {
-    line-height: 1.8;
-    padding-top: 8px;
-}
-
-.active {
-    color: #20a34a;
-    font-weight: bold;
-}
-
 .profile-actions {
     display: flex;
     gap: 12px;

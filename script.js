@@ -1,14 +1,12 @@
 
-/* =========================================================
-   BSUniSync - FACULTY PORTAL DEMONSTRATION
-   Fixed sample data; no random KPI generation.
-   Saved demo actions use browser localStorage.
-========================================================= */
+// =========================================================
+// BSUniSync - FACULTY PORTAL DEMONSTRATION
+// Fixed sample data; no random KPI generation.
+// Saved demo actions use browser localStorage.
+// =========================================================
 
 
-/* =========================
-   1. LIVE DATE AND TIME
-========================= */
+// 1. LIVE DATE AND TIME
 
 function updateClock() {
     const now = new Date();
@@ -29,17 +27,7 @@ updateClock();
 setInterval(updateClock, 1000);
 
 
-/* =========================
-   2. DEMONSTRATION DATA
-========================= */
-
-/*
-   These are fictional sample records.
-
-   Each department has a base record.
-   The selected year and semester apply fixed,
-   predictable adjustments to that record.
-*/
+// 2. DEMONSTRATION DATA
 
 const baseData = {
     it: {
@@ -127,9 +115,7 @@ const semesterAdjustment = {
 };
 
 
-/* =========================
-   3. UTILITY FUNCTIONS
-========================= */
+// 3. UTILITY FUNCTIONS
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -164,9 +150,7 @@ function saveStoredArray(key, value) {
 }
 
 
-/* =========================
-   4. CREATE FILTERED DATA
-========================= */
+// 4. CREATE FILTERED DATA
 
 function getDepartmentRecord(department, year, semester) {
     const base = baseData[department];
@@ -244,9 +228,7 @@ function getDepartmentRecord(department, year, semester) {
 }
 
 
-/* =========================
-   5. AGGREGATE DEPARTMENTS
-========================= */
+// 5. AGGREGATE DEPARTMENTS
 
 function getDashboardData() {
     const year = document.getElementById("year").value;
@@ -343,9 +325,7 @@ function getDashboardData() {
 }
 
 
-/* =========================
-   6. UPDATE KPI CARDS
-========================= */
+// 6. UPDATE KPI CARDS
 
 function updateKPIs(data) {
     document.getElementById("teachingLoad").textContent =
@@ -371,9 +351,7 @@ function updateKPIs(data) {
 }
 
 
-/* =========================
-   7. ENROLLMENT CHART
-========================= */
+// 7. ENROLLMENT CHART
 
 function updateEnrollmentChart(data) {
     const svg = document.getElementById("enrollmentChart");
@@ -449,9 +427,7 @@ function updateEnrollmentChart(data) {
 }
 
 
-/* =========================
-   8. SETE DIMENSION CHART
-========================= */
+// 8. SETE DIMENSION CHART
 
 function updateSeteChart(data) {
     const container = document.getElementById("seteBars");
@@ -470,9 +446,7 @@ function updateSeteChart(data) {
 }
 
 
-/* =========================
-   9. ACADEMIC STANDING
-========================= */
+// 9. ACADEMIC STANDING
 
 function updateStanding(data) {
     const standing = data.standing;
@@ -508,9 +482,7 @@ function updateStanding(data) {
 }
 
 
-/* =========================
-   10. ACADEMIC ALERTS
-========================= */
+// 10. ACADEMIC ALERTS
 
 function updateAlerts(data) {
     const container = document.getElementById("academicAlerts");
@@ -570,9 +542,7 @@ function updateAlerts(data) {
 }
 
 
-/* =========================
-   11. PRIORITY FOLLOW-UP
-========================= */
+// 11. PRIORITY FOLLOW-UP
 
 function updateFollowUp(data) {
     const tbody = document.getElementById("followUpTable");
@@ -612,9 +582,7 @@ function updateFollowUp(data) {
 }
 
 
-/* =========================
-   12. REFRESH DASHBOARD
-========================= */
+// 12. REFRESH DASHBOARD
 
 function refreshDashboard() {
     const data = getDashboardData();
@@ -648,9 +616,7 @@ document.getElementById("resetFilters").addEventListener("click", () => {
 refreshDashboard();
 
 
-/* =========================
-   13. MODAL SYSTEM
-========================= */
+// 13. MODAL SYSTEM
 
 let activeModal = null;
 
@@ -724,16 +690,12 @@ function modalMessage(message) {
 }
 
 
-/* =========================
-   14. ACCOUNT SETTINGS
-========================= */
+// 14. ACCOUNT SETTINGS
 
 function openSettings() {
     const saved = JSON.parse(localStorage.getItem("bsuSettings") || "{}");
 
     openModal("Account Settings", `
-        <p>Manage the preferences for this demonstration account.</p>
-
         <form id="settingsForm">
             <div class="form-field">
                 <label for="settingEmail">Email notification address</label>
@@ -761,10 +723,6 @@ function openSettings() {
                 </select>
             </div>
 
-            <div class="demo-note">
-                These preferences are saved only in this browser. They do not change an actual university account.
-            </div>
-
             <button type="submit">Save Settings</button>
         </form>
     `);
@@ -784,9 +742,7 @@ function openSettings() {
 }
 
 
-/* =========================
-   15. SIGN OUT
-========================= */
+// 15. SIGN OUT
 
 function signOut() {
     openModal("Sign Out", `
@@ -826,9 +782,7 @@ function signOut() {
 }
 
 
-/* =========================
-   16. FACULTY PROFILE
-========================= */
+// 16. FACULTY PROFILE
 
 function openProfileEditor() {
     const saved = JSON.parse(localStorage.getItem("bsuProfile") || "{}");
@@ -890,9 +844,7 @@ function openProfileEditor() {
 }
 
 
-/* =========================
-   17. CONTACT FACULTY
-========================= */
+// 17. CONTACT FACULTY
 
 function openContact() {
     const saved = JSON.parse(localStorage.getItem("bsuProfile") || "{}");
@@ -909,9 +861,7 @@ function openContact() {
 }
 
 
-/* =========================
-   18. QUICK LINKS
-========================= */
+// 18. QUICK LINKS
 
 const quickLinkContent = {
     mission: {
@@ -963,10 +913,6 @@ const quickLinkContent = {
                 <li>Student assessment and grading</li>
                 <li>Research and extension activities</li>
             </ul>
-
-            <div class="demo-note">
-                This is an illustrative list, not an official copy of the university faculty handbook.
-            </div>
         `
     }
 };
@@ -980,9 +926,7 @@ function openQuickLink(key) {
 }
 
 
-/* =========================
-   19. SERVICE DATA
-========================= */
+// 19. SERVICE DATA
 
 const serviceTitles = {
     schedule: "Class Schedule",
@@ -997,9 +941,7 @@ const serviceTitles = {
 };
 
 
-/* =========================
-   20. CLASS SCHEDULE
-========================= */
+// 20. CLASS SCHEDULE
 
 function openSchedule() {
     const rows = [
@@ -1026,17 +968,11 @@ function openSchedule() {
                 </tbody>
             </table>
         </div>
-
-        <div class="demo-note">
-            Sample schedule only. Actual faculty assignments must be confirmed with the department.
-        </div>
     `);
 }
 
 
-/* =========================
-   21. STUDENT RECORDS
-========================= */
+// 21. STUDENT RECORDS
 
 function openStudents() {
     const students = [
@@ -1067,10 +1003,6 @@ function openStudents() {
                 </tbody>
             </table>
         </div>
-
-        <div class="demo-note">
-            Student identities are fictional. Do not use this sample roster for actual academic decisions.
-        </div>
     `);
 
     document.getElementById("studentSearch").addEventListener("input", event => {
@@ -1090,9 +1022,7 @@ function openStudents() {
 }
 
 
-/* =========================
-   22. GRADE SUBMISSION
-========================= */
+// 22. GRADE SUBMISSION
 
 function openGrades() {
     const submissions = getStoredArray("bsuGradeSubmissions");
@@ -1128,10 +1058,6 @@ function openGrades() {
         <h3>Saved demo submissions</h3>
         <div id="gradeSubmissionList">
             ${renderGradeSubmissions(submissions)}
-        </div>
-
-        <div class="demo-note">
-            This records a demonstration submission only. It does not transmit grades to a registrar or university system.
         </div>
     `);
 
@@ -1184,9 +1110,7 @@ function renderGradeSubmissions(items) {
 }
 
 
-/* =========================
-   23. SETE RESULTS
-========================= */
+// 23. SETE RESULTS
 
 function openSete() {
     const data = getDashboardData();
@@ -1213,17 +1137,11 @@ function openSete() {
                 `).join("")}
             </tbody>
         </table>
-
-        <div class="demo-note">
-            SETE scores are fictional. Actual evaluation results should only be accessed by authorized personnel and interpreted using official institutional procedures.
-        </div>
     `);
 }
 
 
-/* =========================
-   24. FACULTY PROFILE VIEW
-========================= */
+// 24. FACULTY PROFILE VIEW
 
 function openProfile() {
     const profile = JSON.parse(localStorage.getItem("bsuProfile") || "{}");
@@ -1242,9 +1160,7 @@ function openProfile() {
 }
 
 
-/* =========================
-   25. FACULTY ATTENDANCE
-========================= */
+// 25. FACULTY ATTENDANCE
 
 function openAttendance() {
     const records = [
@@ -1268,17 +1184,11 @@ function openAttendance() {
                 `).join("")}
             </tbody>
         </table>
-
-        <div class="demo-note">
-            These are fictional attendance entries, not official timekeeping records.
-        </div>
     `);
 }
 
 
-/* =========================
-   26. CONSULTATION / ADVISING
-========================= */
+// 26. CONSULTATION / ADVISING
 
 function openConsultation() {
     const appointments = getStoredArray("bsuConsultations");
@@ -1313,10 +1223,6 @@ function openConsultation() {
         <h3>Saved appointments</h3>
         <div id="consultationList">
             ${renderConsultations(appointments)}
-        </div>
-
-        <div class="demo-note">
-            Appointments are stored locally in this browser. No student will receive an actual notification.
         </div>
     `);
 
@@ -1367,9 +1273,7 @@ function renderConsultations(items) {
 }
 
 
-/* =========================
-   27. RESEARCH AND EXTENSION
-========================= */
+// 27. RESEARCH AND EXTENSION
 
 function openResearch() {
     openModal("Research and Extension", `
@@ -1385,17 +1289,11 @@ function openResearch() {
                 <tr><td>Student Research Mentoring</td><td>Research</td><td><span class="status warn">Ongoing</span></td></tr>
             </tbody>
         </table>
-
-        <div class="demo-note">
-            Sample activities only. No official research records are connected.
-        </div>
     `);
 }
 
 
-/* =========================
-   28. FACULTY DEVELOPMENT
-========================= */
+// 28. FACULTY DEVELOPMENT
 
 function openDevelopment() {
     openModal("Faculty Development", `
@@ -1411,17 +1309,11 @@ function openDevelopment() {
                 <tr><td>Digital Teaching Tools Training</td><td>October 15, 2026</td><td><span class="status">Completed</span></td></tr>
             </tbody>
         </table>
-
-        <div class="demo-note">
-            Sample activities and schedules are not official university announcements.
-        </div>
     `);
 }
 
 
-/* =========================
-   29. SERVICE ROUTER
-========================= */
+// 29. SERVICE ROUTER
 
 const serviceActions = {
     schedule: openSchedule,
@@ -1446,9 +1338,7 @@ document.querySelectorAll("[data-service]").forEach(button => {
 });
 
 
-/* =========================
-   30. ANNOUNCEMENTS
-========================= */
+// 30. ANNOUNCEMENTS
 
 const announcements = {
     privacy: {
@@ -1509,9 +1399,7 @@ document.querySelectorAll("[data-announcement]").forEach(button => {
 });
 
 
-/* =========================
-   31. GENERAL ACTION ROUTER
-========================= */
+// 31. GENERAL ACTION ROUTER
 
 const generalActions = {
     settings: openSettings,
@@ -1534,9 +1422,7 @@ document.querySelectorAll("[data-action]").forEach(button => {
 });
 
 
-/* =========================
-   32. LOAD SAVED PROFILE
-========================= */
+// 32. LOAD SAVED PROFILE
 
 function loadSavedProfile() {
     try {
@@ -1554,9 +1440,7 @@ function loadSavedProfile() {
 loadSavedProfile();
 
 
-/* =========================
-   33. INITIALIZATION
-========================= */
+// 33. INITIALIZATION
 
 console.log("BSUniSync demonstration portal initialized.");
 console.log("All dashboard data is fictional and stored locally where applicable.");
