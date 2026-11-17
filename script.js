@@ -18,9 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     {id:"2022-008",name:"Camille Bautista",program:"BSIT",year:"4th Year",gwa:1.90,attendance:97,progress:93,status:"Active"}
   ];
 
-  // Generate 334 additional records, bringing the total to 342.
-  // The GWA distribution matches the Academic Analytics chart.
-
+  // Generate additional dummy students.
   const firstNames = [
     "Adrian","Alexandra","Andrea","Anthony","Ariana",
     "Benjamin","Bianca","Carl","Chloe","Christian",
@@ -46,12 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
     "Torres","Valdez","Villanueva","Tan","Flores"
   ];
 
-  // Exact additional student counts for each GWA range:
-  // Excellent: 41
-  // Good Standing: 209
-  // Needs Monitoring: 58
-  // At Risk: 26
-
   const gwaGroups = [
     {count:41,min:1.00,max:1.50},
     {count:93,min:1.51,max:2.00},
@@ -64,29 +56,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   gwaGroups.forEach(group => {
     for (let i = 0; i < group.count; i++) {
-      const range = group.max - group.min;
-      const steps = Math.round(range * 100);
+      const steps = Math.round((group.max - group.min) * 100);
       const value = group.min + ((i * 7) % (steps + 1)) / 100;
-
-      generatedGwaValues.push(
-        Number(Math.min(value, group.max).toFixed(2))
-      );
+      generatedGwaValues.push(Number(Math.min(value, group.max).toFixed(2)));
     }
   });
 
   let generatedIndex = 0;
 
-  for (let i = 0; i < firstNames.length; i++) {
-    for (let j = 0; j < lastNames.length; j++) {
-      if (generatedIndex >= 334) break;
-
+  for (let i = 0; i < firstNames.length && generatedIndex < 334; i++) {
+    for (let j = 0; j < lastNames.length && generatedIndex < 334; j++) {
       const name = `${firstNames[i]} ${lastNames[j]}`;
 
       if (students.some(student => student.name === name)) continue;
 
       const gwa = generatedGwaValues[generatedIndex];
-      const yearIndex = generatedIndex % 4;
-      const year = ["1st Year","2nd Year","3rd Year","4th Year"][yearIndex];
+      const year = ["1st Year","2nd Year","3rd Year","4th Year"][generatedIndex % 4];
 
       let attendance;
       let progress;
@@ -105,11 +90,6 @@ document.addEventListener("DOMContentLoaded", () => {
         progress = 45 + ((generatedIndex * 7) % 31);
       }
 
-      const status =
-        gwa > 2.75 || attendance < 80
-          ? "For Follow-up"
-          : "Active";
-
       students.push({
         id:`2022-${String(students.length + 1).padStart(3,"0")}`,
         name,
@@ -118,16 +98,12 @@ document.addEventListener("DOMContentLoaded", () => {
         gwa,
         attendance,
         progress,
-        status
+        status:gwa > 2.75 || attendance < 80 ? "For Follow-up" : "Active"
       });
 
       generatedIndex++;
     }
-
-    if (generatedIndex >= 334) break;
   }
-
-  console.log(`Generated ${students.length} student records.`);
 
   // --------------------------------------------------
   // CLASSES
@@ -158,10 +134,50 @@ document.addEventListener("DOMContentLoaded", () => {
     {day:"Friday",time:"1:00–2:30 PM",subject:"Systems Analysis and Design",section:"BSIT 3A",room:"Room 204"}
   ];
 
+  // --------------------------------------------------
+  // ALERTS
+  // --------------------------------------------------
+
+  // Alert descriptions are generated from the student data.
+  // The alerts remain available until marked as reviewed.
+
+  const atRiskStudents = students.filter(student => Number(student.gwa) > 2.75);
+  const lowAttendanceStudents = students.filter(student => Number(student.attendance) < 80);
+
   let alerts = [
-    {id:1,title:"Pending Grade Submission",description:"Grade entries for two assigned classes still need to be submitted.",type:"Urgent",date:"November 17, 2026",open:true},
-    {id:2,title:"Student Academic Concern",description:"Several students may need academic consultation and follow-up.",type:"Student Concern",date:"November 16, 2026",open:true},
-    {id:3,title:"SETE Evaluation Reminder",description:"One assigned section has not completed the teaching evaluation.",type:"Reminder",date:"November 15, 2026",open:true}
+    {
+      id:"risk",
+      title:"Student Academic Risk",
+      description:`${atRiskStudents.length} students currently have a GWA above 2.75 and may require academic intervention.`,
+      type:"Urgent",
+      date:"Based on current student records",
+      actionLabel:"Review At Risk Students",
+      target:"students",
+      filter:"At Risk",
+      open:true
+    },
+    {
+      id:"attendance",
+      title:"Student Attendance Concern",
+      description:`${lowAttendanceStudents.length} students currently have attendance below 80% and may need follow-up.`,
+      type:"Student Concern",
+      date:"Based on current student records",
+      actionLabel:"Review Student Records",
+      target:"students",
+      filter:"all",
+      open:true
+    },
+    {
+      id:"sete",
+      title:"Teaching Evaluation Summary",
+      description:"Your current SETE rating is 4.28 out of 5. Review the evaluation results and rating distribution for your assigned classes.",
+      type:"Reminder",
+      date:"Current evaluation summary",
+      actionLabel:"View Teaching Evaluation",
+      target:"evaluation",
+      filter:"all",
+      open:true
+    }
   ];
 
   let notificationsRead = false;
@@ -243,10 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#studentRiskCount").textContent = counts.risk;
 
     $("#kpiAtRisk").textContent = counts.risk;
-    $("#kpiAtRiskDetail").textContent =
-      `${counts.risk} students require academic attention`;
-
-    // Keep the dashboard KPI synchronized with the actual records.
+    $("#kpiAtRiskDetail").textContent = `${counts.risk} students require academic attention`;
     $("#kpiStudents").textContent = counts.total;
   }
 
@@ -390,15 +403,31 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#alertTotal").textContent = openAlerts.length;
     $("#alertNavCount").textContent = openAlerts.length;
 
-    $("#fullAlertList").innerHTML = openAlerts.length ? openAlerts.map(alert => `
-      <div class="alert-item">
-        <div>
-          <strong>${escapeHTML(alert.title)}</strong>
-          <p>${escapeHTML(alert.description)}</p>
-          <p>${escapeHTML(alert.date)}</p>
-        </div>
-        <span class="status-pill ${alert.type === "Urgent" ? "danger" : alert.type === "Reminder" ? "info" : "warning"}">${escapeHTML(alert.type)}</span>
-      </div>`).join("") : `<p>No open alerts. You're all caught up.</p>`;
+    $("#alertNavCount").classList.toggle("hidden", openAlerts.length === 0);
+
+    $("#fullAlertList").innerHTML = openAlerts.length
+      ? openAlerts.map(alert => `
+        <div class="alert-item">
+          <div class="alert-content">
+            <strong>${escapeHTML(alert.title)}</strong>
+            <p>${escapeHTML(alert.description)}</p>
+            <p>${escapeHTML(alert.date)}</p>
+            <button
+              class="text-button alert-action"
+              data-alert-target="${escapeHTML(alert.target)}"
+              data-alert-filter="${escapeHTML(alert.filter)}">
+              ${escapeHTML(alert.actionLabel)} →
+            </button>
+          </div>
+          <span class="status-pill ${
+            alert.type === "Urgent" ? "danger" :
+            alert.type === "Reminder" ? "info" : "warning"
+          }">${escapeHTML(alert.type)}</span>
+        </div>`).join("")
+      : `<div class="empty-alert-state">
+          <strong>You're all caught up!</strong>
+          <p>There are currently no open academic alerts.</p>
+        </div>`;
 
     renderNotifications();
   }
@@ -417,6 +446,25 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#notificationDot").classList.toggle("hidden", notificationsRead || !openAlerts.length);
     $("#notificationDot").textContent = openAlerts.length;
   }
+
+  // Clicking an alert action opens the relevant existing portal page.
+  $("#fullAlertList").addEventListener("click", event => {
+    const button = event.target.closest("[data-alert-target]");
+    if (!button) return;
+
+    const target = button.dataset.alertTarget;
+    const filter = button.dataset.alertFilter;
+
+    if (target === "students") {
+      $("#studentSearch").value = "";
+      $("#studentYearFilter").value = "all";
+      $("#studentStandingFilter").value = filter || "all";
+
+      renderStudents();
+    }
+
+    showPage(target);
+  });
 
   $("#clearAlertsBtn").addEventListener("click", () => {
     alerts = alerts.map(alert => ({...alert,open:false}));
