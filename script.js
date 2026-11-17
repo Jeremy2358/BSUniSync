@@ -1,2024 +1,843 @@
-// =========================================================
-// BSUniSync - FACULTY PORTAL
-// Fixed data; no random KPI generation.
-// Saved actions use browser localStorage.
-// =========================================================
 
+document.addEventListener("DOMContentLoaded", () => {
+  const $ = selector => document.querySelector(selector);
+  const $$ = selector => [...document.querySelectorAll(selector)];
 
-// 1. LIVE DATE AND TIME
+  // --------------------------------------------------
+  // DEMO STUDENT DATA
+  // --------------------------------------------------
 
-function updateClock() {
-    const now = new Date();
+  const students = [
+    {id:"2022-001",name:"Angela Mae Reyes",program:"BSIT",year:"1st Year",gwa:1.75,attendance:96,progress:92,status:"Active"},
+    {id:"2022-002",name:"John Michael Cruz",program:"BSIT",year:"2nd Year",gwa:2.10,attendance:91,progress:85,status:"Active"},
+    {id:"2022-003",name:"Sofia Garcia",program:"BSIT",year:"3rd Year",gwa:1.50,attendance:98,progress:96,status:"Active"},
+    {id:"2022-004",name:"Daniel Mendoza",program:"BSIT",year:"2nd Year",gwa:3.10,attendance:78,progress:61,status:"For Follow-up"},
+    {id:"2022-005",name:"Isabella Torres",program:"BSIT",year:"4th Year",gwa:1.80,attendance:94,progress:90,status:"Active"},
+    {id:"2022-006",name:"Gabriel Flores",program:"BSIT",year:"3rd Year",gwa:2.25,attendance:89,progress:82,status:"Active"},
+    {id:"2022-007",name:"Nathaniel Ramos",program:"BSIT",year:"1st Year",gwa:3.20,attendance:74,progress:58,status:"For Follow-up"},
+    {id:"2022-008",name:"Camille Bautista",program:"BSIT",year:"4th Year",gwa:1.90,attendance:97,progress:93,status:"Active"}
+  ];
 
-    document.getElementById("date").textContent =
-        now.toLocaleDateString("en-US", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "2-digit"
-        });
+  const classes = [
+    {code:"IT 101",name:"Introduction to Computing",section:"BSIT 1A",students:32,schedule:"Mon / Wed · 8:00–9:30 AM",room:"Lab 1",status:"Ongoing"},
+    {code:"IT 102",name:"Computer Programming 1",section:"BSIT 1B",students:30,schedule:"Tue / Thu · 9:00–10:30 AM",room:"Lab 2",status:"Ongoing"},
+    {code:"IT 201",name:"Data Structures and Algorithms",section:"BSIT 2A",students:31,schedule:"Mon / Wed · 10:00–11:30 AM",room:"Lab 3",status:"Ongoing"},
+    {code:"IT 202",name:"Database Management Systems",section:"BSIT 2B",students:29,schedule:"Tue / Thu · 1:00–2:30 PM",room:"Lab 2",status:"Ongoing"},
+    {code:"IT 301",name:"Systems Analysis and Design",section:"BSIT 3A",students:34,schedule:"Wed / Fri · 1:00–2:30 PM",room:"Room 204",status:"Ongoing"},
+    {code:"IT 401",name:"Capstone Project",section:"BSIT 4A",students:30,schedule:"Fri · 9:00–12:00 PM",room:"Room 305",status:"Ongoing"}
+  ];
 
-    document.getElementById("clock").textContent =
-        now.toLocaleTimeString("en-US");
-}
+  const subjectPassingRates = [91,88,90,86,92,89];
 
-updateClock();
-setInterval(updateClock, 1000);
+  const schedule = [
+    {day:"Monday",time:"8:00–9:30 AM",subject:"Introduction to Computing",section:"BSIT 1A",room:"Lab 1"},
+    {day:"Monday",time:"10:00–11:30 AM",subject:"Data Structures and Algorithms",section:"BSIT 2A",room:"Lab 3"},
+    {day:"Tuesday",time:"9:00–10:30 AM",subject:"Computer Programming 1",section:"BSIT 1B",room:"Lab 2"},
+    {day:"Tuesday",time:"1:00–2:30 PM",subject:"Database Management Systems",section:"BSIT 2B",room:"Lab 2"},
+    {day:"Wednesday",time:"8:00–9:30 AM",subject:"Introduction to Computing",section:"BSIT 1A",room:"Lab 1"},
+    {day:"Wednesday",time:"10:00–11:30 AM",subject:"Data Structures and Algorithms",section:"BSIT 2A",room:"Lab 3"},
+    {day:"Wednesday",time:"1:00–2:30 PM",subject:"Systems Analysis and Design",section:"BSIT 3A",room:"Room 204"},
+    {day:"Thursday",time:"9:00–10:30 AM",subject:"Computer Programming 1",section:"BSIT 1B",room:"Lab 2"},
+    {day:"Thursday",time:"1:00–2:30 PM",subject:"Database Management Systems",section:"BSIT 2B",room:"Lab 2"},
+    {day:"Friday",time:"9:00 AM–12:00 PM",subject:"Capstone Project",section:"BSIT 4A",room:"Room 305"},
+    {day:"Friday",time:"1:00–2:30 PM",subject:"Systems Analysis and Design",section:"BSIT 3A",room:"Room 204"}
+  ];
 
+  let alerts = [
+    {id:1,title:"Pending Grade Submission",description:"Grade entries for two assigned classes still need to be submitted.",type:"Urgent",date:"November 17, 2026",open:true},
+    {id:2,title:"Student Academic Concern",description:"Daniel Mendoza and Nathaniel Ramos may need academic consultation.",type:"Student Concern",date:"November 16, 2026",open:true},
+    {id:3,title:"SETE Evaluation Reminder",description:"One assigned section has not completed the teaching evaluation.",type:"Reminder",date:"November 15, 2026",open:true}
+  ];
 
-// 2. DASHBOARD DATA
+  let notificationsRead = false;
+  const chartInstances = {};
 
-const baseData = {
-    it: {
-        name: "BSIT – Network Technology",
-        units: 18,
-        classes: 6,
-        students: 186,
-        sete: 4.42,
-        pending: 3,
-        responded: 145,
-        completion: 94,
-        standing: {
-            good: 115,
-            satisfactory: 41,
-            atRisk: 20,
-            probation: 10
-        },
-        dimensions: {
-            Knowledge: 4.50,
-            Communication: 4.35,
-            Management: 4.25,
-            Assessment: 4.15,
-            "Learning Support": 4.30
-        }
-    },
+  // --------------------------------------------------
+  // GENERAL HELPERS
+  // --------------------------------------------------
 
-    ba: {
-        name: "BSIT – Business Analytics",
-        units: 18,
-        classes: 6,
-        students: 164,
-        sete: 4.48,
-        pending: 2,
-        responded: 137,
-        completion: 96,
-        standing: {
-            good: 110,
-            satisfactory: 36,
-            atRisk: 12,
-            probation: 6
-        },
-        dimensions: {
-            Knowledge: 4.60,
-            Communication: 4.45,
-            Management: 4.40,
-            Assessment: 4.35,
-            "Learning Support": 4.60
-        }
-    },
+  const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  })[char]);
 
-    cs: {
-        name: "BSCS – Computer Science",
-        units: 18,
-        classes: 6,
-        students: 172,
-        sete: 4.31,
-        pending: 4,
-        responded: 127,
-        completion: 91,
-        standing: {
-            good: 100,
-            satisfactory: 42,
-            atRisk: 20,
-            probation: 10
-        },
-        dimensions: {
-            Knowledge: 4.40,
-            Communication: 4.25,
-            Management: 4.20,
-            Assessment: 4.15,
-            "Learning Support": 4.30
-        }
-    }
-};
+  function showToast(message) {
+    const container = $("#toastContainer");
+    if (!container) return;
 
-const yearAdjustment = {
-    "2026-2027": 0,
-    "2025-2026": -2
-};
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
 
-const semesterAdjustment = {
-    first: 0,
-    second: 1,
-    summer: -4
-};
+  function getStanding(gwa) {
+    if (gwa === null || gwa === undefined || Number.isNaN(Number(gwa))) return "No GWA";
 
+    const value = Number(gwa);
 
-// SECTION FILTER
+    if (value <= 1.50) return "Excellent";
+    if (value <= 2.25) return "Good Standing";
+    if (value <= 2.75) return "Needs Monitoring";
 
-// First digit = year level
-// Second digit = class group
-// Third digit = 0
-// Last digit = semester:
-// 1 = First Semester
-// 2 = Second Semester
+    return "At Risk";
+  }
 
-const sectionCodes = {
-    first: [
-        "1101", "1201",
-        "2101", "2201",
-        "3101", "3201",
-        "4101", "4201"
-    ],
+  function standingClass(standing) {
+    return ({
+      "Excellent":"standing-excellent",
+      "Good Standing":"standing-good",
+      "Needs Monitoring":"standing-monitoring",
+      "At Risk":"standing-risk",
+      "No GWA":"standing-none"
+    })[standing] || "standing-none";
+  }
 
-    second: [
-        "1102", "1202",
-        "2102", "2202",
-        "3102", "3202",
-        "4102", "4202"
-    ]
-};
+  function getInitials(name) {
+    return name.split(/\s+/).slice(0,2).map(part => part[0]).join("").toUpperCase();
+  }
 
+  // --------------------------------------------------
+  // STUDENT RECORDS
+  // --------------------------------------------------
 
-function refreshSectionOptions() {
-    const sectionSelect = document.getElementById("section");
-    const semester = document.getElementById("semester").value;
-    const previousValue = sectionSelect.value;
-    const codes = sectionCodes[semester] || [];
-
-    sectionSelect.innerHTML =
-        `<option value="all">All Sections</option>` +
-        codes.map(code =>
-            `<option value="${code}">${code}</option>`
-        ).join("");
-
-    sectionSelect.disabled = codes.length === 0;
-
-    if (codes.includes(previousValue)) {
-        sectionSelect.value = previousValue;
-    } else {
-        sectionSelect.value = "all";
-    }
-}
-
-
-function applySectionRecord(record, sectionCode) {
-    if (sectionCode === "all") return record;
-
-    const yearLevel = Number(sectionCode.charAt(0));
-    const group = Number(sectionCode.charAt(1));
-
-    const yearShares = {
-        1: 0.30,
-        2: 0.27,
-        3: 0.24,
-        4: 0.19
+  function renderStudentSummary() {
+    const counts = {
+      total:students.length,
+      excellent:0,
+      good:0,
+      monitoring:0,
+      risk:0
     };
 
-    const groupShare = group === 1 ? 0.52 : 0.48;
-    const share = (yearShares[yearLevel] || 0.25) * groupShare;
+    students.forEach(student => {
+      const standing = getStanding(student.gwa);
 
-    const students = Math.max(
-        1,
-        Math.round(record.students * share)
-    );
-
-    const responded = Math.min(
-        students,
-        Math.round(record.responded * share)
-    );
-
-    const good = Math.round(record.standing.good * share);
-    const satisfactory = Math.round(record.standing.satisfactory * share);
-    const atRisk = Math.round(record.standing.atRisk * share);
-
-    const probation = Math.max(
-        0,
-        students - good - satisfactory - atRisk
-    );
-
-    return {
-        ...record,
-        name: record.name,
-        units: Math.max(3, Math.round(record.units * share)),
-        classes: 1,
-        students,
-        responded,
-        response: percentage(responded, students),
-        pending: Math.min(
-            record.pending,
-            Math.max(0, Math.round(record.pending * share * 2))
-        ),
-        standing: {
-            good,
-            satisfactory,
-            atRisk,
-            probation
-        },
-        section: sectionCode
-    };
-}
-
-
-// 3. UTILITY FUNCTIONS
-
-function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-}
-
-
-function percentage(part, total) {
-    if (!total) return 0;
-    return Math.round((part / total) * 100);
-}
-
-
-function escapeHTML(value) {
-    return String(value).replace(/[&<>"']/g, character => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-    })[character]);
-}
-
-
-function getStoredArray(key) {
-    try {
-        const value = JSON.parse(localStorage.getItem(key) || "[]");
-        return Array.isArray(value) ? value : [];
-    } catch {
-        return [];
-    }
-}
-
-
-function saveStoredArray(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
-}
-
-
-// 4. CREATE FILTERED DATA
-
-function getDepartmentRecord(department, year, semester) {
-    const base = baseData[department];
-
-    const yearChange = yearAdjustment[year] ?? 0;
-    const semesterChange = semesterAdjustment[semester] ?? 0;
-
-    const adjustment = yearChange + semesterChange;
-
-    const students = Math.max(
-        20,
-        base.students + adjustment * 3
-    );
-
-    const responded = clamp(
-        base.responded + adjustment * 2,
-        0,
-        students
-    );
-
-    const completion = clamp(
-        base.completion + adjustment,
-        70,
-        100
-    );
-
-    const good = Math.max(
-        0,
-        base.standing.good + adjustment * 2
-    );
-
-    const satisfactory = Math.max(
-        0,
-        base.standing.satisfactory + adjustment
-    );
-
-    const atRisk = Math.max(
-        0,
-        base.standing.atRisk - adjustment
-    );
-
-    const probation = Math.max(
-        0,
-        students - good - satisfactory - atRisk
-    );
-
-    const dimensions = {};
-
-    Object.entries(base.dimensions).forEach(([name, score]) => {
-        dimensions[name] = Number(
-            clamp(score + adjustment * 0.01, 3.5, 5).toFixed(2)
-        );
+      if (standing === "Excellent") counts.excellent++;
+      if (standing === "Good Standing") counts.good++;
+      if (standing === "Needs Monitoring") counts.monitoring++;
+      if (standing === "At Risk") counts.risk++;
     });
 
-    return {
-        name: base.name,
-        units: base.units,
-        classes: base.classes,
-        students,
-        responded,
-        response: percentage(responded, students),
+    $("#studentTotalCount").textContent = counts.total;
+    $("#excellentCount").textContent = counts.excellent;
+    $("#goodStandingCount").textContent = counts.good;
+    $("#monitoringCount").textContent = counts.monitoring;
+    $("#studentRiskCount").textContent = counts.risk;
+    $("#kpiAtRisk").textContent = counts.risk;
+    $("#kpiAtRiskDetail").textContent = `${counts.risk} students require academic attention`;
+    $("#kpiStudents").textContent = "342";
+  }
 
-        sete: Number(
-            clamp(base.sete + adjustment * 0.01, 3.5, 5).toFixed(2)
-        ),
+  function renderStudents() {
+    const query = ($("#studentSearch")?.value || "").trim().toLowerCase();
+    const year = $("#studentYearFilter")?.value || "all";
+    const standingFilter = $("#studentStandingFilter")?.value || "all";
 
-        pending: Math.max(
-            0,
-            base.pending + Math.max(0, adjustment)
-        ),
+    const filtered = students.filter(student => {
+      const standing = getStanding(student.gwa);
 
-        completion,
+      const matchesQuery = [
+        student.id,student.name,student.program,student.year
+      ].join(" ").toLowerCase().includes(query);
 
-        standing: {
-            good,
-            satisfactory,
-            atRisk,
-            probation
-        },
-
-        dimensions
-    };
-}
-
-
-// 5. AGGREGATE DEPARTMENTS
-
-function getDashboardData() {
-    const year = document.getElementById("year").value;
-    const semester = document.getElementById("semester").value;
-
-    const selectedDepartment =
-        document.getElementById("department").value;
-
-    const selectedSection =
-        document.getElementById("section").value;
-
-    const departments = Object.keys(baseData).map(key => {
-        const record = {
-            key,
-            ...getDepartmentRecord(key, year, semester)
-        };
-
-        return selectedSection === "all"
-            ? record
-            : {
-                ...record,
-                ...applySectionRecord(record, selectedSection)
-            };
+      return matchesQuery &&
+        (year === "all" || student.year === year) &&
+        (standingFilter === "all" || standing === standingFilter);
     });
 
-    if (selectedDepartment !== "all") {
-        const selected = departments.find(
-            department => department.key === selectedDepartment
-        );
+    const tbody = $("#studentTable");
+    if (!tbody) return;
 
-        return {
-            ...selected,
-            departments: [selected]
-        };
+    $("#studentResultCount").textContent =
+      `${filtered.length} ${filtered.length === 1 ? "record" : "records"}`;
+
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="8" class="empty-row">No student records match your search or filters.</td></tr>`;
+      return;
     }
 
-    const totalStudents = departments.reduce(
-        (sum, department) => sum + department.students,
-        0
-    );
+    tbody.innerHTML = filtered.map(student => {
+      const standing = getStanding(student.gwa);
+      const statusClass = student.status === "Active" ? "" : "follow-up";
 
-    const totalResponded = departments.reduce(
-        (sum, department) => sum + department.responded,
-        0
-    );
-
-    const totalUnits = departments.reduce(
-        (sum, department) => sum + department.units,
-        0
-    );
-
-    const totalClasses = departments.reduce(
-        (sum, department) => sum + department.classes,
-        0
-    );
-
-    const totalPending = departments.reduce(
-        (sum, department) => sum + department.pending,
-        0
-    );
-
-    const weightedSete = departments.reduce(
-        (sum, department) =>
-            sum + department.sete * department.responded,
-        0
-    ) / Math.max(totalResponded, 1);
-
-    const weightedCompletion = departments.reduce(
-        (sum, department) =>
-            sum + department.completion * department.students,
-        0
-    ) / Math.max(totalStudents, 1);
-
-    const standing = {
-        good: 0,
-        satisfactory: 0,
-        atRisk: 0,
-        probation: 0
-    };
-
-    Object.keys(standing).forEach(key => {
-        standing[key] = departments.reduce(
-            (sum, department) =>
-                sum + department.standing[key],
-            0
-        );
-    });
-
-    const dimensionNames = Object.keys(baseData.it.dimensions);
-    const dimensions = {};
-
-    dimensionNames.forEach(name => {
-        const weightedScore = departments.reduce(
-            (sum, department) =>
-                sum + department.dimensions[name] * department.responded,
-            0
-        );
-
-        dimensions[name] = Number(
-            (weightedScore / Math.max(totalResponded, 1)).toFixed(2)
-        );
-    });
-
-    return {
-        key: "all",
-        name: "All Departments",
-        units: totalUnits,
-        classes: totalClasses,
-        students: totalStudents,
-        responded: totalResponded,
-        response: percentage(totalResponded, totalStudents),
-        sete: Number(weightedSete.toFixed(2)),
-        pending: totalPending,
-        completion: Number(weightedCompletion.toFixed(1)),
-        standing,
-        dimensions,
-        departments
-    };
-}
-
-
-// 6. UPDATE KPI CARDS
-
-function updateKPIs(data) {
-    document.getElementById("teachingLoad").textContent =
-        data.units + " Units";
-
-    document.getElementById("classes").textContent =
-        data.classes + " assigned classes";
-
-    document.getElementById("students").textContent =
-        data.students.toLocaleString();
-
-    document.getElementById("sete").textContent =
-        data.sete.toFixed(2) + " / 5";
-
-    document.getElementById("pending").textContent =
-        data.pending;
-
-    document.getElementById("response").textContent =
-        data.response + "%";
-
-    document.getElementById("responseDetail").textContent =
-        data.responded + " of " + data.students + " responses";
-}
-
-
-// 7. ENROLLMENT CHART
-
-function updateEnrollmentChart(data) {
-    const svg = document.getElementById("enrollmentChart");
-
-    const labels = [
-        "S1 '24",
-        "S2 '24",
-        "S1 '25",
-        "S2 '25",
-        "S1 '26",
-        "S2 '26"
-    ];
-
-    const offset =
-        data.key === "it" ? 0 :
-        data.key === "ba" ? 2 :
-        data.key === "cs" ? -2 : 1;
-
-    const values = [
-        82 + offset,
-        85 + offset,
-        84 + offset,
-        89 + offset,
-        91 + offset,
-        data.completion
-    ].map(value => clamp(value, 60, 100));
-
-    const xPositions = [50, 150, 250, 350, 450, 550];
-
-    function yPosition(value) {
-        return 190 - ((value - 60) / 40) * 160;
-    }
-
-    const gridLines = [100, 90, 80, 70, 60].map(value => {
-        const y = yPosition(value);
-
-        return `
-            <path d="M40 ${y} H580" stroke="#e8edf2"/>
-            <text
-                x="3"
-                y="${y + 4}"
-                fill="#788590"
-                font-size="11"
-            >${value}%</text>
-        `;
+      return `
+        <tr>
+          <td class="student-id">${escapeHTML(student.id)}</td>
+          <td><span class="student-name">${escapeHTML(student.name)}</span></td>
+          <td>${escapeHTML(student.program)}</td>
+          <td>${escapeHTML(student.year)}</td>
+          <td><strong>${Number(student.gwa).toFixed(2)}</strong></td>
+          <td><span class="standing-badge ${standingClass(standing)}">${escapeHTML(standing)}</span></td>
+          <td><span class="record-status ${statusClass}">${escapeHTML(student.status)}</span></td>
+          <td><button class="view-record" data-student-id="${escapeHTML(student.id)}">View</button></td>
+        </tr>`;
     }).join("");
-
-    const points = values.map((value, index) =>
-        `${xPositions[index]},${yPosition(value)}`
-    ).join(" ");
-
-    const circles = values.map((value, index) => `
-        <circle
-            cx="${xPositions[index]}"
-            cy="${yPosition(value)}"
-            r="5"
-            fill="white"
-            stroke="#4263eb"
-            stroke-width="3"
-        />
-        <title>${labels[index]}: ${value}%</title>
-    `).join("");
-
-    const xLabels = labels.map((label, index) => `
-        <text
-            x="${xPositions[index] - 5}"
-            y="210"
-            fill="#788590"
-            font-size="11"
-        >${label}</text>
-    `).join("");
-
-    svg.innerHTML = `
-        ${gridLines}
-
-        <polyline
-            points="${points}"
-            fill="none"
-            stroke="#4263eb"
-            stroke-width="4"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-        />
-
-        ${circles}
-        ${xLabels}
-    `;
-}
-
-
-// 8. SETE DIMENSION CHART
-
-function updateSeteChart(data) {
-    const container = document.getElementById("seteBars");
-
-    container.innerHTML = Object.entries(data.dimensions).map(
-        ([name, score]) => `
-            <div class="bar-row">
-                <span>${escapeHTML(name)}</span>
-
-                <div class="track">
-                    <div
-                        class="fill"
-                        style="width:${(score / 5) * 100}%"
-                    ></div>
-                </div>
-
-                <b>${score.toFixed(2)}</b>
-            </div>
-        `
-    ).join("");
-}
-
-
-// 9. ACADEMIC STANDING
-
-function updateStanding(data) {
-    const standing = data.standing;
-    const total = data.students;
-
-    const good = percentage(standing.good, total);
-    const satisfactory = percentage(standing.satisfactory, total);
-    const atRisk = percentage(standing.atRisk, total);
-
-    const probation = Math.max(
-        0,
-        100 - good - satisfactory - atRisk
-    );
-
-    const goodEnd = good;
-    const satisfactoryEnd = goodEnd + satisfactory;
-    const riskEnd = satisfactoryEnd + atRisk;
-
-    document.getElementById("standingDonut").style.background = `
-        conic-gradient(
-            #4263eb 0 ${goodEnd}%,
-            #20a7c6 ${goodEnd}% ${satisfactoryEnd}%,
-            #f2b84b ${satisfactoryEnd}% ${riskEnd}%,
-            #e6ebf3 ${riskEnd}% 100%
-        )
-    `;
-
-    document.getElementById("standingTotal").textContent =
-        total.toLocaleString();
-
-    document.getElementById("standingLegend").innerHTML = `
-        <div>🔵 Good standing ${good}%</div>
-        <div>🟦 Satisfactory ${satisfactory}%</div>
-        <div>🟡 At risk ${atRisk}%</div>
-        <div>⬜ Probation ${probation}%</div>
-    `;
-}
-
-
-// 10. ACADEMIC ALERTS
-
-function updateAlerts(data) {
-    const container = document.getElementById("academicAlerts");
-
-    const riskRate = percentage(
-        data.standing.atRisk + data.standing.probation,
-        data.students
-    );
-
-    const alerts = [];
-
-    if (riskRate >= 10) {
-        alerts.push(`
-            <div class="alert red">
-                <b>⚠ Students Requiring Review</b>
-                ${riskRate}% of students are in the at-risk or probation categories.
-                Review academic performance and provide appropriate support.
-            </div>
-        `);
-    } else {
-        alerts.push(`
-            <div class="alert green">
-                <b>✓ Academic Standing</b>
-                ${riskRate}% of students are in the at-risk or probation categories.
-                Continue monitoring student progress.
-            </div>
-        `);
-    }
-
-    if (data.response < 80) {
-        alerts.push(`
-            <div class="alert">
-                <b>⚠ SETE Response Rate</b>
-                Current response rate is ${data.response}%, below the 80% target.
-                Encourage eligible students to participate.
-            </div>
-        `);
-    } else {
-        alerts.push(`
-            <div class="alert green">
-                <b>✓ SETE Response Rate</b>
-                Current response rate is ${data.response}%, meeting the 80% target.
-            </div>
-        `);
-    }
-
-    if (data.pending > 0) {
-        alerts.push(`
-            <div class="alert">
-                <b>◷ Pending Academic Tasks</b>
-                There are ${data.pending} pending grade or academic submission tasks in the selected data.
-            </div>
-        `);
-    }
-
-    container.innerHTML = alerts.join("");
-}
-
-
-// 11. PRIORITY FOLLOW-UP
-
-function updateFollowUp(data) {
-    const tbody = document.getElementById("followUpTable");
-
-    tbody.innerHTML = data.departments.map(department => {
-        const riskRate = percentage(
-            department.standing.atRisk + department.standing.probation,
-            department.students
-        );
-
-        let indicator;
-        let status;
-        let statusClass;
-
-        if (riskRate >= 10) {
-            indicator = riskRate + "% at risk";
-            status = "Review";
-            statusClass = "warn";
-        } else if (department.response < 80) {
-            indicator = department.response + "% response";
-            status = "Follow up";
-            statusClass = "warn";
-        } else {
-            indicator = department.sete.toFixed(2) + " SETE";
-            status = "On track";
-            statusClass = "";
-        }
-
-        return `
-            <tr>
-                <td>${escapeHTML(department.name)}</td>
-                <td>${indicator}</td>
-                <td>
-                    <span class="status ${statusClass}">
-                        ${status}
-                    </span>
-                </td>
-            </tr>
-        `;
-    }).join("");
-}
-
-
-// 12. REFRESH DASHBOARD
-
-function refreshDashboard() {
-    const data = getDashboardData();
-
-    updateKPIs(data);
-    updateEnrollmentChart(data);
-    updateSeteChart(data);
-    updateStanding(data);
-    updateAlerts(data);
-    updateFollowUp(data);
-
-    const year = document.getElementById("year").value;
-
-    const semester =
-        document.getElementById("semester").selectedOptions[0].textContent;
-
-    document.getElementById("profileSemester").textContent =
-        "› " + semester.toUpperCase() + " AY " + year.replace("-", "–");
-}
-
-
-["year", "semester", "department", "section"].forEach(id => {
-    document.getElementById(id).addEventListener("change", () => {
-        if (id === "semester") {
-            refreshSectionOptions();
-        }
-
-        refreshDashboard();
-    });
-});
-
-
-document.getElementById("resetFilters").addEventListener("click", () => {
-    document.getElementById("year").value = "2026-2027";
-    document.getElementById("semester").value = "first";
-    document.getElementById("department").value = "all";
-
-    refreshSectionOptions();
-
-    document.getElementById("section").value = "all";
-
-    refreshDashboard();
-});
-
-
-refreshSectionOptions();
-refreshDashboard();
-
-
-// 13. MODAL SYSTEM
-
-let activeModal = null;
-
-
-function openModal(title, content, footer = "") {
-    closeModal();
-
-    const overlay = document.createElement("div");
-    overlay.className = "modal-overlay";
-    overlay.id = "activeModal";
-
-    overlay.innerHTML = `
-        <section
-            class="modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modalTitle"
-        >
-            <div class="modal-header">
-                <h2 id="modalTitle">${escapeHTML(title)}</h2>
-
-                <button
-                    class="modal-close"
-                    type="button"
-                    aria-label="Close dialog"
-                >×</button>
-            </div>
-
-            <div class="modal-body">${content}</div>
-
-            ${footer ? `<div class="modal-footer">${footer}</div>` : ""}
-        </section>
-    `;
-
-    document.body.appendChild(overlay);
-    document.body.classList.add("modal-open");
-
-    activeModal = overlay;
-
-    overlay.querySelector(".modal-close").addEventListener(
-        "click",
-        closeModal
-    );
-
-    overlay.addEventListener("click", event => {
-        if (event.target === overlay) {
-            closeModal();
-        }
+  }
+
+  function openStudentRecord(studentId) {
+    const student = students.find(item => item.id === studentId);
+    if (!student) return;
+
+    const standing = getStanding(student.gwa);
+
+    $("#modalTitle").textContent = "Student Academic Record";
+
+    $("#modalBody").innerHTML = `
+      <div class="student-detail-grid">
+        <div class="detail-cell"><span>Student Name</span><strong>${escapeHTML(student.name)}</strong></div>
+        <div class="detail-cell"><span>Student ID</span><strong>${escapeHTML(student.id)}</strong></div>
+        <div class="detail-cell"><span>Program</span><strong>${escapeHTML(student.program)}</strong></div>
+        <div class="detail-cell"><span>Year Level</span><strong>${escapeHTML(student.year)}</strong></div>
+        <div class="detail-cell"><span>General Weighted Average</span><strong>${Number(student.gwa).toFixed(2)}</strong></div>
+        <div class="detail-cell"><span>Academic Standing</span><strong><span class="standing-badge ${standingClass(standing)}">${escapeHTML(standing)}</span></strong></div>
+        <div class="detail-cell"><span>Attendance</span><strong>${student.attendance}%</strong></div>
+        <div class="detail-cell"><span>Academic Progress</span><strong>${student.progress}%</strong></div>
+        <div class="detail-cell"><span>Record Status</span><strong>${escapeHTML(student.status)}</strong></div>
+      </div>
+
+      <div class="detail-note">
+        ${standing === "At Risk"
+          ? "This student is classified as At Risk based on the current GWA. Academic consultation and follow-up are recommended."
+          : standing === "Needs Monitoring"
+            ? "This student's academic standing should be monitored. Consider checking progress and providing support when necessary."
+            : standing === "Excellent"
+              ? "This student is performing excellently based on the current GWA."
+              : "This student is currently within the Good Standing range."}
+      </div>`;
+
+    $("#modalBackdrop").classList.remove("hidden");
+  }
+
+  $("#studentTable").addEventListener("click", event => {
+    const button = event.target.closest("[data-student-id]");
+    if (button) openStudentRecord(button.dataset.studentId);
+  });
+
+  ["#studentSearch","#studentYearFilter","#studentStandingFilter"].forEach(selector => {
+    $(selector).addEventListener("input", renderStudents);
+    $(selector).addEventListener("change", renderStudents);
+  });
+
+  // --------------------------------------------------
+  // CLASSES AND SCHEDULE
+  // --------------------------------------------------
+
+  function renderClasses() {
+    $("#classTable").innerHTML = classes.map(item => `
+      <tr>
+        <td><strong>${escapeHTML(item.code)}</strong></td>
+        <td>${escapeHTML(item.name)}</td>
+        <td>${escapeHTML(item.section)}</td>
+        <td>${item.students}</td>
+        <td>${escapeHTML(item.schedule)}</td>
+        <td><span class="status-pill success">${escapeHTML(item.status)}</span></td>
+      </tr>`).join("");
+
+    $("#miniClassList").innerHTML = classes.map(item => `
+      <div class="mini-class-item">
+        <div><strong>${escapeHTML(item.code)} · ${escapeHTML(item.name)}</strong><small>${escapeHTML(item.section)} · ${item.students} students</small></div>
+        <b>${item.students}</b>
+      </div>`).join("");
+  }
+
+  function renderSchedule() {
+    const dayOrder = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+    const ordered = [...schedule].sort((a,b) => {
+      const dayDifference = dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+      return dayDifference || a.time.localeCompare(b.time);
     });
 
-    document.addEventListener("keydown", handleModalEscape);
+    $("#scheduleTable").innerHTML = ordered.map(item => `
+      <tr>
+        <td><strong>${escapeHTML(item.day)}</strong></td>
+        <td>${escapeHTML(item.time)}</td>
+        <td>${escapeHTML(item.subject)}</td>
+        <td>${escapeHTML(item.section)}</td>
+        <td>${escapeHTML(item.room)}</td>
+      </tr>`).join("");
+  }
 
-    const firstControl = overlay.querySelector(
-        "button, input, select, textarea"
-    );
+  // --------------------------------------------------
+  // ALERTS AND NOTIFICATIONS
+  // --------------------------------------------------
 
-    if (firstControl) {
-        firstControl.focus();
+  function renderAlerts() {
+    const openAlerts = alerts.filter(alert => alert.open);
+
+    $("#alertTotal").textContent = openAlerts.length;
+    $("#alertNavCount").textContent = openAlerts.length;
+
+    $("#fullAlertList").innerHTML = openAlerts.length ? openAlerts.map(alert => `
+      <div class="alert-item">
+        <div>
+          <strong>${escapeHTML(alert.title)}</strong>
+          <p>${escapeHTML(alert.description)}</p>
+          <p>${escapeHTML(alert.date)}</p>
+        </div>
+        <span class="status-pill ${alert.type === "Urgent" ? "danger" : alert.type === "Reminder" ? "info" : "warning"}">${escapeHTML(alert.type)}</span>
+      </div>`).join("") : `<p>No open alerts. You're all caught up.</p>`;
+
+    renderNotifications();
+  }
+
+  function renderNotifications() {
+    const openAlerts = alerts.filter(alert => alert.open);
+
+    $("#notificationItems").innerHTML = openAlerts.length
+      ? openAlerts.map(alert => `
+        <div class="notification-item">
+          <strong>${escapeHTML(alert.title)}</strong>
+          ${escapeHTML(alert.description)}
+        </div>`).join("")
+      : `<div class="notification-item">No new notifications.</div>`;
+
+    $("#notificationDot").classList.toggle("hidden", notificationsRead || !openAlerts.length);
+    $("#notificationDot").textContent = openAlerts.length;
+  }
+
+  $("#clearAlertsBtn").addEventListener("click", () => {
+    alerts = alerts.map(alert => ({...alert,open:false}));
+    renderAlerts();
+    showToast("All alerts marked as reviewed.");
+  });
+
+  $("#markReadBtn").addEventListener("click", () => {
+    notificationsRead = true;
+    renderNotifications();
+    showToast("Notifications marked as read.");
+  });
+
+  $("#notificationBtn").addEventListener("click", () => {
+    $("#notificationPopover").classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", event => {
+    if (!event.target.closest(".notification-wrap")) {
+      $("#notificationPopover").classList.add("hidden");
     }
-}
+  });
 
+  // --------------------------------------------------
+  // MODAL CONTROLS
+  // --------------------------------------------------
 
-function handleModalEscape(event) {
+  function closeModal() {
+    $("#modalBackdrop").classList.add("hidden");
+  }
+
+  $("#modalClose").addEventListener("click", closeModal);
+  $("#modalCancel").addEventListener("click", closeModal);
+
+  $("#modalBackdrop").addEventListener("click", event => {
+    if (event.target === $("#modalBackdrop")) closeModal();
+  });
+
+  document.addEventListener("keydown", event => {
     if (event.key === "Escape") {
-        closeModal();
+      closeModal();
+      $("#notificationPopover").classList.add("hidden");
     }
-}
+  });
 
+  // --------------------------------------------------
+  // NAVIGATION
+  // --------------------------------------------------
 
-function closeModal() {
-    const modal = document.getElementById("activeModal");
+  function showPage(pageName) {
+    const target = $(`#page-${pageName}`);
+    if (!target) return;
 
-    if (modal) {
-        modal.remove();
-    }
+    $$(".page").forEach(page => page.classList.remove("active"));
+    target.classList.add("active");
 
-    activeModal = null;
-
-    document.body.classList.remove("modal-open");
-
-    document.removeEventListener(
-        "keydown",
-        handleModalEscape
-    );
-}
-
-
-function modalMessage(message) {
-    const body = document.querySelector(
-        "#activeModal .modal-body"
-    );
-
-    if (!body) return;
-
-    const existing = body.querySelector(".success-message");
-
-    if (existing) {
-        existing.remove();
-    }
-
-    body.insertAdjacentHTML(
-        "beforeend",
-        `<div class="success-message">${escapeHTML(message)}</div>`
-    );
-}
-
-
-// 14. ACCOUNT SETTINGS
-
-function openSettings() {
-    const saved = JSON.parse(
-        localStorage.getItem("bsuSettings") || "{}"
-    );
-
-    openModal("Account Settings", `
-        <form id="settingsForm">
-
-            <div class="form-field">
-                <label for="settingEmail">
-                    Email notification address
-                </label>
-
-                <input
-                    id="settingEmail"
-                    type="email"
-                    value="${escapeHTML(saved.email || "faculty.demo@example.com")}"
-                    required
-                >
-            </div>
-
-            <div class="form-field">
-                <label for="settingNotifications">
-                    Email notifications
-                </label>
-
-                <select id="settingNotifications">
-                    <option
-                        value="enabled"
-                        ${saved.notifications !== "disabled" ? "selected" : ""}
-                    >Enabled</option>
-
-                    <option
-                        value="disabled"
-                        ${saved.notifications === "disabled" ? "selected" : ""}
-                    >Disabled</option>
-                </select>
-            </div>
-
-            <div class="form-field">
-                <label for="settingTheme">
-                    Dashboard appearance
-                </label>
-
-                <select id="settingTheme">
-                    <option value="light">Light</option>
-                    <option value="system">System default</option>
-                </select>
-            </div>
-
-            <button type="submit">Save Settings</button>
-        </form>
-    `);
-
-    document.getElementById("settingsForm").addEventListener(
-        "submit",
-        event => {
-            event.preventDefault();
-
-            const settings = {
-                email: document.getElementById("settingEmail").value,
-                notifications: document.getElementById("settingNotifications").value,
-                theme: document.getElementById("settingTheme").value
-            };
-
-            localStorage.setItem(
-                "bsuSettings",
-                JSON.stringify(settings)
-            );
-
-            modalMessage("Settings saved.");
-        }
-    );
-}
-
-
-// 15. SIGN OUT
-
-function signOut() {
-    openModal(
-        "Sign Out",
-        `<p>Are you sure you want to sign out?</p>`,
-        `
-            <button
-                type="button"
-                class="secondary-button"
-                id="cancelSignout"
-            >Cancel</button>
-
-            <button
-                type="button"
-                id="confirmSignout"
-            >Sign Out</button>
-        `
-    );
-
-    document.getElementById("cancelSignout").addEventListener(
-        "click",
-        closeModal
-    );
-
-    document.getElementById("confirmSignout").addEventListener(
-        "click",
-        () => {
-            closeModal();
-
-            const screen = document.createElement("div");
-            screen.className = "signed-out";
-            screen.id = "signedOutScreen";
-
-            screen.innerHTML = `
-                <div class="signed-out-card">
-                    <div
-                        class="seal"
-                        style="margin:0 auto 15px;"
-                    >✺</div>
-
-                    <h2>You have signed out</h2>
-
-                    <p>You have signed out of BSUniSync.</p>
-
-                    <button
-                        type="button"
-                        id="returnPortal"
-                    >Return to Portal</button>
-                </div>
-            `;
-
-            document.body.appendChild(screen);
-
-            document.getElementById("returnPortal").addEventListener(
-                "click",
-                () => {
-                    screen.remove();
-                }
-            );
-        }
-    );
-}
-
-
-// 16. FACULTY PROFILE
-
-function openProfileEditor() {
-    const saved = JSON.parse(
-        localStorage.getItem("bsuProfile") || "{}"
-    );
-
-    openModal("Edit Faculty Profile", `
-        <form id="profileForm">
-
-            <div class="form-field">
-                <label for="facultyName">Faculty name</label>
-
-                <input
-                    id="facultyName"
-                    value="${escapeHTML(saved.name || "FACULTY MEMBER")}"
-                    required
-                >
-            </div>
-
-            <div class="form-field">
-                <label for="facultyProgram">Academic program</label>
-
-                <select id="facultyProgram">
-                    <option>Business Analytics</option>
-                    <option>Information Technology</option>
-                    <option>Computer Science</option>
-                </select>
-            </div>
-
-            <div class="form-field">
-                <label for="facultyEmail">Email address</label>
-
-                <input
-                    id="facultyEmail"
-                    type="email"
-                    value="${escapeHTML(saved.email || "faculty.demo@example.com")}"
-                    required
-                >
-            </div>
-
-            <button type="submit">Save Profile</button>
-        </form>
-    `);
-
-    document.getElementById("profileForm").addEventListener(
-        "submit",
-        event => {
-            event.preventDefault();
-
-            const profile = {
-                name: document.getElementById("facultyName").value,
-                program: document.getElementById("facultyProgram").value,
-                email: document.getElementById("facultyEmail").value
-            };
-
-            localStorage.setItem(
-                "bsuProfile",
-                JSON.stringify(profile)
-            );
-
-            document.getElementById("profileName").textContent =
-                profile.name.toUpperCase();
-
-            modalMessage("Faculty profile updated.");
-        }
-    );
-}
-
-
-// 17. CONTACT FACULTY
-
-function openContact() {
-    const saved = JSON.parse(
-        localStorage.getItem("bsuProfile") || "{}"
-    );
-
-    openModal("Faculty Contact Information", `
-        <h3>Faculty Member</h3>
-
-        <p>
-            <b>Program:</b>
-            ${escapeHTML(saved.program || "Business Analytics")}
-        </p>
-
-        <p>
-            <b>Email:</b>
-            ${escapeHTML(saved.email || "faculty.demo@example.com")}
-        </p>
-
-        <p>
-            <b>Campus:</b>
-            Batangas State University – ARASOF-Nasugbu
-        </p>
-    `);
-}
-
-
-// 18. QUICK LINKS
-
-const quickLinkContent = {
-    mission: {
-        title: "University Mission, Vision and Core Values",
-
-        content: `
-            <h3>University Mission</h3>
-            <p>
-                To develop a world-class university that produces leaders
-                in various fields.
-            </p>
-
-            <h3>University Vision</h3>
-            <p>
-                A premier national university that develops leaders
-                in the global knowledge economy.
-            </p>
-
-            <h3>Core Values</h3>
-
-            <ul>
-                <li>Patriotism</li>
-                <li>Service</li>
-                <li>Integrity</li>
-                <li>Resilience</li>
-                <li>Excellence</li>
-            </ul>
-        `
-    },
-
-    hymn: {
-        title: "University Hymn",
-
-        content: `
-            <p><b>Batangas State University Hymn</b></p>
-        `
-    },
-
-    handbook: {
-        title: "Faculty Handbook",
-
-        content: `
-            <h3>Handbook Topics</h3>
-
-            <ul>
-                <li>Faculty responsibilities</li>
-                <li>Academic policies and procedures</li>
-                <li>Classroom and instructional guidelines</li>
-                <li>Faculty attendance</li>
-                <li>Student assessment and grading</li>
-                <li>Research and extension activities</li>
-            </ul>
-        `
-    }
-};
-
-
-function openQuickLink(key) {
-    const item = quickLinkContent[key];
-
-    if (!item) return;
-
-    openModal(item.title, item.content);
-}
-
-
-// 19. SERVICE DATA
-
-const serviceTitles = {
-    schedule: "Class Schedule",
-    students: "Class List / Student Records",
-    grades: "Grade Submission",
-    sete: "Student Evaluation of Teachers",
-    profile: "Faculty Profile",
-    attendance: "Faculty Attendance",
-    consultation: "Consultation / Advising",
-    research: "Research and Extension",
-    development: "Faculty Development"
-};
-
-
-// 20. CLASS SCHEDULE
-
-function openSchedule() {
-    const rows = [
-        ["Monday", "8:00–10:00 AM", "Business Analytics", "4101", "Room 301"],
-        ["Monday", "1:00–3:00 PM", "Data Analytics", "4201", "Room 302"],
-        ["Tuesday", "9:00–12:00 PM", "Information Systems", "2101", "Laboratory 2"],
-        ["Wednesday", "8:00–10:00 AM", "Business Analytics", "4101", "Room 301"],
-        ["Thursday", "1:00–4:00 PM", "Analytics Applications", "4202", "Laboratory 1"],
-        ["Friday", "9:00–12:00 PM", "Consultation Hours", "—", "Faculty Office"]
-    ];
-
-    const selectedSection =
-        document.getElementById("section").value;
-
-    const selectedSemester =
-        document.getElementById("semester").value;
-
-    const semesterDigit =
-        selectedSemester === "first" ? "1" :
-        selectedSemester === "second" ? "2" :
-        null;
-
-    const visibleRows = rows.filter(row => {
-        const matchesSection =
-            selectedSection === "all" ||
-            row[3] === selectedSection ||
-            row[3] === "—";
-
-        const matchesSemester =
-            !semesterDigit ||
-            row[3] === "—" ||
-            row[3].endsWith(semesterDigit);
-
-        return matchesSection && matchesSemester;
+    $$(".nav-link[data-page]").forEach(link => {
+      link.classList.toggle("active", link.dataset.page === pageName);
     });
 
-    openModal("Class Schedule", `
-        <div class="table-scroll">
-            <table class="modal-table">
-                <thead>
-                    <tr>
-                        <th>Day</th>
-                        <th>Time</th>
-                        <th>Subject</th>
-                        <th>Section</th>
-                        <th>Room</th>
-                    </tr>
-                </thead>
+    $("#sidebar").classList.remove("open");
 
-                <tbody>
-                    ${
-                        visibleRows.map(row => `
-                            <tr>
-                                ${row.map(cell =>
-                                    `<td>${escapeHTML(cell)}</td>`
-                                ).join("")}
-                            </tr>
-                        `).join("") ||
-                        `
-                            <tr>
-                                <td colspan="5">
-                                    No schedule entries match the selected section.
-                                </td>
-                            </tr>
-                        `
-                    }
-                </tbody>
-            </table>
-        </div>
-    `);
-}
+    // Scroll the main content panel, not the whole browser window.
+    // The sidebar remains stationary while the right side changes pages.
+    const mainArea = $(".main-area");
 
-
-// 21. STUDENT RECORDS
-
-function openStudents() {
-    const students = [
-        ["2026-00101", "Alex Santos", "BSIT-BA", "4101", "Enrolled"],
-        ["2026-00102", "Jamie Reyes", "BSIT-BA", "4201", "Enrolled"],
-        ["2026-00103", "Taylor Cruz", "BSIT-NT", "2101", "Enrolled"],
-        ["2026-00104", "Morgan Garcia", "BSIT-NT", "2201", "For verification"],
-        ["2026-00105", "Casey Mendoza", "BSCS", "1101", "Enrolled"],
-        ["2026-00106", "Riley Garcia", "BSIT-BA", "4102", "Enrolled"],
-        ["2026-00107", "Jordan Mendoza", "BSIT-BA", "4202", "Enrolled"],
-        ["2026-00108", "Sam Reyes", "BSCS", "1202", "Enrolled"]
-    ];
-
-    const selectedSection =
-        document.getElementById("section").value;
-
-    const selectedProgram =
-        document.getElementById("department").value;
-
-    const selectedSemester =
-        document.getElementById("semester").value;
-
-    const semesterDigit =
-        selectedSemester === "first" ? "1" :
-        selectedSemester === "second" ? "2" :
-        null;
-
-    const visibleStudents = students.filter(student => {
-        const matchesSection =
-            selectedSection === "all" ||
-            student[3] === selectedSection;
-
-        const matchesSemester =
-            !semesterDigit ||
-            student[3].endsWith(semesterDigit);
-
-        const matchesProgram =
-            selectedProgram === "all" ||
-            (selectedProgram === "it" && student[2] === "BSIT-NT") ||
-            (selectedProgram === "ba" && student[2] === "BSIT-BA") ||
-            (selectedProgram === "cs" && student[2] === "BSCS");
-
-        return matchesSection && matchesSemester && matchesProgram;
-    });
-
-    openModal("Class List / Student Records", `
-        <div class="form-field">
-            <label for="studentSearch">Search student</label>
-
-            <input
-                id="studentSearch"
-                placeholder="Search name, student number, program, or section"
-            >
-        </div>
-
-        <div class="table-scroll">
-            <table class="modal-table">
-                <thead>
-                    <tr>
-                        <th>Student No.</th>
-                        <th>Name</th>
-                        <th>Program / Track</th>
-                        <th>Section</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-
-                <tbody id="studentRows">
-                    ${
-                        visibleStudents.map(student => `
-                            <tr>
-                                ${student.map(cell =>
-                                    `<td>${escapeHTML(cell)}</td>`
-                                ).join("")}
-                            </tr>
-                        `).join("") ||
-                        `
-                            <tr>
-                                <td colspan="5">
-                                    No students match the selected filters.
-                                </td>
-                            </tr>
-                        `
-                    }
-                </tbody>
-            </table>
-        </div>
-    `);
-
-    document.getElementById("studentSearch").addEventListener(
-        "input",
-        event => {
-            const query = event.target.value.toLowerCase();
-
-            const filtered = visibleStudents.filter(student =>
-                student.join(" ").toLowerCase().includes(query)
-            );
-
-            document.getElementById("studentRows").innerHTML =
-                filtered.length
-                    ? filtered.map(student => `
-                        <tr>
-                            ${student.map(cell =>
-                                `<td>${escapeHTML(cell)}</td>`
-                            ).join("")}
-                        </tr>
-                    `).join("")
-                    : `
-                        <tr>
-                            <td colspan="5">No matching students found.</td>
-                        </tr>
-                    `;
-        }
-    );
-}
-
-
-// 22. GRADE SUBMISSION
-
-function openGrades() {
-    const submissions = getStoredArray("bsuGradeSubmissions");
-
-    openModal("Grade Submission", `
-        <form id="gradeForm">
-
-            <div class="form-field">
-                <label for="gradeSubject">Subject</label>
-
-                <select id="gradeSubject" required>
-                    <option value="">Select subject</option>
-                    <option>Business Analytics</option>
-                    <option>Data Analytics</option>
-                    <option>Information Systems</option>
-                    <option>Analytics Applications</option>
-                </select>
-            </div>
-
-            <div class="form-field">
-                <label for="gradeSection">Section</label>
-
-                <input
-                    id="gradeSection"
-                    value="${
-                        document.getElementById("section").value !== "all"
-                            ? document.getElementById("section").value
-                            : ""
-                    }"
-                    placeholder="e.g. 4101"
-                    pattern="[1-4][1-2]0[1-2]"
-                    title="Enter a four-digit section code, such as 4101 or 4102."
-                    required
-                >
-
-                <small class="field-help">
-                    The last digit indicates the semester:
-                    1 for first semester, 2 for second semester.
-                </small>
-            </div>
-
-            <div class="form-field">
-                <label for="gradeCount">Number of students graded</label>
-
-                <input
-                    id="gradeCount"
-                    type="number"
-                    min="1"
-                    max="100"
-                    required
-                >
-            </div>
-
-            <button type="submit">Submit Grades</button>
-        </form>
-
-        <h3>Saved submissions</h3>
-
-        <div id="gradeSubmissionList">
-            ${renderGradeSubmissions(submissions)}
-        </div>
-    `);
-
-    document.getElementById("gradeForm").addEventListener(
-        "submit",
-        event => {
-            event.preventDefault();
-
-            const submission = {
-                subject: document.getElementById("gradeSubject").value,
-                section: document.getElementById("gradeSection").value,
-                count: Number(document.getElementById("gradeCount").value),
-                date: new Date().toLocaleDateString()
-            };
-
-            const updated = getStoredArray("bsuGradeSubmissions");
-
-            updated.push(submission);
-
-            saveStoredArray("bsuGradeSubmissions", updated);
-
-            document.getElementById("gradeSubmissionList").innerHTML =
-                renderGradeSubmissions(updated);
-
-            event.target.reset();
-
-            modalMessage("Grade submission saved.");
-        }
-    );
-}
-
-
-function renderGradeSubmissions(items) {
-    if (!items.length) {
-        return `
-            <p class="empty-message">
-                No submissions recorded yet.
-            </p>
-        `;
+    if (mainArea) {
+      mainArea.scrollTo({
+        top:0,
+        left:0,
+        behavior:"instant"
+      });
     }
 
-    return `
-        <div class="table-scroll">
-            <table class="modal-table">
-                <thead>
-                    <tr>
-                        <th>Subject</th>
-                        <th>Section</th>
-                        <th>Students</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
+    if (pageName === "overview") renderDashboardCharts();
+    if (pageName === "analytics") renderAnalyticsCharts();
+    if (pageName === "evaluation") renderEvaluationCharts();
+  }
 
-                <tbody>
-                    ${items.map(item => `
-                        <tr>
-                            <td>${escapeHTML(item.subject)}</td>
-                            <td>${escapeHTML(item.section)}</td>
-                            <td>${item.count}</td>
-                            <td>${escapeHTML(item.date)}</td>
-                        </tr>
-                    `).join("")}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
+  $$(".nav-link[data-page]").forEach(link => {
+    link.addEventListener("click", () => showPage(link.dataset.page));
+  });
 
+  $$("[data-go]").forEach(button => {
+    button.addEventListener("click", () => showPage(button.dataset.go));
+  });
 
-// 23. SETE RESULTS
+  $("#menuToggle").addEventListener("click", () => {
+    $("#sidebar").classList.toggle("open");
+  });
 
-function openSete() {
-    const data = getDashboardData();
+  $("#profileTrigger").addEventListener("click", () => showPage("profile"));
 
-    openModal("Student Evaluation of Teachers", `
-        <h3>Overall SETE Average</h3>
+  $("#signOutBtn").addEventListener("click", () => {
+    if (confirm("Are you sure you want to sign out?")) {
+      showToast("You have signed out of the demo portal.");
+    }
+  });
 
-        <p style="font-size:30px;color:#20a34a;font-weight:bold;">
-            ${data.sete.toFixed(2)} / 5.00
-        </p>
+  // --------------------------------------------------
+  // GLOBAL SEARCH
+  // --------------------------------------------------
 
-        <h3>Response Participation</h3>
+  $("#globalSearch").addEventListener("keydown", event => {
+    if (event.key !== "Enter") return;
 
-        <p>
-            ${data.responded} out of ${data.students}
-            students (${data.response}%)
-        </p>
+    const query = event.target.value.trim();
+    if (!query) return;
 
-        <h3>Evaluation Dimensions</h3>
+    $("#studentSearch").value = query;
+    $("#studentYearFilter").value = "all";
+    $("#studentStandingFilter").value = "all";
 
-        <table class="modal-table">
-            <tbody>
-                ${Object.entries(data.dimensions).map(([name, score]) => `
-                    <tr>
-                        <td>${escapeHTML(name)}</td>
-                        <td><b>${score.toFixed(2)} / 5</b></td>
-                    </tr>
-                `).join("")}
-            </tbody>
-        </table>
-    `);
-}
+    renderStudents();
+    showPage("students");
+  });
 
+  // --------------------------------------------------
+  // DASHBOARD FILTERS
+  // --------------------------------------------------
 
-// 24. FACULTY PROFILE VIEW
+  function updateDashboardFilters() {
+    const year = $("#yearFilter").value;
+    const semester = $("#semesterFilter").value;
 
-function openProfile() {
-    const profile = JSON.parse(
-        localStorage.getItem("bsuProfile") || "{}"
-    );
+    $("#lastUpdated").textContent =
+      `Showing ${year} · ${semester === "all" ? "Both Semesters" : semester === "1" ? "1st Semester" : "2nd Semester"}`;
+  }
 
-    openModal("Faculty Profile", `
-        <h3>${escapeHTML(profile.name || "FACULTY MEMBER")}</h3>
+  $("#yearFilter").addEventListener("change", updateDashboardFilters);
+  $("#semesterFilter").addEventListener("change", updateDashboardFilters);
 
-        <p>
-            <b>Program:</b>
-            ${escapeHTML(profile.program || "Business Analytics")}
-        </p>
+  $("#resetFilters").addEventListener("click", () => {
+    $("#yearFilter").value = "2025-2026";
+    $("#semesterFilter").value = "all";
+    updateDashboardFilters();
+    showToast("Dashboard filters have been reset.");
+  });
 
-        <p><b>Campus:</b> ARASOF-Nasugbu</p>
+  // --------------------------------------------------
+  // CHART HELPERS
+  // --------------------------------------------------
 
-        <p><b>Faculty Status:</b> Active</p>
+  function chartAvailable() {
+    return typeof Chart !== "undefined";
+  }
 
-        <p>
-            <b>Email:</b>
-            ${escapeHTML(profile.email || "faculty.demo@example.com")}
-        </p>
-
-        <button type="button" id="editProfileFromView">
-            Edit Profile
-        </button>
-    `);
-
-    document.getElementById("editProfileFromView").addEventListener(
-        "click",
-        openProfileEditor
-    );
-}
-
-
-// 25. FACULTY ATTENDANCE
-
-function openAttendance() {
-    const records = [
-        ["November 10, 2026", "Present", "7:45 AM", "4:30 PM"],
-        ["November 11, 2026", "Present", "7:52 AM", "4:35 PM"],
-        ["November 12, 2026", "Present", "7:48 AM", "4:28 PM"],
-        ["November 13, 2026", "Present", "7:55 AM", "4:31 PM"],
-        ["November 16, 2026", "Present", "7:50 AM", "—"]
-    ];
-
-    openModal("Faculty Attendance", `
-        <table class="modal-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Time In</th>
-                    <th>Time Out</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                ${records.map(record => `
-                    <tr>
-                        ${record.map(cell =>
-                            `<td>${escapeHTML(cell)}</td>`
-                        ).join("")}
-                    </tr>
-                `).join("")}
-            </tbody>
-        </table>
-    `);
-}
-
-
-// 26. CONSULTATION / ADVISING
-
-function openConsultation() {
-    const appointments = getStoredArray("bsuConsultations");
-
-    openModal("Consultation / Advising", `
-        <form id="consultationForm">
-
-            <div class="form-field">
-                <label for="consultStudent">Student name</label>
-                <input id="consultStudent" required>
-            </div>
-
-            <div class="form-field">
-                <label for="consultDate">Consultation date</label>
-                <input id="consultDate" type="date" required>
-            </div>
-
-            <div class="form-field">
-                <label for="consultTime">Consultation time</label>
-                <input id="consultTime" type="time" required>
-            </div>
-
-            <div class="form-field">
-                <label for="consultTopic">Consultation topic</label>
-                <textarea id="consultTopic" required></textarea>
-            </div>
-
-            <button type="submit">Save Appointment</button>
-        </form>
-
-        <h3>Saved appointments</h3>
-
-        <div id="consultationList">
-            ${renderConsultations(appointments)}
-        </div>
-    `);
-
-    document.getElementById("consultationForm").addEventListener(
-        "submit",
-        event => {
-            event.preventDefault();
-
-            const appointment = {
-                student: document.getElementById("consultStudent").value,
-                date: document.getElementById("consultDate").value,
-                time: document.getElementById("consultTime").value,
-                topic: document.getElementById("consultTopic").value
-            };
-
-            const updated = getStoredArray("bsuConsultations");
-
-            updated.push(appointment);
-
-            saveStoredArray("bsuConsultations", updated);
-
-            document.getElementById("consultationList").innerHTML =
-                renderConsultations(updated);
-
-            event.target.reset();
-
-            modalMessage("Consultation appointment saved.");
+  function baseChartOptions() {
+    return {
+      responsive:true,
+      maintainAspectRatio:false,
+      animation:{duration:450},
+      plugins:{
+        legend:{
+          labels:{
+            color:getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#a4b0b6",
+            font:{family:"Inter",size:10}
+          }
         }
-    );
-}
+      },
+      scales:{
+        x:{
+          ticks:{color:"#9ba8ae",font:{family:"Inter",size:9}},
+          grid:{color:"rgba(255,255,255,.06)"}
+        },
+        y:{
+          ticks:{color:"#9ba8ae",font:{family:"Inter",size:9}},
+          grid:{color:"rgba(255,255,255,.06)"}
+        }
+      }
+    };
+  }
 
-
-function renderConsultations(items) {
-    if (!items.length) {
-        return `
-            <p class="empty-message">
-                No appointments recorded yet.
-            </p>
-        `;
+  function createChart(id, config) {
+    if (!chartAvailable()) {
+      console.warn("Chart.js is not loaded.");
+      return;
     }
 
-    return `
-        <table class="modal-table">
-            <thead>
-                <tr>
-                    <th>Student</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Topic</th>
-                </tr>
-            </thead>
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
 
-            <tbody>
-                ${items.map(item => `
-                    <tr>
-                        <td>${escapeHTML(item.student)}</td>
-                        <td>${escapeHTML(item.date)}</td>
-                        <td>${escapeHTML(item.time)}</td>
-                        <td>${escapeHTML(item.topic)}</td>
-                    </tr>
-                `).join("")}
-            </tbody>
-        </table>
-    `;
-}
+    if (chartInstances[id]) {
+      chartInstances[id].destroy();
+      delete chartInstances[id];
+    }
 
+    const context = canvas.getContext("2d");
+    if (!context) return;
 
-// 27. RESEARCH AND EXTENSION
+    chartInstances[id] = new Chart(context, config);
+  }
 
-function openResearch() {
-    openModal("Research and Extension", `
-        <table class="modal-table">
-            <thead>
-                <tr>
-                    <th>Activity</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
+  function resizePageCharts(pageId) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const page = document.getElementById(`page-${pageId}`);
+        if (!page) return;
 
-            <tbody>
-                <tr>
-                    <td>Data Analytics Research Proposal</td>
-                    <td>Research</td>
-                    <td>
-                        <span class="status warn">In progress</span>
-                    </td>
-                </tr>
+        page.querySelectorAll("canvas").forEach(canvas => {
+          const chart = chartInstances[canvas.id];
 
-                <tr>
-                    <td>Digital Literacy Seminar</td>
-                    <td>Extension</td>
-                    <td>
-                        <span class="status">Completed</span>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>Student Research Mentoring</td>
-                    <td>Research</td>
-                    <td>
-                        <span class="status warn">Ongoing</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    `);
-}
-
-
-// 28. FACULTY DEVELOPMENT
-
-function openDevelopment() {
-    openModal("Faculty Development", `
-        <table class="modal-table">
-            <thead>
-                <tr>
-                    <th>Activity</th>
-                    <th>Schedule</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <tr>
-                    <td>Outcomes-Based Education Workshop</td>
-                    <td>November 20, 2026</td>
-                    <td>
-                        <span class="status warn">Upcoming</span>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>Research Methods Seminar</td>
-                    <td>December 4, 2026</td>
-                    <td>
-                        <span class="status warn">Upcoming</span>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>Digital Teaching Tools Training</td>
-                    <td>October 15, 2026</td>
-                    <td>
-                        <span class="status">Completed</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    `);
-}
-
-
-// 29. SERVICE ROUTER
-
-const serviceActions = {
-    schedule: openSchedule,
-    students: openStudents,
-    grades: openGrades,
-    sete: openSete,
-    profile: openProfile,
-    attendance: openAttendance,
-    consultation: openConsultation,
-    research: openResearch,
-    development: openDevelopment
-};
-
-
-document.querySelectorAll("[data-service]").forEach(button => {
-    button.addEventListener("click", () => {
-        const service = button.dataset.service;
-
-        if (serviceActions[service]) {
-            serviceActions[service]();
-        }
+          if (chart) {
+            chart.resize();
+            chart.update("none");
+          }
+        });
+      });
     });
+  }
+
+  // --------------------------------------------------
+  // OVERVIEW CHARTS
+  // --------------------------------------------------
+
+  function renderDashboardCharts() {
+    if (!chartAvailable()) return;
+
+    createChart("performanceChart", {
+      type:"line",
+      data:{
+        labels:["2023–2024","1st Sem 2024–2025","2nd Sem 2024–2025","1st Sem 2025–2026"],
+        datasets:[{
+          label:"Academic Performance",
+          data:[84,86,88,91],
+          borderColor:"#168fa0",
+          backgroundColor:"rgba(22,143,160,.15)",
+          fill:true,
+          tension:.35,
+          borderWidth:2.5,
+          pointRadius:4,
+          pointBackgroundColor:"#168fa0"
+        }]
+      },
+      options:{
+        ...baseChartOptions(),
+        plugins:{legend:{display:false}},
+        scales:{
+          y:{
+            min:70,
+            max:100,
+            ticks:{color:"#9ba8ae",callback:value=>value+"%"},
+            grid:{color:"rgba(255,255,255,.06)"}
+          },
+          x:{
+            ticks:{color:"#9ba8ae"},
+            grid:{display:false}
+          }
+        }
+      }
+    });
+
+    createChart("seteChart", {
+      type:"doughnut",
+      data:{
+        labels:["Very Satisfactory","Satisfactory","Needs Improvement"],
+        datasets:[{
+          data:[72,21,7],
+          backgroundColor:["#188b45","#168fa0","#398bb6"],
+          borderWidth:0,
+          hoverOffset:5
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        cutout:"76%",
+        plugins:{legend:{display:false}}
+      }
+    });
+
+    resizePageCharts("overview");
+  }
+
+  // --------------------------------------------------
+  // ANALYTICS CHARTS
+  // --------------------------------------------------
+
+  function renderAnalyticsCharts() {
+    if (!chartAvailable()) return;
+
+    createChart("passingTrendChart", {
+      type:"line",
+      data:{
+        labels:["2023–2024","1st Sem 2024–2025","2nd Sem 2024–2025","1st Sem 2025–2026"],
+        datasets:[{
+          label:"Passing Rate",
+          data:[84,86,88,89.2],
+          borderColor:"#168fa0",
+          backgroundColor:"rgba(22,143,160,.13)",
+          fill:true,
+          tension:.35,
+          borderWidth:2.5,
+          pointRadius:4
+        }]
+      },
+      options:{
+        ...baseChartOptions(),
+        scales:{
+          y:{
+            min:70,
+            max:100,
+            ticks:{color:"#9ba8ae",callback:value=>value+"%"},
+            grid:{color:"rgba(255,255,255,.06)"}
+          },
+          x:{
+            ticks:{color:"#9ba8ae"},
+            grid:{display:false}
+          }
+        }
+      }
+    });
+
+    createChart("gradeChart", {
+      type:"bar",
+      data:{
+        labels:["1.00–1.50","1.51–2.00","2.01–2.25","2.26–2.75","Above 2.75"],
+        datasets:[{
+          label:"Students",
+          data:[42,96,118,58,28],
+          backgroundColor:["#188b45","#168fa0","#398bb6","#c99539","#d92332"],
+          borderRadius:5,
+          maxBarThickness:42
+        }]
+      },
+      options:{
+        ...baseChartOptions(),
+        plugins:{legend:{display:false}},
+        scales:{
+          y:{
+            beginAtZero:true,
+            ticks:{color:"#9ba8ae",precision:0},
+            grid:{color:"rgba(255,255,255,.06)"}
+          },
+          x:{
+            ticks:{color:"#9ba8ae",maxRotation:0,minRotation:0},
+            grid:{display:false}
+          }
+        }
+      }
+    });
+
+    createChart("subjectChart", {
+      type:"bar",
+      data:{
+        labels:classes.map(item => item.code),
+        datasets:[{
+          label:"Passing Rate",
+          data:subjectPassingRates,
+          backgroundColor:["#168fa0","#398bb6","#188b45","#d1a34c","#168fa0","#398bb6"],
+          borderRadius:6,
+          borderSkipped:false,
+          barThickness:24
+        }]
+      },
+      options:{
+        indexAxis:"y",
+        responsive:true,
+        maintainAspectRatio:false,
+        animation:{duration:500},
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            callbacks:{
+              label:context => ` Passing Rate: ${context.raw}%`
+            }
+          }
+        },
+        scales:{
+          x:{
+            min:0,
+            max:100,
+            ticks:{color:"#a4b0b6",callback:value=>value+"%",stepSize:20},
+            grid:{color:"rgba(255,255,255,.07)"}
+          },
+          y:{
+            beginAtZero:true,
+            ticks:{color:"#e0e7e9",font:{family:"Inter",size:11,weight:"600"}},
+            grid:{display:false}
+          }
+        }
+      }
+    });
+
+    resizePageCharts("analytics");
+  }
+
+  // --------------------------------------------------
+  // EVALUATION CHARTS
+  // --------------------------------------------------
+
+  function renderEvaluationCharts() {
+    if (!chartAvailable()) return;
+
+    createChart("dimensionChart", {
+      type:"bar",
+      data:{
+        labels:["Subject Knowledge","Communication","Class Management","Learning Support","Professionalism"],
+        datasets:[{
+          label:"Average Rating",
+          data:[4.4,4.3,4.2,4.25,4.35],
+          backgroundColor:["#168fa0","#398bb6","#188b45","#168fa0","#398bb6"],
+          borderRadius:5,
+          maxBarThickness:38
+        }]
+      },
+      options:{
+        ...baseChartOptions(),
+        plugins:{legend:{display:false}},
+        scales:{
+          y:{
+            min:0,
+            max:5,
+            ticks:{color:"#9ba8ae",stepSize:1},
+            grid:{color:"rgba(255,255,255,.06)"}
+          },
+          x:{
+            ticks:{color:"#9ba8ae",font:{size:8}},
+            grid:{display:false}
+          }
+        }
+      }
+    });
+
+    createChart("evaluationChart", {
+      type:"doughnut",
+      data:{
+        labels:["Very Satisfactory","Satisfactory","Needs Improvement"],
+        datasets:[{
+          data:[72,21,7],
+          backgroundColor:["#188b45","#168fa0","#398bb6"],
+          borderWidth:0
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        cutout:"65%",
+        plugins:{
+          legend:{
+            position:"bottom",
+            labels:{color:"#a4b0b6",padding:15,font:{size:9}}
+          }
+        }
+      }
+    });
+
+    resizePageCharts("evaluation");
+  }
+
+  // --------------------------------------------------
+  // PROFILE AND SETTINGS
+  // --------------------------------------------------
+
+  const savedProfile = JSON.parse(localStorage.getItem("bsunisyncProfile") || "{}");
+  const initialName = savedProfile.name || "Faculty Member";
+
+  function updateFacultyName(name) {
+    const cleanName = name.trim() || "Faculty Member";
+
+    $("#welcomeName").textContent = cleanName;
+    $("#topFacultyName").textContent = cleanName;
+    $("#profileNameHeading").textContent = cleanName;
+    $(".profile-trigger .avatar").textContent = getInitials(cleanName);
+    $(".profile-large .avatar").textContent = getInitials(cleanName);
+  }
+
+  $("#facultyName").value = initialName;
+  updateFacultyName(initialName);
+
+  if (savedProfile.theme === "light") {
+    document.body.classList.add("light-theme");
+    $("#themeSelect").value = "light";
+  }
+
+  $("#profileForm").addEventListener("submit", event => {
+    event.preventDefault();
+
+    const name = $("#facultyName").value.trim() || "Faculty Member";
+    const theme = $("#themeSelect").value;
+
+    localStorage.setItem("bsunisyncProfile", JSON.stringify({name,theme}));
+    updateFacultyName(name);
+
+    document.body.classList.toggle("light-theme", theme === "light");
+
+    Object.keys(chartInstances).forEach(id => {
+      const chart = chartInstances[id];
+
+      if (chart) {
+        chart.options.plugins.legend.labels.color =
+          getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#a4b0b6";
+
+        chart.update();
+      }
+    });
+
+    showToast("Profile and settings saved successfully.");
+  });
+
+  $("#themeSelect").addEventListener("change", event => {
+    document.body.classList.toggle("light-theme", event.target.value === "light");
+  });
+
+  // --------------------------------------------------
+  // PRINT
+  // --------------------------------------------------
+
+  $("#printSchedule").addEventListener("click", () => window.print());
+
+  // --------------------------------------------------
+  // INITIAL RENDER
+  // --------------------------------------------------
+
+  renderStudentSummary();
+  renderStudents();
+  renderClasses();
+  renderSchedule();
+  renderAlerts();
+  renderNotifications();
+  updateDashboardFilters();
+
+  renderDashboardCharts();
+
+  // Resize charts when the browser dimensions change.
+  window.addEventListener("resize", () => {
+    Object.values(chartInstances).forEach(chart => {
+      if (chart) chart.resize();
+    });
+  });
+
+  // Recover charts if a page becomes visible after browser layout changes.
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      const activePage = $(".page.active");
+      if (!activePage) return;
+
+      const pageName = activePage.id.replace("page-","");
+
+      if (pageName === "overview") renderDashboardCharts();
+      if (pageName === "analytics") renderAnalyticsCharts();
+      if (pageName === "evaluation") renderEvaluationCharts();
+    }
+  });
 });
-
-
-// 30. ANNOUNCEMENTS
-
-const announcements = {
-    privacy: {
-        title: "Student Data Privacy Advisory",
-
-        body: `
-            <p>
-                Faculty members are reminded to protect student records
-                and account credentials.
-            </p>
-
-            <ul>
-                <li>
-                    Access student information only for authorized
-                    academic purposes.
-                </li>
-
-                <li>
-                    Do not share account credentials with other individuals.
-                </li>
-
-                <li>
-                    Keep printed and digital student records secure.
-                </li>
-
-                <li>
-                    Use approved channels when handling confidential
-                    academic information.
-                </li>
-            </ul>
-        `
-    },
-
-    meeting: {
-        title: "Faculty Meeting and Academic Planning Notice",
-
-        body: `
-            <p><b>Office:</b> Office of the Dean</p>
-
-            <p>
-                <b>Subject:</b>
-                Faculty Meeting and Academic Planning
-            </p>
-
-            <p>
-                Faculty members are reminded to prepare their academic
-                updates, course progress, and items for departmental discussion.
-            </p>
-        `
-    },
-
-    grades: {
-        title: "Deadline for Grade Submission",
-
-        body: `
-            <p><b>Subject:</b> Grade Submission Reminder</p>
-
-            <p>
-                Faculty members should review their class records and ensure
-                that grades are complete before the official submission deadline.
-            </p>
-        `
-    },
-
-    development: {
-        title: "Faculty Development Activities",
-
-        body: `
-            <p>
-                Faculty members are encouraged to participate in professional
-                development activities, workshops, seminars, and training programs.
-            </p>
-
-            <p>
-                Participation can support instructional improvement
-                and professional growth.
-            </p>
-        `
-    }
-};
-
-
-function openAnnouncement(key) {
-    const item = announcements[key];
-
-    if (!item) return;
-
-    openModal(item.title, item.body);
-}
-
-
-document.querySelectorAll("[data-announcement]").forEach(button => {
-    button.addEventListener("click", () => {
-        openAnnouncement(button.dataset.announcement);
-    });
-});
-
-
-// 31. GENERAL ACTION ROUTER
-
-const generalActions = {
-    settings: openSettings,
-    signout: signOut,
-    "edit-profile": openProfileEditor,
-    contact: openContact,
-    mission: () => openQuickLink("mission"),
-    hymn: () => openQuickLink("hymn"),
-    handbook: () => openQuickLink("handbook")
-};
-
-
-document.querySelectorAll("[data-action]").forEach(button => {
-    button.addEventListener("click", () => {
-        const action = button.dataset.action;
-
-        if (generalActions[action]) {
-            generalActions[action]();
-        }
-    });
-});
-
-
-// 32. LOAD SAVED PROFILE
-
-function loadSavedProfile() {
-    try {
-        const saved = JSON.parse(
-            localStorage.getItem("bsuProfile") || "{}"
-        );
-
-        if (saved.name) {
-            document.getElementById("profileName").textContent =
-                saved.name.toUpperCase();
-        }
-    } catch (error) {
-        console.warn("Could not load saved profile.", error);
-    }
-}
-
-loadSavedProfile();
-
-
-// 33. INITIALIZATION
-
-console.log("BSUniSync portal initialized.");

@@ -1,304 +1,294 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSUniSync</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BSUniSync | Faculty Portal</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
-
-<header>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
     <div class="brand">
-        <div class="seal">✺</div>
-        BSUniSync
+      <img src="./images/BSUniSync-logo.jpg" alt="BSUniSync logo" class="brand-logo">
     </div>
 
-    <div class="datetime">
-        <span id="date"></span>
-        <strong id="clock"></strong>
+    <nav class="side-nav">
+      <div class="nav-group">
+        <p class="nav-heading">DASHBOARD</p>
+        <button class="nav-link active" data-page="overview"><span class="nav-icon">⌂</span><span>Overview</span></button>
+      </div>
+
+      <div class="nav-group">
+        <p class="nav-heading">ACADEMIC WORKSPACE</p>
+        <button class="nav-link" data-page="students"><span class="nav-icon">♙</span><span>Student Records</span></button>
+        <button class="nav-link" data-page="classes"><span class="nav-icon">▤</span><span>Classes &amp; Subjects</span></button>
+        <button class="nav-link" data-page="schedule"><span class="nav-icon">▦</span><span>Teaching Schedule</span></button>
+        <button class="nav-link" data-page="analytics"><span class="nav-icon">▥</span><span>Academic Analytics</span></button>
+      </div>
+
+      <div class="nav-group">
+        <p class="nav-heading">FACULTY WORKSPACE</p>
+        <button class="nav-link" data-page="evaluation"><span class="nav-icon">☆</span><span>Teaching Evaluation</span></button>
+        <button class="nav-link" data-page="alerts">
+          <span class="nav-icon">♧</span><span>Academic Alerts</span>
+          <span class="nav-count" id="alertNavCount">3</span>
+        </button>
+      </div>
+
+      <div class="nav-group account-group">
+        <p class="nav-heading">ACCOUNT</p>
+        <button class="nav-link" data-page="profile"><span class="nav-icon">♙</span><span>Profile &amp; Settings</span></button>
+        <button class="nav-link" id="signOutBtn"><span class="nav-icon">⇥</span><span>Sign Out</span></button>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">BSUniSync Faculty Portal <span>v1.0</span></div>
+  </aside>
+
+  <main class="main-area">
+    <header class="topbar">
+      <button class="icon-button menu-toggle" id="menuToggle" aria-label="Toggle sidebar">☰</button>
+      <div class="topbar-brand"><strong>BSUni<span>Sync</span></strong><small>Faculty Portal</small></div>
+      <div class="topbar-spacer"></div>
+
+      <label class="global-search">
+        <span>⌕</span>
+        <input id="globalSearch" type="search" placeholder="Search students, subjects, or sections...">
+        <kbd>Enter</kbd>
+      </label>
+
+      <div class="notification-wrap">
+        <button class="icon-button notification-button" id="notificationBtn" aria-label="Notifications">
+          ♧<span class="notification-dot" id="notificationDot">3</span>
+        </button>
+        <div class="notification-popover hidden" id="notificationPopover">
+          <div class="popover-title"><strong>Notifications</strong><button id="markReadBtn">Mark all read</button></div>
+          <div id="notificationItems"></div>
+        </div>
+      </div>
+
+      <button class="profile-trigger" id="profileTrigger">
+        <span class="avatar">FM</span>
+        <span class="profile-meta"><strong id="topFacultyName">Faculty Member</strong><small>Faculty Member</small></span>
+        <span>⌄</span>
+      </button>
+    </header>
+
+    <div class="content-area">
+      <section class="page active" id="page-overview">
+        <div class="welcome-banner">
+          <div class="welcome-copy">
+            <span class="eyebrow">FACULTY DASHBOARD</span>
+            <h1>Good day, <span id="welcomeName">Faculty Member</span>!</h1>
+            <p>Here's your academic overview for the current term.</p>
+          </div>
+
+          <div class="filter-row">
+            <label>Academic Year
+              <select id="yearFilter">
+                <option value="2025-2026">2025–2026</option>
+                <option value="2024-2025">2024–2025</option>
+                <option value="2023-2024">2023–2024</option>
+              </select>
+            </label>
+            <label>Semester
+              <select id="semesterFilter">
+                <option value="all">Both Semesters</option>
+                <option value="1">1st Semester</option>
+                <option value="2">2nd Semester</option>
+              </select>
+            </label>
+            <button class="button button-outline" id="resetFilters">↻ Reset</button>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <div><span class="section-mark"></span><h2>At a glance</h2><small>Key academic indicators</small></div>
+          <span class="muted-text" id="lastUpdated">Updated just now</span>
+        </div>
+
+        <div class="kpi-grid">
+          <article class="kpi-card red-card"><div class="kpi-icon">♙</div><div class="kpi-info"><span>Total Students</span><strong id="kpiStudents">342</strong><small class="positive">↑ 4.1% from previous term</small></div><span class="kpi-decoration">01</span></article>
+          <article class="kpi-card teal-card"><div class="kpi-icon">▤</div><div class="kpi-info"><span>Subject Passing Rate</span><strong id="kpiPassing">89.2%</strong><small class="positive">↑ 1.2% from previous term</small></div><span class="kpi-decoration">02</span></article>
+          <article class="kpi-card green-card"><div class="kpi-icon">☆</div><div class="kpi-info"><span>SETE Rating</span><strong id="kpiSete">4.28<span class="small-unit">/5</span></strong><small class="positive">↑ 0.1 from previous term</small></div><span class="kpi-decoration">03</span></article>
+          <article class="kpi-card blue-card"><div class="kpi-icon">♧</div><div class="kpi-info"><span>On-Time Graduation</span><strong id="kpiCompletion">88.0%</strong><small class="positive">↑ 0.3% from previous term</small></div><span class="kpi-decoration">04</span></article>
+          <article class="kpi-card risk-card"><div class="kpi-icon">!</div><div class="kpi-info"><span>At Risk Students</span><strong id="kpiAtRisk">0</strong><small id="kpiAtRiskDetail">Based on current student records</small></div><span class="kpi-decoration">05</span></article>
+        </div>
+
+        <div class="dashboard-grid two-columns">
+          <article class="panel">
+            <div class="panel-header"><div><h3>Academic Performance</h3><p>Student performance across recent terms</p></div><button class="text-button" data-go="analytics">View details →</button></div>
+            <div class="chart-wrap"><canvas id="performanceChart"></canvas></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header"><div><h3>Teaching Effectiveness</h3><p>Student evaluation distribution</p></div><button class="text-button" data-go="evaluation">View details →</button></div>
+            <div class="donut-layout">
+              <div class="donut-wrap"><canvas id="seteChart"></canvas><div class="donut-center"><strong>4.28</strong><small>Overall rating</small></div></div>
+              <div class="legend-list">
+                <div><i class="legend-dot green"></i><span>Very Satisfactory</span><strong>72%</strong></div>
+                <div><i class="legend-dot teal"></i><span>Satisfactory</span><strong>21%</strong></div>
+                <div><i class="legend-dot blue"></i><span>Needs Improvement</span><strong>7%</strong></div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="dashboard-grid bottom-columns">
+          <article class="panel">
+            <div class="panel-header"><div><h3>Announcements</h3><p>Updates and faculty reminders</p></div><button class="text-button" data-go="alerts">View alerts →</button></div>
+            <div class="announcement-list" id="announcementList">
+              <div class="announcement"><span class="announcement-icon red-bg">!</span><div><strong>System Maintenance</strong><p>The portal will undergo scheduled maintenance this weekend.</p><small>November 15, 2026</small></div></div>
+              <div class="announcement"><span class="announcement-icon teal-bg">i</span><div><strong>Faculty Development Program</strong><p>Check the faculty development schedule and registration details.</p><small>November 12, 2026</small></div></div>
+              <div class="announcement"><span class="announcement-icon green-bg">✓</span><div><strong>Updated Grading Policy</strong><p>Please review the latest grading guidelines and reminders.</p><small>November 10, 2026</small></div></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header"><div><h3>Quick Actions</h3><p>Frequently used academic tools</p></div></div>
+            <div class="quick-action-grid">
+              <button class="quick-action" data-go="students"><span>♙</span>Student Records <b>→</b></button>
+              <button class="quick-action" data-go="schedule"><span>▦</span>Class Schedule <b>→</b></button>
+              <button class="quick-action" data-go="classes"><span>▤</span>My Classes <b>→</b></button>
+              <button class="quick-action" data-go="alerts"><span>♧</span>View Alerts <b>→</b></button>
+            </div>
+          </article>
+        </div>
+
+        <div class="dashboard-grid two-columns">
+          <article class="panel">
+            <div class="panel-header"><div><h3>My Teaching Load</h3><p>Current assigned classes</p></div><button class="text-button" data-go="classes">View classes →</button></div>
+            <div class="mini-class-list" id="miniClassList"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header"><div><h3>Priority Follow-up</h3><p>Items that may need your attention</p></div><button class="text-button" data-go="alerts">See all →</button></div>
+            <div class="followup-list">
+              <div><span class="status-pill danger">Urgent</span><p><strong>Grade submission</strong><small>2 classes have pending grade entries.</small></p></div>
+              <div><span class="status-pill warning">Review</span><p><strong>Student consultation</strong><small>3 students have requested a consultation.</small></p></div>
+              <div><span class="status-pill info">Reminder</span><p><strong>SETE evaluation</strong><small>Evaluation period is currently open.</small></p></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" id="page-students">
+        <div class="page-title">
+          <div><span class="eyebrow">ACADEMIC WORKSPACE</span><h1>Student Records</h1><p>Monitor student academic standing and review individual student records.</p></div>
+        </div>
+
+        <div class="standing-summary-grid">
+          <article class="standing-summary-card"><div class="standing-summary-icon total-icon">♙</div><div><span>Total Students</span><strong id="studentTotalCount">8</strong></div></article>
+          <article class="standing-summary-card excellent-summary"><div class="standing-summary-icon excellent-icon">★</div><div><span>Excellent</span><strong id="excellentCount">1</strong></div></article>
+          <article class="standing-summary-card good-summary"><div class="standing-summary-icon good-icon">✓</div><div><span>Good Standing</span><strong id="goodStandingCount">5</strong></div></article>
+          <article class="standing-summary-card monitoring-summary"><div class="standing-summary-icon monitoring-icon">◷</div><div><span>Needs Monitoring</span><strong id="monitoringCount">0</strong></div></article>
+          <article class="standing-summary-card risk-summary"><div class="standing-summary-icon risk-icon">!</div><div><span>At Risk</span><strong id="studentRiskCount">2</strong></div></article>
+        </div>
+
+        <article class="panel student-record-panel">
+          <div class="student-record-heading"><div><h3>Academic Records Overview</h3><p>Student classification based on General Weighted Average (GWA).</p></div><span class="record-count" id="studentResultCount">8 records</span></div>
+          <div class="table-toolbar student-toolbar">
+            <input id="studentSearch" type="search" placeholder="Search student name, ID, or program...">
+            <select id="studentYearFilter"><option value="all">All year levels</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select>
+            <select id="studentStandingFilter">
+              <option value="all">All academic standings</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Good Standing">Good Standing</option>
+              <option value="Needs Monitoring">Needs Monitoring</option>
+              <option value="At Risk">At Risk</option>
+              <option value="No GWA">No GWA</option>
+            </select>
+          </div>
+
+          <div class="standing-guide">
+            <span><i class="guide-dot excellent-dot"></i>Excellent: 1.00–1.50</span>
+            <span><i class="guide-dot good-dot"></i>Good Standing: 1.51–2.25</span>
+            <span><i class="guide-dot monitoring-dot"></i>Needs Monitoring: 2.26–2.75</span>
+            <span><i class="guide-dot risk-dot"></i>At Risk: Above 2.75</span>
+          </div>
+
+          <div class="table-scroll">
+            <table class="student-table">
+              <thead><tr><th>Student ID</th><th>Student Name</th><th>Program</th><th>Year Level</th><th>GWA</th><th>Academic Standing</th><th>Record Status</th><th>Action</th></tr></thead>
+              <tbody id="studentTable"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section class="page" id="page-classes">
+        <div class="page-title"><div><span class="eyebrow">ACADEMIC WORKSPACE</span><h1>Classes &amp; Subjects</h1><p>Your assigned subjects, sections, and class information.</p></div><button class="button button-primary" data-go="schedule">View Schedule</button></div>
+        <div class="stat-strip"><div><span>Assigned Subjects</span><strong>6</strong></div><div><span>Sections</span><strong>6</strong></div><div><span>Total Class Students</span><strong>186</strong></div></div>
+        <article class="panel"><div class="panel-header"><div><h3>Assigned Subjects</h3><p>Current academic term</p></div></div><div class="table-scroll"><table><thead><tr><th>Subject Code</th><th>Subject Name</th><th>Section</th><th>Students</th><th>Schedule</th><th>Status</th></tr></thead><tbody id="classTable"></tbody></table></div></article>
+      </section>
+
+      <section class="page" id="page-schedule">
+        <div class="page-title"><div><span class="eyebrow">ACADEMIC WORKSPACE</span><h1>Teaching Schedule</h1><p>Keep track of your class meetings and teaching hours.</p></div><button class="button button-outline" id="printSchedule">Print Schedule</button></div>
+        <article class="panel"><div class="panel-header"><div><h3>Weekly Class Schedule</h3><p>Monday to Saturday</p></div><span class="status-pill info">1st Semester</span></div><div class="table-scroll"><table><thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Section</th><th>Room</th></tr></thead><tbody id="scheduleTable"></tbody></table></div></article>
+      </section>
+
+      <section class="page" id="page-analytics">
+        <div class="page-title"><div><span class="eyebrow">ACADEMIC WORKSPACE</span><h1>Academic Analytics</h1><p>Monitor student progress and class performance.</p></div></div>
+        <div class="dashboard-grid two-columns">
+          <article class="panel"><div class="panel-header"><div><h3>Passing Rate Trend</h3><p>Performance over recent terms</p></div></div><div class="chart-wrap tall"><canvas id="passingTrendChart"></canvas></div></article>
+          <article class="panel"><div class="panel-header"><div><h3>Grade Distribution</h3><p>Current student grade profile</p></div></div><div class="chart-wrap tall"><canvas id="gradeChart"></canvas></div></article>
+        </div>
+        <article class="panel analytics-subject-panel"><div class="panel-header"><div><h3>Subject Performance</h3><p>Passing rate by assigned subject</p></div></div><div class="chart-wrap tall"><canvas id="subjectChart"></canvas></div></article>
+      </section>
+
+      <section class="page" id="page-evaluation">
+        <div class="page-title"><div><span class="eyebrow">FACULTY WORKSPACE</span><h1>Teaching Evaluation</h1><p>Review Student Evaluation of Teaching Effectiveness results.</p></div></div>
+        <div class="kpi-grid three-kpis">
+          <article class="kpi-card green-card"><div class="kpi-info"><span>Overall SETE Rating</span><strong>4.28/5</strong><small class="positive">Very Satisfactory</small></div></article>
+          <article class="kpi-card teal-card"><div class="kpi-info"><span>Response Rate</span><strong>68%</strong><small>Across assigned classes</small></div></article>
+          <article class="kpi-card blue-card"><div class="kpi-info"><span>Evaluated Sections</span><strong>5/6</strong><small>One section pending</small></div></article>
+        </div>
+        <div class="dashboard-grid two-columns">
+          <article class="panel"><div class="panel-header"><div><h3>Evaluation Dimensions</h3><p>Average rating per dimension</p></div></div><div class="chart-wrap tall"><canvas id="dimensionChart"></canvas></div></article>
+          <article class="panel"><div class="panel-header"><div><h3>Rating Distribution</h3><p>Student evaluation summary</p></div></div><div class="chart-wrap tall"><canvas id="evaluationChart"></canvas></div></article>
+        </div>
+      </section>
+
+      <section class="page" id="page-alerts">
+        <div class="page-title"><div><span class="eyebrow">FACULTY WORKSPACE</span><h1>Academic Alerts</h1><p>Items requiring attention and follow-up.</p></div><button class="button button-outline" id="clearAlertsBtn">Mark all reviewed</button></div>
+        <div class="alert-summary"><div><strong id="alertTotal">3</strong><span>Open alerts</span></div><div><strong>2</strong><span>Grade reminders</span></div><div><strong>1</strong><span>Student concern</span></div></div>
+        <article class="panel"><div class="panel-header"><div><h3>Recent Alerts &amp; Reminders</h3><p>Review each item and take appropriate action.</p></div></div><div class="full-alert-list" id="fullAlertList"></div></article>
+      </section>
+
+      <section class="page" id="page-profile">
+        <div class="page-title"><div><span class="eyebrow">ACCOUNT</span><h1>Profile &amp; Settings</h1><p>Manage your faculty information and portal preferences.</p></div></div>
+        <article class="panel profile-panel">
+          <div class="profile-large"><span class="avatar avatar-large">FM</span><div><h2 id="profileNameHeading">Faculty Member</h2><p>Faculty Member</p></div></div>
+          <form id="profileForm" class="settings-form">
+            <label>Display Name<input id="facultyName" value="Faculty Member" required></label>
+            <label>Faculty ID<input placeholder="Enter faculty ID"></label>
+            <label>Department<input placeholder="Enter department"></label>
+            <label>Email Address<input type="email" placeholder="Enter email address"></label>
+            <label>Position<input value="Faculty Member"></label>
+            <label>Theme<select id="themeSelect"><option value="dark">Dark workspace</option><option value="light">Light workspace</option></select></label>
+            <button class="button button-primary" type="submit">Save Changes</button>
+          </form>
+        </article>
+      </section>
     </div>
-</header>
-
-<div class="loading">Faculty Portal</div>
-
-<div class="accountbar">
-    <button class="text-button" type="button" data-action="settings">⚙ Account Settings</button>
-    <button class="text-button" type="button" data-action="signout">⏻ Sign-out</button>
+  </main>
 </div>
 
-<section class="profile">
-    <div class="profile-avatar">
-        <svg width="65" height="65" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="1.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
-        </svg>
-    </div>
+<div class="modal-backdrop hidden" id="modalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header"><h2 id="modalTitle">Details</h2><button class="icon-button" id="modalClose" aria-label="Close">×</button></div>
+    <div id="modalBody"></div>
+    <div class="modal-footer"><button class="button button-outline" id="modalCancel">Close</button><button class="button button-primary hidden" id="modalConfirm">Confirm</button></div>
+  </div>
+</div>
 
-    <div class="profile-info">
-        <h2 id="profileName">FACULTY MEMBER</h2>
-        <p>Faculty Profile</p>
-        <p class="profile-actions">
-            <button type="button" class="icon-button" data-action="contact" aria-label="Contact faculty">✉</button>
-            <button type="button" class="icon-button" data-action="edit-profile" aria-label="Edit faculty profile">✎</button>
-        </p>
-    </div>
-
-    <div class="profile-details">
-        <b id="profileSemester">› FIRST SEMESTER AY 2026–2027</b><br>
-        › College of Informatics and Computing Sciences – ARASOF-Nasugbu<br>
-        › <b>Faculty Member</b> – BSIT Business Analytics Track<br>
-        › Faculty Status: <span class="active">ACTIVE</span>
-    </div>
-</section>
-
-<nav class="quicklinks">
-    <button type="button" data-action="handbook">Faculty Handbook⌄</button>
-</nav>
-
-<main>
-
-    <section class="section">
-        <h2>Faculty Analytics Overview</h2>
-
-        <div class="filters">
-            <b>FILTER BY:</b>
-
-            <select id="year" aria-label="Academic year">
-                <option value="2026-2027">AY 2026–2027</option>
-                <option value="2025-2026">AY 2025–2026</option>
-            </select>
-
-            <select id="semester" aria-label="Semester">
-                <option value="first">First Semester</option>
-                <option value="second">Second Semester</option>
-                <option value="summer">Summer</option>
-            </select>
-
-            <select id="department" aria-label="Program or track">
-                <option value="all">All Programs / Tracks</option>
-                <option value="it">BSIT – Network Technology</option>
-                <option value="ba">BSIT – Business Analytics</option>
-                <option value="cs">BSCS – Computer Science</option>
-            </select>
-
-            <select id="section" aria-label="Class section">
-                <option value="all">All Sections</option>
-            </select>
-
-            <button type="button" id="resetFilters">Reset</button>
-        </div>
-
-        <div class="kpis">
-            <div class="kpi">
-                <div class="kpi-icon">▣</div>
-                <small>Teaching Load</small>
-                <strong id="teachingLoad">18 Units</strong>
-                <span id="classes">6 assigned classes</span>
-            </div>
-
-            <div class="kpi">
-                <div class="kpi-icon">♧</div>
-                <small>Enrolled Students</small>
-                <strong id="students">186</strong>
-                <span>Across selected program(s)</span>
-            </div>
-
-            <div class="kpi">
-                <div class="kpi-icon">★</div>
-                <small>SETE Average</small>
-                <strong id="sete">4.42 / 5</strong>
-                <span>Weighted evaluation average</span>
-            </div>
-
-            <div class="kpi">
-                <div class="kpi-icon">◷</div>
-                <small>Pending Tasks</small>
-                <strong id="pending">3</strong>
-                <span>Grades and submissions</span>
-            </div>
-
-            <div class="kpi">
-                <div class="kpi-icon">◉</div>
-                <small>SETE Response Rate</small>
-                <strong id="response">78%</strong>
-                <span id="responseDetail">145 of 186 responses</span>
-            </div>
-        </div>
-    </section>
-
-    <section class="section">
-        <h2>Faculty Services</h2>
-
-        <div class="services">
-            <button class="service" type="button" data-service="schedule">
-                <div class="service-icon">▤</div>
-                <div>
-                    <div class="service-title">Class Schedule</div>
-                    <div class="service-desc">View teaching timetable and room assignments</div>
-                </div>
-            </button>
-
-            <button class="service" type="button" data-service="students">
-                <div class="service-icon">▣</div>
-                <div>
-                    <div class="service-title">Class List / Student Records</div>
-                    <div class="service-desc">View class rosters and student information</div>
-                </div>
-            </button>
-
-            <button class="service" type="button" data-service="grades">
-                <div class="service-icon">▧</div>
-                <div>
-                    <div class="service-title">Grade Submission</div>
-                    <div class="service-desc">Encode and submit student grades</div>
-                </div>
-            </button>
-
-            <button class="service" type="button" data-service="sete">
-                <div class="service-icon">▤</div>
-                <div>
-                    <div class="service-title">Student Evaluation of Teachers</div>
-                    <div class="service-desc">View authorized SETE results and status</div>
-                </div>
-            </button>
-
-            <button class="service" type="button" data-service="profile">
-                <div class="service-icon">▦</div>
-                <div>
-                    <div class="service-title">Faculty Profile</div>
-                    <div class="service-desc">Review faculty information</div>
-                </div>
-            </button>
-
-            <button class="service" type="button" data-service="attendance">
-                <div class="service-icon">◷</div>
-                <div>
-                    <div class="service-title">Faculty Attendance</div>
-                    <div class="service-desc">View attendance records</div>
-                </div>
-            </button>
-
-            <button class="service" type="button" data-service="consultation">
-                <div class="service-icon">✎</div>
-                <div>
-                    <div class="service-title">Consultation / Advising</div>
-                    <div class="service-desc">Manage student consultations</div>
-                </div>
-            </button>
-
-            <button class="service" type="button" data-service="research">
-                <div class="service-icon">▥</div>
-                <div>
-                    <div class="service-title">Research and Extension</div>
-                    <div class="service-desc">View research activities</div>
-                </div>
-            </button>
-
-            <button class="service" type="button" data-service="development">
-                <div class="service-icon">♧</div>
-                <div>
-                    <div class="service-title">Faculty Development</div>
-                    <div class="service-desc">Training and seminars</div>
-                </div>
-            </button>
-        </div>
-    </section>
-
-    <section class="section">
-        <h2>Teaching Analytics and Decision Support</h2>
-
-        <div class="analytics-grid">
-            <div class="panel">
-                <h3>Enrollment Completion Trend</h3>
-                <p>Percentage of students who completed enrollment</p>
-                <svg class="chart" id="enrollmentChart" viewBox="0 0 600 220" role="img" aria-label="Enrollment completion trend chart"></svg>
-            </div>
-
-            <div class="panel">
-                <h3>SETE by Evaluation Dimension</h3>
-                <p>Average scores on a 5-point scale</p>
-                <div class="bar-list" id="seteBars"></div>
-                <p class="sete-note">
-                    SETE should be interpreted with response rates and other teaching evidence.
-                </p>
-            </div>
-        </div>
-
-        <div class="bottom-grid">
-            <div class="panel">
-                <h3>Student Academic Standing</h3>
-                <p>Distribution of enrolled students</p>
-
-                <div class="donut-area">
-                    <div class="donut" id="standingDonut">
-                        <b id="standingTotal">100%</b>
-                    </div>
-
-                    <div class="legend" id="standingLegend">
-                        <div>🔵 Good standing 62%</div>
-                        <div>🟦 Satisfactory 22%</div>
-                        <div>🟡 At risk 10%</div>
-                        <div>⬜ Probation 6%</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <h3>Academic Alerts</h3>
-                <p>Items requiring possible follow-up</p>
-                <div id="academicAlerts"></div>
-            </div>
-
-            <div class="panel">
-                <h3>Priority Follow-up</h3>
-                <p>Program / track summary</p>
-
-                <div class="table-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Program / Track</th>
-                                <th>Indicator</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="followUpTable"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section">
-        <h2>Announcements</h2>
-
-        <div class="notice-grid">
-            <div class="notice">
-                <h3 class="advisory-title">⚠ Advisory</h3>
-                Faculty members are reminded to protect student records and account credentials. Access student information only for authorized academic purposes.
-                <button class="notice-action" type="button" data-announcement="privacy">Read advisory details →</button>
-            </div>
-
-            <div class="notice">
-                <h3>Office of the Dean</h3>
-
-                <button class="announcement-link" type="button" data-announcement="meeting">▤ Faculty meeting and academic planning notice</button>
-                <button class="announcement-link" type="button" data-announcement="grades">▤ Deadline for grade submission</button>
-                <button class="announcement-link" type="button" data-announcement="development">▤ Faculty development activities</button>
-            </div>
-        </div>
-    </section>
-
-</main>
-
-<footer>
-    BSUniSync • Faculty Portal
-</footer>
-
+<div class="toast-container" id="toastContainer"></div>
 <script src="script.js"></script>
 </body>
 </html>
