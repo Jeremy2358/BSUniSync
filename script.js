@@ -18,6 +18,121 @@ document.addEventListener("DOMContentLoaded", () => {
     {id:"2022-008",name:"Camille Bautista",program:"BSIT",year:"4th Year",gwa:1.90,attendance:97,progress:93,status:"Active"}
   ];
 
+  // Generate 334 additional records, bringing the total to 342.
+  // The GWA distribution matches the Academic Analytics chart.
+
+  const firstNames = [
+    "Adrian","Alexandra","Andrea","Anthony","Ariana",
+    "Benjamin","Bianca","Carl","Chloe","Christian",
+    "Daniel","Danica","David","Diana","Dominic",
+    "Ethan","Elaine","Elijah","Ella","Emmanuel",
+    "Frances","Gabrielle","Hannah","Isaac","Jasmine",
+    "Jerome","Jessica","Joshua","Julia","Karl",
+    "Katherine","Kyle","Lance","Lauren","Liam",
+    "Louise","Lucas","Mae","Marcus","Maria",
+    "Mark","Matthew","Mikaela","Nathan","Nicole",
+    "Paolo","Patricia","Patrick","Rafael","Rebecca",
+    "Samuel","Samantha","Sean","Sophia","Therese",
+    "Tristan","Vanessa","Vincent","Zachary"
+  ];
+
+  const lastNames = [
+    "Aquino","Alvarez","Andrada","Bautista","Castillo",
+    "Castro","Cruz","Dela Cruz","Domingo","Estrada",
+    "Fernandez","Garcia","Gonzales","Hernandez","Lim",
+    "Lopez","Manalo","Martinez","Mendoza","Morales",
+    "Navarro","Ocampo","Pascual","Reyes","Rivera",
+    "Ramos","Robles","Santos","Santiago","Soriano",
+    "Torres","Valdez","Villanueva","Tan","Flores"
+  ];
+
+  // Exact additional student counts for each GWA range:
+  // Excellent: 41
+  // Good Standing: 209
+  // Needs Monitoring: 58
+  // At Risk: 26
+
+  const gwaGroups = [
+    {count:41,min:1.00,max:1.50},
+    {count:93,min:1.51,max:2.00},
+    {count:116,min:2.01,max:2.25},
+    {count:58,min:2.26,max:2.75},
+    {count:26,min:2.76,max:3.50}
+  ];
+
+  const generatedGwaValues = [];
+
+  gwaGroups.forEach(group => {
+    for (let i = 0; i < group.count; i++) {
+      const range = group.max - group.min;
+      const steps = Math.round(range * 100);
+      const value = group.min + ((i * 7) % (steps + 1)) / 100;
+
+      generatedGwaValues.push(
+        Number(Math.min(value, group.max).toFixed(2))
+      );
+    }
+  });
+
+  let generatedIndex = 0;
+
+  for (let i = 0; i < firstNames.length; i++) {
+    for (let j = 0; j < lastNames.length; j++) {
+      if (generatedIndex >= 334) break;
+
+      const name = `${firstNames[i]} ${lastNames[j]}`;
+
+      if (students.some(student => student.name === name)) continue;
+
+      const gwa = generatedGwaValues[generatedIndex];
+      const yearIndex = generatedIndex % 4;
+      const year = ["1st Year","2nd Year","3rd Year","4th Year"][yearIndex];
+
+      let attendance;
+      let progress;
+
+      if (gwa <= 1.50) {
+        attendance = 90 + ((generatedIndex * 3) % 11);
+        progress = 90 + ((generatedIndex * 5) % 11);
+      } else if (gwa <= 2.25) {
+        attendance = 82 + ((generatedIndex * 7) % 18);
+        progress = 78 + ((generatedIndex * 5) % 21);
+      } else if (gwa <= 2.75) {
+        attendance = 75 + ((generatedIndex * 3) % 16);
+        progress = 65 + ((generatedIndex * 7) % 26);
+      } else {
+        attendance = 60 + ((generatedIndex * 5) % 25);
+        progress = 45 + ((generatedIndex * 7) % 31);
+      }
+
+      const status =
+        gwa > 2.75 || attendance < 80
+          ? "For Follow-up"
+          : "Active";
+
+      students.push({
+        id:`2022-${String(students.length + 1).padStart(3,"0")}`,
+        name,
+        program:"BSIT",
+        year,
+        gwa,
+        attendance,
+        progress,
+        status
+      });
+
+      generatedIndex++;
+    }
+
+    if (generatedIndex >= 334) break;
+  }
+
+  console.log(`Generated ${students.length} student records.`);
+
+  // --------------------------------------------------
+  // CLASSES
+  // --------------------------------------------------
+
   const classes = [
     {code:"IT 101",name:"Introduction to Computing",section:"BSIT 1A",students:32,schedule:"Mon / Wed · 8:00–9:30 AM",room:"Lab 1",status:"Ongoing"},
     {code:"IT 102",name:"Computer Programming 1",section:"BSIT 1B",students:30,schedule:"Tue / Thu · 9:00–10:30 AM",room:"Lab 2",status:"Ongoing"},
@@ -45,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let alerts = [
     {id:1,title:"Pending Grade Submission",description:"Grade entries for two assigned classes still need to be submitted.",type:"Urgent",date:"November 17, 2026",open:true},
-    {id:2,title:"Student Academic Concern",description:"Daniel Mendoza and Nathaniel Ramos may need academic consultation.",type:"Student Concern",date:"November 16, 2026",open:true},
+    {id:2,title:"Student Academic Concern",description:"Several students may need academic consultation and follow-up.",type:"Student Concern",date:"November 16, 2026",open:true},
     {id:3,title:"SETE Evaluation Reminder",description:"One assigned section has not completed the teaching evaluation.",type:"Reminder",date:"November 15, 2026",open:true}
   ];
 
@@ -72,7 +187,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getStanding(gwa) {
-    if (gwa === null || gwa === undefined || Number.isNaN(Number(gwa))) return "No GWA";
+    if (gwa === null || gwa === undefined || Number.isNaN(Number(gwa))) {
+      return "No GWA";
+    }
 
     const value = Number(gwa);
 
@@ -124,9 +241,13 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#goodStandingCount").textContent = counts.good;
     $("#monitoringCount").textContent = counts.monitoring;
     $("#studentRiskCount").textContent = counts.risk;
+
     $("#kpiAtRisk").textContent = counts.risk;
-    $("#kpiAtRiskDetail").textContent = `${counts.risk} students require academic attention`;
-    $("#kpiStudents").textContent = "342";
+    $("#kpiAtRiskDetail").textContent =
+      `${counts.risk} students require academic attention`;
+
+    // Keep the dashboard KPI synchronized with the actual records.
+    $("#kpiStudents").textContent = counts.total;
   }
 
   function renderStudents() {
@@ -358,8 +479,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $("#sidebar").classList.remove("open");
 
-    // Scroll the main content panel, not the whole browser window.
-    // The sidebar remains stationary while the right side changes pages.
     const mainArea = $(".main-area");
 
     if (mainArea) {
@@ -820,14 +939,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderDashboardCharts();
 
-  // Resize charts when the browser dimensions change.
   window.addEventListener("resize", () => {
     Object.values(chartInstances).forEach(chart => {
       if (chart) chart.resize();
     });
   });
 
-  // Recover charts if a page becomes visible after browser layout changes.
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
       const activePage = $(".page.active");
