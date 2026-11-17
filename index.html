@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +21,7 @@
     </div>
 </header>
 
-<div class="loading">Faculty Portal • Demonstration Environment</div>
+<div class="loading">Faculty Portal</div>
 
 <div class="accountbar">
     <button class="text-button" type="button" data-action="settings">⚙ Account Settings</button>
@@ -51,7 +50,7 @@
     <div class="profile-details">
         <b id="profileSemester">› FIRST SEMESTER AY 2026–2027</b><br>
         › College of Informatics and Computing Sciences – ARASOF-Nasugbu<br>
-        › <b>Faculty Member</b> – Business Analytics Program<br>
+        › <b>Faculty Member</b> – BSIT Business Analytics Track<br>
         › Faculty Status: <span class="active">ACTIVE</span>
     </div>
 </section>
@@ -79,17 +78,19 @@
                 <option value="summer">Summer</option>
             </select>
 
-            <select id="department" aria-label="Department">
-                <option value="all">All Departments</option>
-                <option value="it">Information Technology</option>
-                <option value="ba">Business Analytics</option>
-                <option value="cs">Computer Science</option>
+            <select id="department" aria-label="Program or track">
+                <option value="all">All Programs / Tracks</option>
+                <option value="it">BSIT – Network Technology</option>
+                <option value="ba">BSIT – Business Analytics</option>
+                <option value="cs">BSCS – Computer Science</option>
+            </select>
+
+            <select id="section" aria-label="Class section">
+                <option value="all">All Sections</option>
             </select>
 
             <button type="button" id="resetFilters">Reset</button>
         </div>
-
-        <p class="data-label">All figures are illustrative demonstration data.</p>
 
         <div class="kpis">
             <div class="kpi">
@@ -103,7 +104,7 @@
                 <div class="kpi-icon">♧</div>
                 <small>Enrolled Students</small>
                 <strong id="students">186</strong>
-                <span>Across selected department(s)</span>
+                <span>Across selected program(s)</span>
             </div>
 
             <div class="kpi">
@@ -254,13 +255,13 @@
 
             <div class="panel">
                 <h3>Priority Follow-up</h3>
-                <p>Illustrative department-level summary</p>
+                <p>Program / track summary</p>
 
                 <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th>Department</th>
+                                <th>Program / Track</th>
                                 <th>Indicator</th>
                                 <th>Status</th>
                             </tr>
@@ -295,7 +296,7 @@
 </main>
 
 <footer>
-    BSUniSync • Faculty Portal Concept Design • Demonstration Data
+    BSUniSync • Faculty Portal
 </footer>
 
 <script src="script.js"></script>

@@ -1,10 +1,7 @@
-
 // =========================================================
-// BSUniSync - FACULTY PORTAL DEMONSTRATION
-// Original functionality preserved.
-// Interactive analytics added using the existing modal system.
-// Fixed sample data; no random KPI generation.
-// Saved demo actions use browser localStorage.
+// BSUniSync - FACULTY PORTAL
+// Fixed data; no random KPI generation.
+// Saved actions use browser localStorage.
 // =========================================================
 
 
@@ -29,11 +26,11 @@ updateClock();
 setInterval(updateClock, 1000);
 
 
-// 2. DEMONSTRATION DATA
+// 2. DASHBOARD DATA
 
 const baseData = {
     it: {
-        name: "Information Technology",
+        name: "BSIT – Network Technology",
         units: 18,
         classes: 6,
         students: 186,
@@ -57,7 +54,7 @@ const baseData = {
     },
 
     ba: {
-        name: "Business Analytics",
+        name: "BSIT – Business Analytics",
         units: 18,
         classes: 6,
         students: 164,
@@ -81,7 +78,7 @@ const baseData = {
     },
 
     cs: {
-        name: "Computer Science",
+        name: "BSCS – Computer Science",
         units: 18,
         classes: 6,
         students: 172,
@@ -117,16 +114,124 @@ const semesterAdjustment = {
 };
 
 
+// SECTION FILTER
+
+// First digit = year level
+// Second digit = class group
+// Third digit = 0
+// Last digit = semester:
+// 1 = First Semester
+// 2 = Second Semester
+
+const sectionCodes = {
+    first: [
+        "1101", "1201",
+        "2101", "2201",
+        "3101", "3201",
+        "4101", "4201"
+    ],
+
+    second: [
+        "1102", "1202",
+        "2102", "2202",
+        "3102", "3202",
+        "4102", "4202"
+    ]
+};
+
+
+function refreshSectionOptions() {
+    const sectionSelect = document.getElementById("section");
+    const semester = document.getElementById("semester").value;
+    const previousValue = sectionSelect.value;
+    const codes = sectionCodes[semester] || [];
+
+    sectionSelect.innerHTML =
+        `<option value="all">All Sections</option>` +
+        codes.map(code =>
+            `<option value="${code}">${code}</option>`
+        ).join("");
+
+    sectionSelect.disabled = codes.length === 0;
+
+    if (codes.includes(previousValue)) {
+        sectionSelect.value = previousValue;
+    } else {
+        sectionSelect.value = "all";
+    }
+}
+
+
+function applySectionRecord(record, sectionCode) {
+    if (sectionCode === "all") return record;
+
+    const yearLevel = Number(sectionCode.charAt(0));
+    const group = Number(sectionCode.charAt(1));
+
+    const yearShares = {
+        1: 0.30,
+        2: 0.27,
+        3: 0.24,
+        4: 0.19
+    };
+
+    const groupShare = group === 1 ? 0.52 : 0.48;
+    const share = (yearShares[yearLevel] || 0.25) * groupShare;
+
+    const students = Math.max(
+        1,
+        Math.round(record.students * share)
+    );
+
+    const responded = Math.min(
+        students,
+        Math.round(record.responded * share)
+    );
+
+    const good = Math.round(record.standing.good * share);
+    const satisfactory = Math.round(record.standing.satisfactory * share);
+    const atRisk = Math.round(record.standing.atRisk * share);
+
+    const probation = Math.max(
+        0,
+        students - good - satisfactory - atRisk
+    );
+
+    return {
+        ...record,
+        name: record.name,
+        units: Math.max(3, Math.round(record.units * share)),
+        classes: 1,
+        students,
+        responded,
+        response: percentage(responded, students),
+        pending: Math.min(
+            record.pending,
+            Math.max(0, Math.round(record.pending * share * 2))
+        ),
+        standing: {
+            good,
+            satisfactory,
+            atRisk,
+            probation
+        },
+        section: sectionCode
+    };
+}
+
+
 // 3. UTILITY FUNCTIONS
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
+
 function percentage(part, total) {
     if (!total) return 0;
     return Math.round((part / total) * 100);
 }
+
 
 function escapeHTML(value) {
     return String(value).replace(/[&<>"']/g, character => ({
@@ -138,6 +243,7 @@ function escapeHTML(value) {
     })[character]);
 }
 
+
 function getStoredArray(key) {
     try {
         const value = JSON.parse(localStorage.getItem(key) || "[]");
@@ -146,6 +252,7 @@ function getStoredArray(key) {
         return [];
     }
 }
+
 
 function saveStoredArray(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
@@ -214,17 +321,25 @@ function getDepartmentRecord(department, year, semester) {
         students,
         responded,
         response: percentage(responded, students),
+
         sete: Number(
             clamp(base.sete + adjustment * 0.01, 3.5, 5).toFixed(2)
         ),
-        pending: Math.max(0, base.pending + Math.max(0, adjustment)),
+
+        pending: Math.max(
+            0,
+            base.pending + Math.max(0, adjustment)
+        ),
+
         completion,
+
         standing: {
             good,
             satisfactory,
             atRisk,
             probation
         },
+
         dimensions
     };
 }
@@ -235,12 +350,26 @@ function getDepartmentRecord(department, year, semester) {
 function getDashboardData() {
     const year = document.getElementById("year").value;
     const semester = document.getElementById("semester").value;
-    const selectedDepartment = document.getElementById("department").value;
 
-    const departments = Object.keys(baseData).map(key => ({
-        key,
-        ...getDepartmentRecord(key, year, semester)
-    }));
+    const selectedDepartment =
+        document.getElementById("department").value;
+
+    const selectedSection =
+        document.getElementById("section").value;
+
+    const departments = Object.keys(baseData).map(key => {
+        const record = {
+            key,
+            ...getDepartmentRecord(key, year, semester)
+        };
+
+        return selectedSection === "all"
+            ? record
+            : {
+                ...record,
+                ...applySectionRecord(record, selectedSection)
+            };
+    });
 
     if (selectedDepartment !== "all") {
         const selected = departments.find(
@@ -254,31 +383,40 @@ function getDashboardData() {
     }
 
     const totalStudents = departments.reduce(
-        (sum, department) => sum + department.students, 0
+        (sum, department) => sum + department.students,
+        0
     );
 
     const totalResponded = departments.reduce(
-        (sum, department) => sum + department.responded, 0
+        (sum, department) => sum + department.responded,
+        0
     );
 
     const totalUnits = departments.reduce(
-        (sum, department) => sum + department.units, 0
+        (sum, department) => sum + department.units,
+        0
     );
 
     const totalClasses = departments.reduce(
-        (sum, department) => sum + department.classes, 0
+        (sum, department) => sum + department.classes,
+        0
     );
 
     const totalPending = departments.reduce(
-        (sum, department) => sum + department.pending, 0
+        (sum, department) => sum + department.pending,
+        0
     );
 
     const weightedSete = departments.reduce(
-        (sum, department) => sum + department.sete * department.responded, 0
+        (sum, department) =>
+            sum + department.sete * department.responded,
+        0
     ) / Math.max(totalResponded, 1);
 
     const weightedCompletion = departments.reduce(
-        (sum, department) => sum + department.completion * department.students, 0
+        (sum, department) =>
+            sum + department.completion * department.students,
+        0
     ) / Math.max(totalStudents, 1);
 
     const standing = {
@@ -290,7 +428,9 @@ function getDashboardData() {
 
     Object.keys(standing).forEach(key => {
         standing[key] = departments.reduce(
-            (sum, department) => sum + department.standing[key], 0
+            (sum, department) =>
+                sum + department.standing[key],
+            0
         );
     });
 
@@ -367,7 +507,8 @@ function updateEnrollmentChart(data) {
         "S2 '26"
     ];
 
-    const offset = data.key === "it" ? 0 :
+    const offset =
+        data.key === "it" ? 0 :
         data.key === "ba" ? 2 :
         data.key === "cs" ? -2 : 1;
 
@@ -391,7 +532,12 @@ function updateEnrollmentChart(data) {
 
         return `
             <path d="M40 ${y} H580" stroke="#e8edf2"/>
-            <text x="3" y="${y + 4}" fill="#788590" font-size="11">${value}%</text>
+            <text
+                x="3"
+                y="${y + 4}"
+                fill="#788590"
+                font-size="11"
+            >${value}%</text>
         `;
     }).join("");
 
@@ -407,10 +553,6 @@ function updateEnrollmentChart(data) {
             fill="white"
             stroke="#4263eb"
             stroke-width="3"
-            tabindex="0"
-            role="button"
-            aria-label="${labels[index]} enrollment completion: ${value}%"
-            style="cursor:pointer"
         />
         <title>${labels[index]}: ${value}%</title>
     `).join("");
@@ -426,6 +568,7 @@ function updateEnrollmentChart(data) {
 
     svg.innerHTML = `
         ${gridLines}
+
         <polyline
             points="${points}"
             fill="none"
@@ -434,6 +577,7 @@ function updateEnrollmentChart(data) {
             stroke-linecap="round"
             stroke-linejoin="round"
         />
+
         ${circles}
         ${xLabels}
     `;
@@ -447,17 +591,14 @@ function updateSeteChart(data) {
 
     container.innerHTML = Object.entries(data.dimensions).map(
         ([name, score]) => `
-            <div class="bar-row"
-                 tabindex="0"
-                 role="button"
-                 aria-label="View ${escapeHTML(name)} evaluation details">
-
+            <div class="bar-row">
                 <span>${escapeHTML(name)}</span>
 
                 <div class="track">
-                    <div class="fill"
-                         style="width:${(score / 5) * 100}%">
-                    </div>
+                    <div
+                        class="fill"
+                        style="width:${(score / 5) * 100}%"
+                    ></div>
                 </div>
 
                 <b>${score.toFixed(2)}</b>
@@ -476,7 +617,11 @@ function updateStanding(data) {
     const good = percentage(standing.good, total);
     const satisfactory = percentage(standing.satisfactory, total);
     const atRisk = percentage(standing.atRisk, total);
-    const probation = Math.max(0, 100 - good - satisfactory - atRisk);
+
+    const probation = Math.max(
+        0,
+        100 - good - satisfactory - atRisk
+    );
 
     const goodEnd = good;
     const satisfactoryEnd = goodEnd + satisfactory;
@@ -494,42 +639,12 @@ function updateStanding(data) {
     document.getElementById("standingTotal").textContent =
         total.toLocaleString();
 
-    const categories = [
-        {
-            label: "🔵 Good standing",
-            key: "good",
-            count: standing.good,
-            rate: good
-        },
-        {
-            label: "🟦 Satisfactory",
-            key: "satisfactory",
-            count: standing.satisfactory,
-            rate: satisfactory
-        },
-        {
-            label: "🟡 At risk",
-            key: "atRisk",
-            count: standing.atRisk,
-            rate: atRisk
-        },
-        {
-            label: "⬜ Probation",
-            key: "probation",
-            count: standing.probation,
-            rate: probation
-        }
-    ];
-
-    document.getElementById("standingLegend").innerHTML =
-        categories.map(item => `
-            <div tabindex="0"
-                 role="button"
-                 data-standing="${item.key}"
-                 aria-label="View ${item.key} academic standing details">
-                ${item.label} ${item.rate}%
-            </div>
-        `).join("");
+    document.getElementById("standingLegend").innerHTML = `
+        <div>🔵 Good standing ${good}%</div>
+        <div>🟦 Satisfactory ${satisfactory}%</div>
+        <div>🟡 At risk ${atRisk}%</div>
+        <div>⬜ Probation ${probation}%</div>
+    `;
 }
 
 
@@ -547,7 +662,7 @@ function updateAlerts(data) {
 
     if (riskRate >= 10) {
         alerts.push(`
-            <div class="alert red" tabindex="0" role="button">
+            <div class="alert red">
                 <b>⚠ Students Requiring Review</b>
                 ${riskRate}% of students are in the at-risk or probation categories.
                 Review academic performance and provide appropriate support.
@@ -555,7 +670,7 @@ function updateAlerts(data) {
         `);
     } else {
         alerts.push(`
-            <div class="alert green" tabindex="0" role="button">
+            <div class="alert green">
                 <b>✓ Academic Standing</b>
                 ${riskRate}% of students are in the at-risk or probation categories.
                 Continue monitoring student progress.
@@ -565,24 +680,24 @@ function updateAlerts(data) {
 
     if (data.response < 80) {
         alerts.push(`
-            <div class="alert" tabindex="0" role="button">
+            <div class="alert">
                 <b>⚠ SETE Response Rate</b>
-                Current response rate is ${data.response}%, below the illustrative 80% target.
+                Current response rate is ${data.response}%, below the 80% target.
                 Encourage eligible students to participate.
             </div>
         `);
     } else {
         alerts.push(`
-            <div class="alert green" tabindex="0" role="button">
+            <div class="alert green">
                 <b>✓ SETE Response Rate</b>
-                Current response rate is ${data.response}%, meeting the illustrative 80% target.
+                Current response rate is ${data.response}%, meeting the 80% target.
             </div>
         `);
     }
 
     if (data.pending > 0) {
         alerts.push(`
-            <div class="alert" tabindex="0" role="button">
+            <div class="alert">
                 <b>◷ Pending Academic Tasks</b>
                 There are ${data.pending} pending grade or academic submission tasks in the selected data.
             </div>
@@ -623,14 +738,13 @@ function updateFollowUp(data) {
         }
 
         return `
-            <tr tabindex="0"
-                role="button"
-                aria-label="View ${escapeHTML(department.name)} follow-up details">
-
+            <tr>
                 <td>${escapeHTML(department.name)}</td>
                 <td>${indicator}</td>
                 <td>
-                    <span class="status ${statusClass}">${status}</span>
+                    <span class="status ${statusClass}">
+                        ${status}
+                    </span>
                 </td>
             </tr>
         `;
@@ -651,30 +765,47 @@ function refreshDashboard() {
     updateFollowUp(data);
 
     const year = document.getElementById("year").value;
-    const semester = document.getElementById("semester").selectedOptions[0].textContent;
+
+    const semester =
+        document.getElementById("semester").selectedOptions[0].textContent;
 
     document.getElementById("profileSemester").textContent =
         "› " + semester.toUpperCase() + " AY " + year.replace("-", "–");
 }
 
-["year", "semester", "department"].forEach(id => {
-    document.getElementById(id).addEventListener("change", refreshDashboard);
+
+["year", "semester", "department", "section"].forEach(id => {
+    document.getElementById(id).addEventListener("change", () => {
+        if (id === "semester") {
+            refreshSectionOptions();
+        }
+
+        refreshDashboard();
+    });
 });
+
 
 document.getElementById("resetFilters").addEventListener("click", () => {
     document.getElementById("year").value = "2026-2027";
     document.getElementById("semester").value = "first";
     document.getElementById("department").value = "all";
 
+    refreshSectionOptions();
+
+    document.getElementById("section").value = "all";
+
     refreshDashboard();
 });
 
+
+refreshSectionOptions();
 refreshDashboard();
 
 
 // 13. MODAL SYSTEM
 
 let activeModal = null;
+
 
 function openModal(title, content, footer = "") {
     closeModal();
@@ -684,17 +815,20 @@ function openModal(title, content, footer = "") {
     overlay.id = "activeModal";
 
     overlay.innerHTML = `
-        <section class="modal"
-                 role="dialog"
-                 aria-modal="true"
-                 aria-labelledby="modalTitle">
-
+        <section
+            class="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTitle"
+        >
             <div class="modal-header">
                 <h2 id="modalTitle">${escapeHTML(title)}</h2>
 
-                <button class="modal-close"
-                        type="button"
-                        aria-label="Close dialog">×</button>
+                <button
+                    class="modal-close"
+                    type="button"
+                    aria-label="Close dialog"
+                >×</button>
             </div>
 
             <div class="modal-body">${content}</div>
@@ -708,10 +842,15 @@ function openModal(title, content, footer = "") {
 
     activeModal = overlay;
 
-    overlay.querySelector(".modal-close").addEventListener("click", closeModal);
+    overlay.querySelector(".modal-close").addEventListener(
+        "click",
+        closeModal
+    );
 
     overlay.addEventListener("click", event => {
-        if (event.target === overlay) closeModal();
+        if (event.target === overlay) {
+            closeModal();
+        }
     });
 
     document.addEventListener("keydown", handleModalEscape);
@@ -720,31 +859,49 @@ function openModal(title, content, footer = "") {
         "button, input, select, textarea"
     );
 
-    if (firstControl) firstControl.focus();
+    if (firstControl) {
+        firstControl.focus();
+    }
 }
 
+
 function handleModalEscape(event) {
-    if (event.key === "Escape") closeModal();
+    if (event.key === "Escape") {
+        closeModal();
+    }
 }
+
 
 function closeModal() {
     const modal = document.getElementById("activeModal");
 
-    if (modal) modal.remove();
+    if (modal) {
+        modal.remove();
+    }
 
     activeModal = null;
+
     document.body.classList.remove("modal-open");
-    document.removeEventListener("keydown", handleModalEscape);
+
+    document.removeEventListener(
+        "keydown",
+        handleModalEscape
+    );
 }
 
+
 function modalMessage(message) {
-    const body = document.querySelector("#activeModal .modal-body");
+    const body = document.querySelector(
+        "#activeModal .modal-body"
+    );
 
     if (!body) return;
 
     const existing = body.querySelector(".success-message");
 
-    if (existing) existing.remove();
+    if (existing) {
+        existing.remove();
+    }
 
     body.insertAdjacentHTML(
         "beforeend",
@@ -756,19 +913,17 @@ function modalMessage(message) {
 // 14. ACCOUNT SETTINGS
 
 function openSettings() {
-    let saved = {};
-
-    try {
-        saved = JSON.parse(localStorage.getItem("bsuSettings") || "{}");
-    } catch {
-        saved = {};
-    }
+    const saved = JSON.parse(
+        localStorage.getItem("bsuSettings") || "{}"
+    );
 
     openModal("Account Settings", `
         <form id="settingsForm">
 
             <div class="form-field">
-                <label for="settingEmail">Email notification address</label>
+                <label for="settingEmail">
+                    Email notification address
+                </label>
 
                 <input
                     id="settingEmail"
@@ -779,20 +934,31 @@ function openSettings() {
             </div>
 
             <div class="form-field">
-                <label for="settingNotifications">Email notifications</label>
+                <label for="settingNotifications">
+                    Email notifications
+                </label>
 
                 <select id="settingNotifications">
-                    <option value="enabled" ${saved.notifications !== "disabled" ? "selected" : ""}>Enabled</option>
-                    <option value="disabled" ${saved.notifications === "disabled" ? "selected" : ""}>Disabled</option>
+                    <option
+                        value="enabled"
+                        ${saved.notifications !== "disabled" ? "selected" : ""}
+                    >Enabled</option>
+
+                    <option
+                        value="disabled"
+                        ${saved.notifications === "disabled" ? "selected" : ""}
+                    >Disabled</option>
                 </select>
             </div>
 
             <div class="form-field">
-                <label for="settingTheme">Dashboard appearance</label>
+                <label for="settingTheme">
+                    Dashboard appearance
+                </label>
 
                 <select id="settingTheme">
-                    <option value="light" ${saved.theme !== "system" ? "selected" : ""}>Light</option>
-                    <option value="system" ${saved.theme === "system" ? "selected" : ""}>System default</option>
+                    <option value="light">Light</option>
+                    <option value="system">System default</option>
                 </select>
             </div>
 
@@ -800,84 +966,99 @@ function openSettings() {
         </form>
     `);
 
-    document.getElementById("settingsForm").addEventListener("submit", event => {
-        event.preventDefault();
+    document.getElementById("settingsForm").addEventListener(
+        "submit",
+        event => {
+            event.preventDefault();
 
-        const settings = {
-            email: document.getElementById("settingEmail").value,
-            notifications: document.getElementById("settingNotifications").value,
-            theme: document.getElementById("settingTheme").value
-        };
+            const settings = {
+                email: document.getElementById("settingEmail").value,
+                notifications: document.getElementById("settingNotifications").value,
+                theme: document.getElementById("settingTheme").value
+            };
 
-        localStorage.setItem("bsuSettings", JSON.stringify(settings));
+            localStorage.setItem(
+                "bsuSettings",
+                JSON.stringify(settings)
+            );
 
-        modalMessage("Your demonstration settings have been saved.");
-    });
+            modalMessage("Settings saved.");
+        }
+    );
 }
 
 
 // 15. SIGN OUT
 
 function signOut() {
-    openModal("Sign Out", `
-        <p>Are you sure you want to sign out of the BSUniSync demonstration portal?</p>
-
-        <div class="demo-note">
-            This action will display the sample signed-out screen.
-            No real account session is being terminated.
-        </div>
-    `, `
-        <button type="button"
+    openModal(
+        "Sign Out",
+        `<p>Are you sure you want to sign out?</p>`,
+        `
+            <button
+                type="button"
                 class="secondary-button"
-                id="cancelSignout">Cancel</button>
+                id="cancelSignout"
+            >Cancel</button>
 
-        <button type="button"
-                id="confirmSignout">Sign Out</button>
-    `);
+            <button
+                type="button"
+                id="confirmSignout"
+            >Sign Out</button>
+        `
+    );
 
-    document.getElementById("cancelSignout").addEventListener("click", closeModal);
+    document.getElementById("cancelSignout").addEventListener(
+        "click",
+        closeModal
+    );
 
-    document.getElementById("confirmSignout").addEventListener("click", () => {
-        closeModal();
+    document.getElementById("confirmSignout").addEventListener(
+        "click",
+        () => {
+            closeModal();
 
-        const screen = document.createElement("div");
-        screen.className = "signed-out";
-        screen.id = "signedOutScreen";
+            const screen = document.createElement("div");
+            screen.className = "signed-out";
+            screen.id = "signedOutScreen";
 
-        screen.innerHTML = `
-            <div class="signed-out-card">
+            screen.innerHTML = `
+                <div class="signed-out-card">
+                    <div
+                        class="seal"
+                        style="margin:0 auto 15px;"
+                    >✺</div>
 
-                <div class="seal" style="margin:0 auto 15px;">✺</div>
+                    <h2>You have signed out</h2>
 
-                <h2>You have signed out</h2>
+                    <p>You have signed out of BSUniSync.</p>
 
-                <p>You have exited the BSUniSync demonstration session.</p>
+                    <button
+                        type="button"
+                        id="returnPortal"
+                    >Return to Portal</button>
+                </div>
+            `;
 
-                <button type="button" id="returnPortal">
-                    Return to Demo Portal
-                </button>
-            </div>
-        `;
+            document.body.appendChild(screen);
 
-        document.body.appendChild(screen);
-
-        document.getElementById("returnPortal").addEventListener("click", () => {
-            screen.remove();
-        });
-    });
+            document.getElementById("returnPortal").addEventListener(
+                "click",
+                () => {
+                    screen.remove();
+                }
+            );
+        }
+    );
 }
 
 
 // 16. FACULTY PROFILE
 
 function openProfileEditor() {
-    let saved = {};
-
-    try {
-        saved = JSON.parse(localStorage.getItem("bsuProfile") || "{}");
-    } catch {
-        saved = {};
-    }
+    const saved = JSON.parse(
+        localStorage.getItem("bsuProfile") || "{}"
+    );
 
     openModal("Edit Faculty Profile", `
         <form id="profileForm">
@@ -896,9 +1077,9 @@ function openProfileEditor() {
                 <label for="facultyProgram">Academic program</label>
 
                 <select id="facultyProgram">
-                    <option ${saved.program === "Business Analytics" ? "selected" : ""}>Business Analytics</option>
-                    <option ${saved.program === "Information Technology" ? "selected" : ""}>Information Technology</option>
-                    <option ${saved.program === "Computer Science" ? "selected" : ""}>Computer Science</option>
+                    <option>Business Analytics</option>
+                    <option>Information Technology</option>
+                    <option>Computer Science</option>
                 </select>
             </div>
 
@@ -913,56 +1094,59 @@ function openProfileEditor() {
                 >
             </div>
 
-            <div class="demo-note">
-                Profile changes are saved locally for demonstration purposes.
-            </div>
-
             <button type="submit">Save Profile</button>
         </form>
     `);
 
-    document.getElementById("profileForm").addEventListener("submit", event => {
-        event.preventDefault();
+    document.getElementById("profileForm").addEventListener(
+        "submit",
+        event => {
+            event.preventDefault();
 
-        const profile = {
-            name: document.getElementById("facultyName").value,
-            program: document.getElementById("facultyProgram").value,
-            email: document.getElementById("facultyEmail").value
-        };
+            const profile = {
+                name: document.getElementById("facultyName").value,
+                program: document.getElementById("facultyProgram").value,
+                email: document.getElementById("facultyEmail").value
+            };
 
-        localStorage.setItem("bsuProfile", JSON.stringify(profile));
+            localStorage.setItem(
+                "bsuProfile",
+                JSON.stringify(profile)
+            );
 
-        document.getElementById("profileName").textContent =
-            profile.name.toUpperCase();
+            document.getElementById("profileName").textContent =
+                profile.name.toUpperCase();
 
-        modalMessage("Faculty profile updated in this browser.");
-    });
+            modalMessage("Faculty profile updated.");
+        }
+    );
 }
 
 
 // 17. CONTACT FACULTY
 
 function openContact() {
-    let saved = {};
-
-    try {
-        saved = JSON.parse(localStorage.getItem("bsuProfile") || "{}");
-    } catch {
-        saved = {};
-    }
+    const saved = JSON.parse(
+        localStorage.getItem("bsuProfile") || "{}"
+    );
 
     openModal("Faculty Contact Information", `
         <h3>Faculty Member</h3>
 
-        <p><b>Program:</b> ${escapeHTML(saved.program || "Business Analytics")}</p>
+        <p>
+            <b>Program:</b>
+            ${escapeHTML(saved.program || "Business Analytics")}
+        </p>
 
-        <p><b>Email:</b> ${escapeHTML(saved.email || "faculty.demo@example.com")}</p>
+        <p>
+            <b>Email:</b>
+            ${escapeHTML(saved.email || "faculty.demo@example.com")}
+        </p>
 
-        <p><b>Campus:</b> Batangas State University – ARASOF-Nasugbu</p>
-
-        <div class="demo-note">
-            Contact details shown here are sample information and are not verified university contact records.
-        </div>
+        <p>
+            <b>Campus:</b>
+            Batangas State University – ARASOF-Nasugbu
+        </p>
     `);
 }
 
@@ -972,14 +1156,22 @@ function openContact() {
 const quickLinkContent = {
     mission: {
         title: "University Mission, Vision and Core Values",
+
         content: `
             <h3>University Mission</h3>
-            <p>To develop a world-class university that produces leaders in various fields.</p>
+            <p>
+                To develop a world-class university that produces leaders
+                in various fields.
+            </p>
 
             <h3>University Vision</h3>
-            <p>A premier national university that develops leaders in the global knowledge economy.</p>
+            <p>
+                A premier national university that develops leaders
+                in the global knowledge economy.
+            </p>
 
             <h3>Core Values</h3>
+
             <ul>
                 <li>Patriotism</li>
                 <li>Service</li>
@@ -987,33 +1179,22 @@ const quickLinkContent = {
                 <li>Resilience</li>
                 <li>Excellence</li>
             </ul>
-
-            <div class="demo-note">
-                This is sample portal content. Refer to official Batangas State University materials for the authoritative wording.
-            </div>
         `
     },
 
     hymn: {
         title: "University Hymn",
+
         content: `
             <p><b>Batangas State University Hymn</b></p>
-
-            <p>This section represents the university hymn resource.</p>
-
-            <div class="demo-note">
-                The official hymn audio or lyrics have not been embedded in this demonstration.
-                This button currently opens the hymn information page.
-            </div>
         `
     },
 
     handbook: {
         title: "Faculty Handbook",
-        content: `
-            <p>The faculty handbook section provides access to institutional guidelines and faculty references.</p>
 
-            <h3>Sample handbook topics</h3>
+        content: `
+            <h3>Handbook Topics</h3>
 
             <ul>
                 <li>Faculty responsibilities</li>
@@ -1026,6 +1207,7 @@ const quickLinkContent = {
         `
     }
 };
+
 
 function openQuickLink(key) {
     const item = quickLinkContent[key];
@@ -1055,36 +1237,71 @@ const serviceTitles = {
 
 function openSchedule() {
     const rows = [
-        ["Monday", "8:00–10:00 AM", "Business Analytics", "Room 301"],
-        ["Monday", "1:00–3:00 PM", "Data Analytics", "Room 302"],
-        ["Tuesday", "9:00–12:00 PM", "Information Systems", "Laboratory 2"],
-        ["Wednesday", "8:00–10:00 AM", "Business Analytics", "Room 301"],
-        ["Thursday", "1:00–4:00 PM", "Analytics Applications", "Laboratory 1"],
-        ["Friday", "9:00–12:00 PM", "Consultation Hours", "Faculty Office"]
+        ["Monday", "8:00–10:00 AM", "Business Analytics", "4101", "Room 301"],
+        ["Monday", "1:00–3:00 PM", "Data Analytics", "4201", "Room 302"],
+        ["Tuesday", "9:00–12:00 PM", "Information Systems", "2101", "Laboratory 2"],
+        ["Wednesday", "8:00–10:00 AM", "Business Analytics", "4101", "Room 301"],
+        ["Thursday", "1:00–4:00 PM", "Analytics Applications", "4202", "Laboratory 1"],
+        ["Friday", "9:00–12:00 PM", "Consultation Hours", "—", "Faculty Office"]
     ];
 
+    const selectedSection =
+        document.getElementById("section").value;
+
+    const selectedSemester =
+        document.getElementById("semester").value;
+
+    const semesterDigit =
+        selectedSemester === "first" ? "1" :
+        selectedSemester === "second" ? "2" :
+        null;
+
+    const visibleRows = rows.filter(row => {
+        const matchesSection =
+            selectedSection === "all" ||
+            row[3] === selectedSection ||
+            row[3] === "—";
+
+        const matchesSemester =
+            !semesterDigit ||
+            row[3] === "—" ||
+            row[3].endsWith(semesterDigit);
+
+        return matchesSection && matchesSemester;
+    });
+
     openModal("Class Schedule", `
-        <p>Illustrative weekly faculty timetable.</p>
-
         <div class="table-scroll">
-
             <table class="modal-table">
                 <thead>
                     <tr>
                         <th>Day</th>
                         <th>Time</th>
                         <th>Subject</th>
+                        <th>Section</th>
                         <th>Room</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    ${rows.map(row => `
-                        <tr>${row.map(cell => `<td>${escapeHTML(cell)}</td>`).join("")}</tr>
-                    `).join("")}
+                    ${
+                        visibleRows.map(row => `
+                            <tr>
+                                ${row.map(cell =>
+                                    `<td>${escapeHTML(cell)}</td>`
+                                ).join("")}
+                            </tr>
+                        `).join("") ||
+                        `
+                            <tr>
+                                <td colspan="5">
+                                    No schedule entries match the selected section.
+                                </td>
+                            </tr>
+                        `
+                    }
                 </tbody>
             </table>
-
         </div>
     `);
 }
@@ -1094,57 +1311,117 @@ function openSchedule() {
 
 function openStudents() {
     const students = [
-        ["2026-00101", "Alex Santos", "BSIT", "Enrolled"],
-        ["2026-00102", "Jamie Reyes", "BSIT", "Enrolled"],
-        ["2026-00103", "Taylor Cruz", "BSBA-BA", "Enrolled"],
-        ["2026-00104", "Morgan Garcia", "BSBA-BA", "For verification"],
-        ["2026-00105", "Casey Mendoza", "BSCS", "Enrolled"]
+        ["2026-00101", "Alex Santos", "BSIT-BA", "4101", "Enrolled"],
+        ["2026-00102", "Jamie Reyes", "BSIT-BA", "4201", "Enrolled"],
+        ["2026-00103", "Taylor Cruz", "BSIT-NT", "2101", "Enrolled"],
+        ["2026-00104", "Morgan Garcia", "BSIT-NT", "2201", "For verification"],
+        ["2026-00105", "Casey Mendoza", "BSCS", "1101", "Enrolled"],
+        ["2026-00106", "Riley Garcia", "BSIT-BA", "4102", "Enrolled"],
+        ["2026-00107", "Jordan Mendoza", "BSIT-BA", "4202", "Enrolled"],
+        ["2026-00108", "Sam Reyes", "BSCS", "1202", "Enrolled"]
     ];
 
-    openModal("Class List / Student Records", `
-        <p>Sample student roster for demonstration.</p>
+    const selectedSection =
+        document.getElementById("section").value;
 
+    const selectedProgram =
+        document.getElementById("department").value;
+
+    const selectedSemester =
+        document.getElementById("semester").value;
+
+    const semesterDigit =
+        selectedSemester === "first" ? "1" :
+        selectedSemester === "second" ? "2" :
+        null;
+
+    const visibleStudents = students.filter(student => {
+        const matchesSection =
+            selectedSection === "all" ||
+            student[3] === selectedSection;
+
+        const matchesSemester =
+            !semesterDigit ||
+            student[3].endsWith(semesterDigit);
+
+        const matchesProgram =
+            selectedProgram === "all" ||
+            (selectedProgram === "it" && student[2] === "BSIT-NT") ||
+            (selectedProgram === "ba" && student[2] === "BSIT-BA") ||
+            (selectedProgram === "cs" && student[2] === "BSCS");
+
+        return matchesSection && matchesSemester && matchesProgram;
+    });
+
+    openModal("Class List / Student Records", `
         <div class="form-field">
             <label for="studentSearch">Search student</label>
-            <input id="studentSearch" placeholder="Search name or student number">
+
+            <input
+                id="studentSearch"
+                placeholder="Search name, student number, program, or section"
+            >
         </div>
 
         <div class="table-scroll">
-
             <table class="modal-table">
                 <thead>
                     <tr>
                         <th>Student No.</th>
                         <th>Name</th>
-                        <th>Program</th>
+                        <th>Program / Track</th>
+                        <th>Section</th>
                         <th>Status</th>
                     </tr>
                 </thead>
 
                 <tbody id="studentRows">
-                    ${students.map(student => `
-                        <tr>${student.map(cell => `<td>${escapeHTML(cell)}</td>`).join("")}</tr>
-                    `).join("")}
+                    ${
+                        visibleStudents.map(student => `
+                            <tr>
+                                ${student.map(cell =>
+                                    `<td>${escapeHTML(cell)}</td>`
+                                ).join("")}
+                            </tr>
+                        `).join("") ||
+                        `
+                            <tr>
+                                <td colspan="5">
+                                    No students match the selected filters.
+                                </td>
+                            </tr>
+                        `
+                    }
                 </tbody>
             </table>
-
         </div>
     `);
 
-    document.getElementById("studentSearch").addEventListener("input", event => {
-        const query = event.target.value.toLowerCase();
+    document.getElementById("studentSearch").addEventListener(
+        "input",
+        event => {
+            const query = event.target.value.toLowerCase();
 
-        const filtered = students.filter(student =>
-            student.join(" ").toLowerCase().includes(query)
-        );
+            const filtered = visibleStudents.filter(student =>
+                student.join(" ").toLowerCase().includes(query)
+            );
 
-        document.getElementById("studentRows").innerHTML =
-            filtered.length
-                ? filtered.map(student => `
-                    <tr>${student.map(cell => `<td>${escapeHTML(cell)}</td>`).join("")}</tr>
-                `).join("")
-                : `<tr><td colspan="4">No matching students found.</td></tr>`;
-    });
+            document.getElementById("studentRows").innerHTML =
+                filtered.length
+                    ? filtered.map(student => `
+                        <tr>
+                            ${student.map(cell =>
+                                `<td>${escapeHTML(cell)}</td>`
+                            ).join("")}
+                        </tr>
+                    `).join("")
+                    : `
+                        <tr>
+                            <td colspan="5">No matching students found.</td>
+                        </tr>
+                    `;
+        }
+    );
 }
 
 
@@ -1154,8 +1431,6 @@ function openGrades() {
     const submissions = getStoredArray("bsuGradeSubmissions");
 
     openModal("Grade Submission", `
-        <p>Encode a sample grade submission.</p>
-
         <form id="gradeForm">
 
             <div class="form-field">
@@ -1172,58 +1447,88 @@ function openGrades() {
 
             <div class="form-field">
                 <label for="gradeSection">Section</label>
-                <input id="gradeSection" placeholder="e.g. BSIT-BA 3201" required>
+
+                <input
+                    id="gradeSection"
+                    value="${
+                        document.getElementById("section").value !== "all"
+                            ? document.getElementById("section").value
+                            : ""
+                    }"
+                    placeholder="e.g. 4101"
+                    pattern="[1-4][1-2]0[1-2]"
+                    title="Enter a four-digit section code, such as 4101 or 4102."
+                    required
+                >
+
+                <small class="field-help">
+                    The last digit indicates the semester:
+                    1 for first semester, 2 for second semester.
+                </small>
             </div>
 
             <div class="form-field">
                 <label for="gradeCount">Number of students graded</label>
-                <input id="gradeCount" type="number" min="1" max="100" required>
+
+                <input
+                    id="gradeCount"
+                    type="number"
+                    min="1"
+                    max="100"
+                    required
+                >
             </div>
 
-            <button type="submit">Submit Demo Grades</button>
-
+            <button type="submit">Submit Grades</button>
         </form>
 
-        <h3>Saved demo submissions</h3>
+        <h3>Saved submissions</h3>
 
         <div id="gradeSubmissionList">
             ${renderGradeSubmissions(submissions)}
         </div>
     `);
 
-    document.getElementById("gradeForm").addEventListener("submit", event => {
-        event.preventDefault();
+    document.getElementById("gradeForm").addEventListener(
+        "submit",
+        event => {
+            event.preventDefault();
 
-        const submission = {
-            subject: document.getElementById("gradeSubject").value,
-            section: document.getElementById("gradeSection").value,
-            count: Number(document.getElementById("gradeCount").value),
-            date: new Date().toLocaleDateString()
-        };
+            const submission = {
+                subject: document.getElementById("gradeSubject").value,
+                section: document.getElementById("gradeSection").value,
+                count: Number(document.getElementById("gradeCount").value),
+                date: new Date().toLocaleDateString()
+            };
 
-        const updated = getStoredArray("bsuGradeSubmissions");
+            const updated = getStoredArray("bsuGradeSubmissions");
 
-        updated.push(submission);
+            updated.push(submission);
 
-        saveStoredArray("bsuGradeSubmissions", updated);
+            saveStoredArray("bsuGradeSubmissions", updated);
 
-        document.getElementById("gradeSubmissionList").innerHTML =
-            renderGradeSubmissions(updated);
+            document.getElementById("gradeSubmissionList").innerHTML =
+                renderGradeSubmissions(updated);
 
-        event.target.reset();
+            event.target.reset();
 
-        modalMessage("Demo grade submission saved in this browser.");
-    });
+            modalMessage("Grade submission saved.");
+        }
+    );
 }
+
 
 function renderGradeSubmissions(items) {
     if (!items.length) {
-        return `<p class="empty-message">No demo submissions recorded yet.</p>`;
+        return `
+            <p class="empty-message">
+                No submissions recorded yet.
+            </p>
+        `;
     }
 
     return `
         <div class="table-scroll">
-
             <table class="modal-table">
                 <thead>
                     <tr>
@@ -1245,7 +1550,6 @@ function renderGradeSubmissions(items) {
                     `).join("")}
                 </tbody>
             </table>
-
         </div>
     `;
 }
@@ -1257,8 +1561,6 @@ function openSete() {
     const data = getDashboardData();
 
     openModal("Student Evaluation of Teachers", `
-        <p>Summary of illustrative SETE results for the selected filters.</p>
-
         <h3>Overall SETE Average</h3>
 
         <p style="font-size:30px;color:#20a34a;font-weight:bold;">
@@ -1267,7 +1569,10 @@ function openSete() {
 
         <h3>Response Participation</h3>
 
-        <p>${data.responded} out of ${data.students} students (${data.response}%)</p>
+        <p>
+            ${data.responded} out of ${data.students}
+            students (${data.response}%)
+        </p>
 
         <h3>Evaluation Dimensions</h3>
 
@@ -1288,24 +1593,26 @@ function openSete() {
 // 24. FACULTY PROFILE VIEW
 
 function openProfile() {
-    let profile = {};
-
-    try {
-        profile = JSON.parse(localStorage.getItem("bsuProfile") || "{}");
-    } catch {
-        profile = {};
-    }
+    const profile = JSON.parse(
+        localStorage.getItem("bsuProfile") || "{}"
+    );
 
     openModal("Faculty Profile", `
         <h3>${escapeHTML(profile.name || "FACULTY MEMBER")}</h3>
 
-        <p><b>Program:</b> ${escapeHTML(profile.program || "Business Analytics")}</p>
+        <p>
+            <b>Program:</b>
+            ${escapeHTML(profile.program || "Business Analytics")}
+        </p>
 
         <p><b>Campus:</b> ARASOF-Nasugbu</p>
 
         <p><b>Faculty Status:</b> Active</p>
 
-        <p><b>Email:</b> ${escapeHTML(profile.email || "faculty.demo@example.com")}</p>
+        <p>
+            <b>Email:</b>
+            ${escapeHTML(profile.email || "faculty.demo@example.com")}
+        </p>
 
         <button type="button" id="editProfileFromView">
             Edit Profile
@@ -1331,8 +1638,6 @@ function openAttendance() {
     ];
 
     openModal("Faculty Attendance", `
-        <p>Illustrative attendance record.</p>
-
         <table class="modal-table">
             <thead>
                 <tr>
@@ -1345,7 +1650,11 @@ function openAttendance() {
 
             <tbody>
                 ${records.map(record => `
-                    <tr>${record.map(cell => `<td>${escapeHTML(cell)}</td>`).join("")}</tr>
+                    <tr>
+                        ${record.map(cell =>
+                            `<td>${escapeHTML(cell)}</td>`
+                        ).join("")}
+                    </tr>
                 `).join("")}
             </tbody>
         </table>
@@ -1359,8 +1668,6 @@ function openConsultation() {
     const appointments = getStoredArray("bsuConsultations");
 
     openModal("Consultation / Advising", `
-        <p>Create a sample student consultation appointment.</p>
-
         <form id="consultationForm">
 
             <div class="form-field">
@@ -1384,7 +1691,6 @@ function openConsultation() {
             </div>
 
             <button type="submit">Save Appointment</button>
-
         </form>
 
         <h3>Saved appointments</h3>
@@ -1394,34 +1700,42 @@ function openConsultation() {
         </div>
     `);
 
-    document.getElementById("consultationForm").addEventListener("submit", event => {
-        event.preventDefault();
+    document.getElementById("consultationForm").addEventListener(
+        "submit",
+        event => {
+            event.preventDefault();
 
-        const appointment = {
-            student: document.getElementById("consultStudent").value,
-            date: document.getElementById("consultDate").value,
-            time: document.getElementById("consultTime").value,
-            topic: document.getElementById("consultTopic").value
-        };
+            const appointment = {
+                student: document.getElementById("consultStudent").value,
+                date: document.getElementById("consultDate").value,
+                time: document.getElementById("consultTime").value,
+                topic: document.getElementById("consultTopic").value
+            };
 
-        const updated = getStoredArray("bsuConsultations");
+            const updated = getStoredArray("bsuConsultations");
 
-        updated.push(appointment);
+            updated.push(appointment);
 
-        saveStoredArray("bsuConsultations", updated);
+            saveStoredArray("bsuConsultations", updated);
 
-        document.getElementById("consultationList").innerHTML =
-            renderConsultations(updated);
+            document.getElementById("consultationList").innerHTML =
+                renderConsultations(updated);
 
-        event.target.reset();
+            event.target.reset();
 
-        modalMessage("Consultation appointment saved.");
-    });
+            modalMessage("Consultation appointment saved.");
+        }
+    );
 }
+
 
 function renderConsultations(items) {
     if (!items.length) {
-        return `<p class="empty-message">No appointments recorded yet.</p>`;
+        return `
+            <p class="empty-message">
+                No appointments recorded yet.
+            </p>
+        `;
     }
 
     return `
@@ -1454,8 +1768,6 @@ function renderConsultations(items) {
 
 function openResearch() {
     openModal("Research and Extension", `
-        <p>Illustrative faculty research and extension activity tracker.</p>
-
         <table class="modal-table">
             <thead>
                 <tr>
@@ -1469,19 +1781,25 @@ function openResearch() {
                 <tr>
                     <td>Data Analytics Research Proposal</td>
                     <td>Research</td>
-                    <td><span class="status warn">In progress</span></td>
+                    <td>
+                        <span class="status warn">In progress</span>
+                    </td>
                 </tr>
 
                 <tr>
                     <td>Digital Literacy Seminar</td>
                     <td>Extension</td>
-                    <td><span class="status">Completed</span></td>
+                    <td>
+                        <span class="status">Completed</span>
+                    </td>
                 </tr>
 
                 <tr>
                     <td>Student Research Mentoring</td>
                     <td>Research</td>
-                    <td><span class="status warn">Ongoing</span></td>
+                    <td>
+                        <span class="status warn">Ongoing</span>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -1493,8 +1811,6 @@ function openResearch() {
 
 function openDevelopment() {
     openModal("Faculty Development", `
-        <p>Sample faculty training and development opportunities.</p>
-
         <table class="modal-table">
             <thead>
                 <tr>
@@ -1508,19 +1824,25 @@ function openDevelopment() {
                 <tr>
                     <td>Outcomes-Based Education Workshop</td>
                     <td>November 20, 2026</td>
-                    <td><span class="status warn">Upcoming</span></td>
+                    <td>
+                        <span class="status warn">Upcoming</span>
+                    </td>
                 </tr>
 
                 <tr>
                     <td>Research Methods Seminar</td>
                     <td>December 4, 2026</td>
-                    <td><span class="status warn">Upcoming</span></td>
+                    <td>
+                        <span class="status warn">Upcoming</span>
+                    </td>
                 </tr>
 
                 <tr>
                     <td>Digital Teaching Tools Training</td>
                     <td>October 15, 2026</td>
-                    <td><span class="status">Completed</span></td>
+                    <td>
+                        <span class="status">Completed</span>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -1542,6 +1864,7 @@ const serviceActions = {
     development: openDevelopment
 };
 
+
 document.querySelectorAll("[data-service]").forEach(button => {
     button.addEventListener("click", () => {
         const service = button.dataset.service;
@@ -1558,63 +1881,83 @@ document.querySelectorAll("[data-service]").forEach(button => {
 const announcements = {
     privacy: {
         title: "Student Data Privacy Advisory",
+
         body: `
-            <p>Faculty members are reminded to protect student records and account credentials.</p>
+            <p>
+                Faculty members are reminded to protect student records
+                and account credentials.
+            </p>
 
             <ul>
-                <li>Access student information only for authorized academic purposes.</li>
-                <li>Do not share account credentials with other individuals.</li>
-                <li>Keep printed and digital student records secure.</li>
-                <li>Use approved channels when handling confidential academic information.</li>
-            </ul>
+                <li>
+                    Access student information only for authorized
+                    academic purposes.
+                </li>
 
-            <div class="demo-note">
-                This is a sample advisory for the portal demonstration.
-            </div>
+                <li>
+                    Do not share account credentials with other individuals.
+                </li>
+
+                <li>
+                    Keep printed and digital student records secure.
+                </li>
+
+                <li>
+                    Use approved channels when handling confidential
+                    academic information.
+                </li>
+            </ul>
         `
     },
 
     meeting: {
         title: "Faculty Meeting and Academic Planning Notice",
+
         body: `
             <p><b>Office:</b> Office of the Dean</p>
 
-            <p><b>Subject:</b> Faculty Meeting and Academic Planning</p>
+            <p>
+                <b>Subject:</b>
+                Faculty Meeting and Academic Planning
+            </p>
 
-            <p>Faculty members are reminded to prepare their academic updates, course progress, and items for departmental discussion.</p>
-
-            <div class="demo-note">
-                No actual meeting date or venue has been issued in this demonstration.
-            </div>
+            <p>
+                Faculty members are reminded to prepare their academic
+                updates, course progress, and items for departmental discussion.
+            </p>
         `
     },
 
     grades: {
         title: "Deadline for Grade Submission",
+
         body: `
             <p><b>Subject:</b> Grade Submission Reminder</p>
 
-            <p>Faculty members should review their class records and ensure that grades are complete before the official submission deadline.</p>
-
-            <div class="demo-note">
-                This is a sample reminder. Consult the official academic calendar for actual deadlines.
-            </div>
+            <p>
+                Faculty members should review their class records and ensure
+                that grades are complete before the official submission deadline.
+            </p>
         `
     },
 
     development: {
         title: "Faculty Development Activities",
+
         body: `
-            <p>Faculty members are encouraged to participate in professional development activities, workshops, seminars, and training programs.</p>
+            <p>
+                Faculty members are encouraged to participate in professional
+                development activities, workshops, seminars, and training programs.
+            </p>
 
-            <p>Participation can support instructional improvement and professional growth.</p>
-
-            <div class="demo-note">
-                Sample announcement only. Actual activity details should be confirmed through official university channels.
-            </div>
+            <p>
+                Participation can support instructional improvement
+                and professional growth.
+            </p>
         `
     }
 };
+
 
 function openAnnouncement(key) {
     const item = announcements[key];
@@ -1623,6 +1966,7 @@ function openAnnouncement(key) {
 
     openModal(item.title, item.body);
 }
+
 
 document.querySelectorAll("[data-announcement]").forEach(button => {
     button.addEventListener("click", () => {
@@ -1643,6 +1987,7 @@ const generalActions = {
     handbook: () => openQuickLink("handbook")
 };
 
+
 document.querySelectorAll("[data-action]").forEach(button => {
     button.addEventListener("click", () => {
         const action = button.dataset.action;
@@ -1658,7 +2003,9 @@ document.querySelectorAll("[data-action]").forEach(button => {
 
 function loadSavedProfile() {
     try {
-        const saved = JSON.parse(localStorage.getItem("bsuProfile") || "{}");
+        const saved = JSON.parse(
+            localStorage.getItem("bsuProfile") || "{}"
+        );
 
         if (saved.name) {
             document.getElementById("profileName").textContent =
@@ -1672,641 +2019,6 @@ function loadSavedProfile() {
 loadSavedProfile();
 
 
-// 33. INTERACTIVE ANALYTICS DETAILS
-// Uses the existing openModal() function.
-// Does not replace any existing action listeners.
+// 33. INITIALIZATION
 
-
-// CURRENT FILTER INFORMATION
-
-function getCurrentFilterDescription() {
-    const year = document.getElementById("year");
-    const semester = document.getElementById("semester");
-    const department = document.getElementById("department");
-
-    return {
-        year: year.value.replace("-", "–"),
-        semester: semester.selectedOptions[0].textContent,
-        department: department.selectedOptions[0].textContent
-    };
-}
-
-function getFilterHTML() {
-    const filters = getCurrentFilterDescription();
-
-    return `
-        <div class="demo-note">
-            <b>Current Dashboard Filters</b><br>
-            Academic Year: ${escapeHTML(filters.year)}<br>
-            Semester: ${escapeHTML(filters.semester)}<br>
-            Department: ${escapeHTML(filters.department)}
-        </div>
-    `;
-}
-
-
-// KPI CARD DETAILS
-
-function showKpiDetails(index) {
-    const data = getDashboardData();
-
-    const details = [
-        {
-            title: "Teaching Load Details",
-            content: `
-                <h3>Teaching Workload</h3>
-
-                <p><b>Total teaching units:</b> ${data.units}</p>
-
-                <p><b>Assigned classes:</b> ${data.classes}</p>
-
-                <p><b>Selected department:</b> ${escapeHTML(data.name)}</p>
-
-                <p>This summarizes the teaching workload under the current dashboard filters.</p>
-            `
-        },
-
-        {
-            title: "Enrolled Students Details",
-            content: `
-                <h3>Student Enrollment</h3>
-
-                <p><b>Total enrolled students:</b> ${data.students}</p>
-
-                <p><b>Selected department:</b> ${escapeHTML(data.name)}</p>
-
-                <p>This figure represents the illustrative enrollment count under the selected filters.</p>
-            `
-        },
-
-        {
-            title: "SETE Average Details",
-            content: `
-                <h3>Overall SETE Average</h3>
-
-                <p style="font-size:28px;font-weight:bold;color:#20a34a;">
-                    ${data.sete.toFixed(2)} / 5.00
-                </p>
-
-                <h3>Evaluation Dimensions</h3>
-
-                <table class="modal-table">
-                    <thead>
-                        <tr>
-                            <th>Dimension</th>
-                            <th>Average Score</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        ${Object.entries(data.dimensions).map(([name, score]) => `
-                            <tr>
-                                <td>${escapeHTML(name)}</td>
-                                <td><b>${score.toFixed(2)} / 5.00</b></td>
-                            </tr>
-                        `).join("")}
-                    </tbody>
-                </table>
-
-                <p>Scores should be interpreted together with response rates and other teaching evidence.</p>
-            `
-        },
-
-        {
-            title: "Pending Academic Tasks",
-            content: `
-                <h3>Pending Tasks Summary</h3>
-
-                <p><b>Number of pending tasks:</b> ${data.pending}</p>
-
-                <p>These represent illustrative grade or academic submission tasks that may require attention.</p>
-
-                <p>Use the Grade Submission service to view and save demonstration submissions.</p>
-            `
-        },
-
-        {
-            title: "SETE Response Rate Details",
-            content: `
-                <h3>Student Evaluation Participation</h3>
-
-                <p><b>Responses received:</b> ${data.responded}</p>
-
-                <p><b>Total students:</b> ${data.students}</p>
-
-                <p><b>Response rate:</b> ${data.response}%</p>
-
-                <p><b>Illustrative target:</b> 80%</p>
-
-                <p>
-                    ${data.response >= 80
-                        ? "The current response rate meets the illustrative target."
-                        : "The current response rate is below the illustrative target. Eligible students may be encouraged to participate."
-                    }
-                </p>
-            `
-        }
-    ];
-
-    const item = details[index];
-
-    if (!item) return;
-
-    openModal(
-        item.title,
-        item.content + getFilterHTML()
-    );
-}
-
-
-// ENROLLMENT CHART POINT DETAILS
-
-function showEnrollmentDetails(index) {
-    const data = getDashboardData();
-
-    const labels = [
-        "First Semester AY 2023–2024",
-        "Second Semester AY 2023–2024",
-        "First Semester AY 2024–2025",
-        "Second Semester AY 2024–2025",
-        "First Semester AY 2025–2026",
-        "Second Semester AY 2025–2026"
-    ];
-
-    const offset = data.key === "it" ? 0 :
-        data.key === "ba" ? 2 :
-        data.key === "cs" ? -2 : 1;
-
-    const values = [
-        82 + offset,
-        85 + offset,
-        84 + offset,
-        89 + offset,
-        91 + offset,
-        data.completion
-    ].map(value => clamp(value, 60, 100));
-
-    if (index < 0 || index >= values.length) return;
-
-    openModal("Enrollment Completion Details", `
-        <h3>${labels[index]}</h3>
-
-        <p style="font-size:28px;font-weight:bold;color:#4263eb;">
-            ${values[index]}%
-        </p>
-
-        <p><b>Completion rate:</b> ${values[index]}%</p>
-
-        <p><b>Selected department:</b> ${escapeHTML(data.name)}</p>
-
-        <p>
-            This point represents the enrollment completion rate
-            for the selected chart period.
-        </p>
-
-        <div class="demo-note">
-            Historical chart values are illustrative demonstration figures.
-            The final chart point uses the current filtered completion rate.
-        </div>
-
-        ${getFilterHTML()}
-    `);
-}
-
-
-// SETE DIMENSION DETAILS
-
-function showSeteDimensionDetails(element) {
-    const data = getDashboardData();
-
-    const name = element.querySelector("span")?.textContent?.trim();
-
-    if (!name || data.dimensions[name] === undefined) return;
-
-    const score = data.dimensions[name];
-
-    openModal("SETE Evaluation Dimension", `
-        <h3>${escapeHTML(name)}</h3>
-
-        <p style="font-size:28px;font-weight:bold;color:#20a34a;">
-            ${score.toFixed(2)} / 5.00
-        </p>
-
-        <p><b>Evaluation dimension:</b> ${escapeHTML(name)}</p>
-
-        <p><b>Average score:</b> ${score.toFixed(2)} / 5.00</p>
-
-        <p><b>Student responses:</b> ${data.responded}</p>
-
-        <p><b>Selected department:</b> ${escapeHTML(data.name)}</p>
-
-        <div class="demo-note">
-            This is an illustrative average score for the selected filters.
-            It is not an individual student's evaluation.
-        </div>
-
-        ${getFilterHTML()}
-    `);
-}
-
-
-// ACADEMIC STANDING DETAILS
-
-function showStandingDetails(element) {
-    const data = getDashboardData();
-
-    const key = element.dataset.standing;
-
-    const categories = {
-        good: {
-            name: "Good Standing",
-            count: data.standing.good
-        },
-
-        satisfactory: {
-            name: "Satisfactory",
-            count: data.standing.satisfactory
-        },
-
-        atRisk: {
-            name: "At Risk",
-            count: data.standing.atRisk
-        },
-
-        probation: {
-            name: "Probation",
-            count: data.standing.probation
-        }
-    };
-
-    const item = categories[key];
-
-    if (!item) return;
-
-    const rate = percentage(item.count, data.students);
-
-    openModal("Student Academic Standing", `
-        <h3>${item.name}</h3>
-
-        <p><b>Number of students:</b> ${item.count}</p>
-
-        <p><b>Percentage of enrolled students:</b> ${rate}%</p>
-
-        <p><b>Total enrolled students:</b> ${data.students}</p>
-
-        <p><b>Selected department:</b> ${escapeHTML(data.name)}</p>
-
-        <div class="demo-note">
-            This category summarizes the illustrative academic standing distribution.
-        </div>
-
-        ${getFilterHTML()}
-    `);
-}
-
-
-// ACADEMIC ALERT DETAILS
-
-function showAlertDetails(index) {
-    const data = getDashboardData();
-
-    const riskRate = percentage(
-        data.standing.atRisk + data.standing.probation,
-        data.students
-    );
-
-    const alerts = [];
-
-    if (riskRate >= 10) {
-        alerts.push({
-            title: "Students Requiring Review",
-            content: `
-                <p><b>At-risk and probation rate:</b> ${riskRate}%</p>
-
-                <p><b>Students requiring review:</b> ${data.standing.atRisk + data.standing.probation}</p>
-
-                <p>Possible action: review academic performance and identify students who may need additional academic support.
-                </p>
-            `
-        });
-    } else {
-        alerts.push({
-            title: "Academic Standing",
-            content: `
-                <p><b>At-risk and probation rate:</b> ${riskRate}%</p>
-
-                <p>Possible action: continue monitoring student progress and provide support when necessary.</p>
-            `
-        });
-    }
-
-    if (data.response < 80) {
-        alerts.push({
-            title: "SETE Response Rate",
-            content: `
-                <p><b>Current response rate:</b> ${data.response}%</p>
-
-                <p><b>Illustrative target:</b> 80%</p>
-
-                <p>Possible action: remind eligible students to participate in the evaluation.</p>
-            `
-        });
-    } else {
-        alerts.push({
-            title: "SETE Response Rate",
-            content: `
-                <p><b>Current response rate:</b> ${data.response}%</p>
-
-                <p>The current response rate meets the illustrative 80% target.</p>
-            `
-        });
-    }
-
-    if (data.pending > 0) {
-        alerts.push({
-            title: "Pending Academic Tasks",
-            content: `
-                <p><b>Pending tasks:</b> ${data.pending}</p>
-
-                <p>Possible action: review outstanding grade or academic submission tasks.</p>
-            `
-        });
-    }
-
-    const item = alerts[index];
-
-    if (!item) return;
-
-    openModal(
-        item.title,
-        item.content + getFilterHTML()
-    );
-}
-
-
-// PRIORITY FOLLOW-UP DETAILS
-
-function showFollowUpDetails(index) {
-    const data = getDashboardData();
-
-    const department = data.departments[index];
-
-    if (!department) return;
-
-    const riskRate = percentage(
-        department.standing.atRisk + department.standing.probation,
-        department.students
-    );
-
-    let indicator;
-    let status;
-    let recommendation;
-
-    if (riskRate >= 10) {
-        indicator = riskRate + "% at risk";
-        status = "Review";
-
-        recommendation =
-            "Review students in the at-risk and probation categories and consider appropriate academic support.";
-
-    } else if (department.response < 80) {
-        indicator = department.response + "% response";
-        status = "Follow up";
-
-        recommendation =
-            "Encourage eligible students to complete the SETE evaluation.";
-
-    } else {
-        indicator = department.sete.toFixed(2) + " SETE";
-        status = "On track";
-
-        recommendation =
-            "Continue monitoring academic and evaluation indicators.";
-    }
-
-    openModal("Priority Follow-up Details", `
-        <h3>${escapeHTML(department.name)}</h3>
-
-        <p><b>Indicator:</b> ${indicator}</p>
-
-        <p><b>Status:</b> ${status}</p>
-
-        <p><b>Enrolled students:</b> ${department.students}</p>
-
-        <p><b>SETE response rate:</b> ${department.response}%</p>
-
-        <p><b>SETE average:</b> ${department.sete.toFixed(2)} / 5.00</p>
-
-        <p><b>At-risk students:</b> ${department.standing.atRisk}</p>
-
-        <p><b>Probation students:</b> ${department.standing.probation}</p>
-
-        <h3>Suggested Follow-up</h3>
-
-        <p>${recommendation}</p>
-
-        <div class="demo-note">
-            This is an illustrative department-level summary,
-            not an official university report.
-        </div>
-
-        ${getFilterHTML()}
-    `);
-}
-
-
-// 34. ANALYTICS CLICK HANDLER
-// Uses event delegation so regenerated charts and rows
-// remain interactive after changing dashboard filters.
-
-function handleAnalyticsClick(event) {
-    const target = event.target;
-
-    // KPI CARDS
-
-    const kpi = target.closest(".kpi");
-
-    if (kpi) {
-        const cards = Array.from(
-            document.querySelectorAll(".kpi")
-        );
-
-        const index = cards.indexOf(kpi);
-
-        showKpiDetails(index);
-        return;
-    }
-
-
-    // ENROLLMENT CHART POINTS
-
-    const circle = target.closest("#enrollmentChart circle");
-
-    if (circle) {
-        const circles = Array.from(
-            document.querySelectorAll("#enrollmentChart circle")
-        );
-
-        const index = circles.indexOf(circle);
-
-        showEnrollmentDetails(index);
-        return;
-    }
-
-
-    // SETE DIMENSION BARS
-
-    const bar = target.closest("#seteBars .bar-row");
-
-    if (bar) {
-        showSeteDimensionDetails(bar);
-        return;
-    }
-
-
-    // ACADEMIC STANDING LEGEND
-
-    const legendItem = target.closest(
-        "#standingLegend > div"
-    );
-
-    if (legendItem) {
-        showStandingDetails(legendItem);
-        return;
-    }
-
-
-    // ACADEMIC ALERTS
-
-    const alert = target.closest(
-        "#academicAlerts .alert"
-    );
-
-    if (alert) {
-        const alerts = Array.from(
-            document.querySelectorAll("#academicAlerts .alert")
-        );
-
-        const index = alerts.indexOf(alert);
-
-        showAlertDetails(index);
-        return;
-    }
-
-
-    // PRIORITY FOLLOW-UP TABLE
-
-    const row = target.closest(
-        "#followUpTable tr"
-    );
-
-    if (row) {
-        const rows = Array.from(
-            document.querySelectorAll("#followUpTable tr")
-        );
-
-        const index = rows.indexOf(row);
-
-        showFollowUpDetails(index);
-    }
-}
-
-
-// REGISTER ONE DELEGATED CLICK LISTENER
-
-document.addEventListener(
-    "click",
-    handleAnalyticsClick
-);
-
-
-// 35. ANALYTICS KEYBOARD ACCESSIBILITY
-
-document.addEventListener("keydown", event => {
-    if (event.key !== "Enter" && event.key !== " ") {
-        return;
-    }
-
-    const target = event.target;
-
-    const isAnalyticsElement = target.matches(
-        ".kpi, " +
-        "#enrollmentChart circle, " +
-        "#seteBars .bar-row, " +
-        "#standingLegend > div, " +
-        "#academicAlerts .alert, " +
-        "#followUpTable tr"
-    );
-
-    if (!isAnalyticsElement) {
-        return;
-    }
-
-    event.preventDefault();
-
-    target.click();
-});
-
-
-// 36. INTERACTIVE ANALYTICS STYLING
-
-(function addAnalyticsInteractionStyles() {
-    const style = document.createElement("style");
-
-    style.id = "analyticsInteractionStyles";
-
-    style.textContent = `
-        .kpi,
-        #seteBars .bar-row,
-        #standingLegend > div,
-        #academicAlerts .alert,
-        #followUpTable tr {
-            cursor: pointer;
-            transition: background-color 0.2s ease,
-                        box-shadow 0.2s ease;
-        }
-
-        .kpi:hover,
-        #seteBars .bar-row:hover,
-        #standingLegend > div:hover,
-        #followUpTable tr:hover {
-            background-color: #f5f7f9;
-        }
-
-        #academicAlerts .alert:hover {
-            filter: brightness(0.97);
-        }
-
-        #enrollmentChart circle {
-            cursor: pointer;
-            transition: stroke-width 0.15s ease;
-        }
-
-        #enrollmentChart circle:hover {
-            stroke: #d92332;
-            stroke-width: 5;
-        }
-
-        .kpi:focus-visible,
-        #seteBars .bar-row:focus-visible,
-        #standingLegend > div:focus-visible,
-        #academicAlerts .alert:focus-visible,
-        #followUpTable tr:focus-visible,
-        #enrollmentChart circle:focus-visible {
-            outline: 3px solid #75b9ed;
-            outline-offset: 3px;
-        }
-    `;
-
-    if (!document.getElementById("analyticsInteractionStyles")) {
-        document.head.appendChild(style);
-    }
-})();
-
-
-// 37. FINAL INITIALIZATION
-
-console.log("BSUniSync demonstration portal initialized.");
-console.log("All dashboard data is fictional and stored locally where applicable.");
-console.log("Faculty Services and account actions are enabled.");
-console.log("Interactive analytics details are enabled.");
+console.log("BSUniSync portal initialized.");
