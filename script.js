@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let modelApiLoading = false;
 
   // --------------------------------------------------
-  // DEMO STUDENT DATA
+  // DEMONSTRATION DATA
   // --------------------------------------------------
 
   const students = [
@@ -115,12 +115,29 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --------------------------------------------------
-  // SYNTHETIC ML INPUT PREPARATION
+  // ACADEMIC PERIOD ASSIGNMENT
   // --------------------------------------------------
 
-  // Previous_GWA and Failed_Subjects are generated
-  // synthetic demonstration inputs.
-  // They are NOT actual student academic records.
+  students.forEach((student, index) => {
+    if (index < 8) {
+      student.academicYear = "2025-2026";
+      student.semester = index % 2 === 0 ? "1" : "2";
+    } else {
+      const periodIndex = index % 3;
+
+      student.academicYear = [
+        "2023-2024",
+        "2024-2025",
+        "2025-2026"
+      ][periodIndex];
+
+      student.semester = index % 2 === 0 ? "1" : "2";
+    }
+  });
+
+  // --------------------------------------------------
+  // SYNTHETIC ML INPUT PREPARATION
+  // --------------------------------------------------
 
   students.forEach((student, index) => {
     const previousVariation = ((index % 7) - 3) * 0.12;
@@ -185,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title:"Student Academic Risk",
       description:`${atRiskStudents.length} students currently have a GWA above 2.75 and may require academic intervention.`,
       type:"Urgent",
-      date:"Based on current student records",
+      date:"Based on demonstration student records",
       actionLabel:"Review At Risk Students",
       target:"students",
       filter:"At Risk",
@@ -196,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title:"Student Attendance Concern",
       description:`${lowAttendanceStudents.length} students currently have attendance below 80% and may need follow-up.`,
       type:"Student Concern",
-      date:"Based on current student records",
+      date:"Based on demonstration student records",
       actionLabel:"Review Student Records",
       target:"students",
       filter:"all",
@@ -205,9 +222,9 @@ document.addEventListener("DOMContentLoaded", () => {
     {
       id:"sete",
       title:"Teaching Evaluation Summary",
-      description:"Your current SETE rating is 4.28 out of 5. Review the evaluation results and rating distribution for your assigned classes.",
+      description:"The demonstration SETE rating is 4.28 out of 5. Review the illustrative evaluation results and rating distribution.",
       type:"Reminder",
-      date:"Current evaluation summary",
+      date:"Illustrative evaluation summary",
       actionLabel:"View Teaching Evaluation",
       target:"evaluation",
       filter:"all",
@@ -222,9 +239,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // GENERAL HELPERS
   // --------------------------------------------------
 
-  const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  })[char]);
+  const escapeHTML = value =>
+    String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    })[char]);
 
   function showToast(message) {
     const container = $("#toastContainer");
@@ -234,6 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toast.className = "toast";
     toast.textContent = message;
     container.appendChild(toast);
+
     setTimeout(() => toast.remove(), 3000);
   }
 
@@ -265,6 +288,69 @@ document.addEventListener("DOMContentLoaded", () => {
     return name.split(/\s+/).slice(0,2).map(part => part[0]).join("").toUpperCase();
   }
 
+  function getPercentage(part, total) {
+    return total ? (part / total) * 100 : 0;
+  }
+
+  // --------------------------------------------------
+  // DASHBOARD FILTER DATA
+  // --------------------------------------------------
+
+  function getDashboardStudents() {
+    const year = $("#yearFilter")?.value || "all";
+    const semester = $("#semesterFilter")?.value || "all";
+
+    return students.filter(student =>
+      (year === "all" || student.academicYear === year) &&
+      (semester === "all" || student.semester === semester)
+    );
+  }
+
+  function getDashboardSummary() {
+    const records = getDashboardStudents();
+    const total = records.length;
+
+    const passing = records.filter(student => Number(student.gwa) <= 3.00).length;
+
+    const averageProgress = total
+      ? records.reduce((sum, student) => sum + Number(student.progress || 0), 0) / total
+      : 0;
+
+    const atRisk = records.filter(student => getStanding(student.gwa) === "At Risk").length;
+
+    const averageAttendance = total
+      ? records.reduce((sum, student) => sum + Number(student.attendance || 0), 0) / total
+      : 0;
+
+    return {
+      records,
+      total,
+      passing,
+      passingRate:getPercentage(passing,total),
+      averageProgress,
+      atRisk,
+      averageAttendance
+    };
+  }
+
+  function updateDashboardKPIs() {
+    const summary = getDashboardSummary();
+
+    if ($("#kpiStudents")) $("#kpiStudents").textContent = summary.total.toLocaleString();
+    if ($("#kpiPassing")) $("#kpiPassing").textContent = `${summary.passingRate.toFixed(1)}%`;
+    if ($("#kpiCompletion")) $("#kpiCompletion").textContent = `${summary.averageProgress.toFixed(1)}%`;
+    if ($("#kpiAtRisk")) $("#kpiAtRisk").textContent = summary.atRisk.toLocaleString();
+
+    if ($("#kpiAtRiskDetail")) {
+      $("#kpiAtRiskDetail").textContent =
+        `${summary.atRisk} students with GWA above 2.75 in this selection`;
+    }
+
+    if ($("#kpiSete") && !$("#kpiSete").textContent.trim()) {
+      $("#kpiSete").textContent = "4.28";
+    }
+  }
+
   // --------------------------------------------------
   // OVERVIEW ML SUMMARY
   // --------------------------------------------------
@@ -277,35 +363,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const safeElement = $("#mlOverviewSafe");
     const messageElement = $("#mlOverviewMessage");
 
-    if (!statusElement || !statusText || !totalElement ||
-        !riskElement || !safeElement || !messageElement) {
-      return;
+    if (statusElement) statusElement.className = `ml-overview-status ${status}`;
+
+    if (statusText) {
+      statusText.textContent =
+        status === "online" ? "Model Online" :
+        status === "offline" ? "Service Offline" :
+        "Connecting...";
     }
 
-    statusElement.className = `ml-overview-status ${status}`;
-
-    if (status === "online") {
-      statusText.textContent = "Model Online";
-    } else if (status === "offline") {
-      statusText.textContent = "Service Offline";
-    } else {
-      statusText.textContent = "Connecting...";
+    if (totalElement) {
+      totalElement.textContent = total === null ? "—" : Number(total).toLocaleString();
     }
 
-    totalElement.textContent =
-      total === null ? "—" : Number(total).toLocaleString();
+    if (riskElement) {
+      riskElement.textContent = risk === null ? "—" : Number(risk).toLocaleString();
+    }
 
-    riskElement.textContent =
-      risk === null ? "—" : Number(risk).toLocaleString();
+    if (safeElement) {
+      safeElement.textContent = safe === null ? "—" : Number(safe).toLocaleString();
+    }
 
-    safeElement.textContent =
-      safe === null ? "—" : Number(safe).toLocaleString();
-
-    messageElement.textContent = message;
+    if (messageElement) messageElement.textContent = message;
   }
 
   // --------------------------------------------------
-  // DYNAMIC ML INTERFACE
+  // ML INTERFACE
   // --------------------------------------------------
 
   function addMLInterface() {
@@ -321,9 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="model-api-dot"></span>
           <span class="model-api-message">Connecting to prediction service...</span>
         </div>
-        <button type="button" id="retryModelBtn" class="model-retry-button">
-          Retry
-        </button>
+        <button type="button" id="retryModelBtn" class="model-retry-button">Retry</button>
       `;
 
       heading.appendChild(status);
@@ -389,13 +470,8 @@ document.addEventListener("DOMContentLoaded", () => {
           flex-shrink:0;
         }
 
-        .model-api-status.online .model-api-dot {
-          background:#35bd7a;
-        }
-
-        .model-api-status.offline .model-api-dot {
-          background:#e45b63;
-        }
+        .model-api-status.online .model-api-dot { background:#35bd7a; }
+        .model-api-status.offline .model-api-dot { background:#e45b63; }
 
         .model-retry-button {
           background:rgba(22,143,160,.12);
@@ -408,10 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
           cursor:pointer;
         }
 
-        .model-retry-button:disabled {
-          opacity:.5;
-          cursor:wait;
-        }
+        .model-retry-button:disabled { opacity:.5; cursor:wait; }
 
         .ml-disclaimer {
           padding:0 20px 14px;
@@ -430,25 +503,10 @@ document.addEventListener("DOMContentLoaded", () => {
           white-space:nowrap;
         }
 
-        .ml-risk {
-          background:rgba(217,35,50,.16);
-          color:#ff7e85;
-        }
-
-        .ml-safe {
-          background:rgba(24,139,69,.16);
-          color:#63d296;
-        }
-
-        .ml-pending {
-          background:rgba(201,149,57,.16);
-          color:#e8bc6d;
-        }
-
-        .ml-unavailable {
-          background:rgba(150,160,165,.14);
-          color:#b6c0c4;
-        }
+        .ml-risk { background:rgba(217,35,50,.16); color:#ff7e85; }
+        .ml-safe { background:rgba(24,139,69,.16); color:#63d296; }
+        .ml-pending { background:rgba(201,149,57,.16); color:#e8bc6d; }
+        .ml-unavailable { background:rgba(150,160,165,.14); color:#b6c0c4; }
 
         .ml-score {
           display:block;
@@ -457,35 +515,26 @@ document.addEventListener("DOMContentLoaded", () => {
           margin-top:4px;
         }
 
-        .student-table th:nth-child(1) { width:10%; }
-        .student-table th:nth-child(2) { width:15%; }
-        .student-table th:nth-child(3) { width:8%; }
-        .student-table th:nth-child(4) { width:8%; }
-        .student-table th:nth-child(5) { width:6%; }
-        .student-table th:nth-child(6) { width:14%; }
-        .student-table th:nth-child(7) { width:11%; }
-        .student-table th:nth-child(8) { width:13%; }
-        .student-table th:nth-child(9) { width:8%; }
-
-        /* ML distribution visualization */
+        /* ENLARGED ML RISK DISTRIBUTION */
 
         .ml-gauge-wrap {
           height:auto !important;
-          min-height:245px;
+          min-height:320px;
           display:flex;
           align-items:center;
           justify-content:center;
-          padding:24px 20px;
+          padding:32px 30px;
           box-sizing:border-box;
+          width:100%;
         }
 
         .ml-risk-distribution {
           width:100%;
-          max-width:560px;
+          max-width:760px;
           display:flex;
           flex-direction:column;
           justify-content:center;
-          gap:25px;
+          gap:32px;
           margin:auto;
         }
 
@@ -493,65 +542,58 @@ document.addEventListener("DOMContentLoaded", () => {
           width:100%;
           display:flex;
           flex-direction:column;
-          gap:10px;
+          gap:13px;
         }
 
         .ml-risk-row-top {
           display:flex;
           align-items:center;
           justify-content:space-between;
-          gap:12px;
+          gap:16px;
         }
 
         .ml-risk-label {
           display:flex;
           align-items:center;
-          gap:9px;
+          gap:12px;
           color:var(--text);
-          font-size:12px;
+          font-size:15px;
           font-weight:700;
         }
 
         .ml-risk-dot {
-          width:9px;
-          height:9px;
+          width:12px;
+          height:12px;
           border-radius:50%;
           flex-shrink:0;
         }
 
-        .ml-risk-dot.danger {
-          background:#e34b55;
-          box-shadow:0 0 10px rgba(227,75,85,.3);
-        }
-
-        .ml-risk-dot.success {
-          background:#2eb879;
-          box-shadow:0 0 10px rgba(46,184,121,.3);
-        }
+        .ml-risk-dot.danger { background:#e34b55; }
+        .ml-risk-dot.success { background:#2eb879; }
 
         .ml-risk-values {
           display:flex;
           align-items:baseline;
-          gap:7px;
+          gap:9px;
           white-space:nowrap;
         }
 
         .ml-risk-count {
           color:var(--text);
-          font-size:17px;
+          font-size:25px;
           font-weight:800;
           font-variant-numeric:tabular-nums;
         }
 
         .ml-risk-percent {
           color:var(--muted);
-          font-size:10px;
+          font-size:14px;
           font-weight:600;
         }
 
         .ml-risk-track {
           width:100%;
-          height:13px;
+          height:21px;
           overflow:hidden;
           border-radius:20px;
           background:rgba(150,160,165,.13);
@@ -572,47 +614,25 @@ document.addEventListener("DOMContentLoaded", () => {
           background:linear-gradient(90deg,#168b55,#43c78b);
         }
 
-        .ml-risk-empty {
-          display:flex;
-          min-height:150px;
-          align-items:center;
-          justify-content:center;
-          flex-direction:column;
-          gap:9px;
-          text-align:center;
-          color:var(--muted);
-        }
-
-        .ml-risk-empty strong {
-          color:var(--text);
-          font-size:13px;
-        }
-
-        .ml-risk-empty span {
-          max-width:320px;
-          font-size:10px;
-          line-height:1.6;
-        }
-
         .ml-risk-total {
           display:flex;
           justify-content:space-between;
           align-items:center;
-          gap:10px;
-          padding-top:13px;
+          gap:12px;
+          padding-top:17px;
           border-top:1px solid var(--border);
           color:var(--muted);
-          font-size:10px;
+          font-size:13px;
         }
 
         .ml-risk-total strong {
           color:var(--text);
-          font-size:12px;
+          font-size:16px;
         }
 
         .overview-insights-grid {
           display:grid !important;
-          grid-template-columns:repeat(3,minmax(0,1fr));
+          grid-template-columns:repeat(2,minmax(0,1fr));
           align-items:stretch;
           gap:18px;
           width:100%;
@@ -635,10 +655,8 @@ document.addEventListener("DOMContentLoaded", () => {
           min-width:0;
         }
 
-        @media(max-width:1050px) {
-          .overview-insights-grid {
-            grid-template-columns:repeat(2,minmax(0,1fr));
-          }
+        .overview-insights-grid > .ml-risk-panel {
+          grid-column:1 / -1;
         }
 
         @media(max-width:760px) {
@@ -647,9 +665,7 @@ document.addEventListener("DOMContentLoaded", () => {
             flex-direction:column;
           }
 
-          .model-api-status {
-            margin-left:0;
-          }
+          .model-api-status { margin-left:0; }
 
           .ml-disclaimer {
             padding-left:14px;
@@ -661,13 +677,41 @@ document.addEventListener("DOMContentLoaded", () => {
             gap:14px;
           }
 
+          .overview-insights-grid > .ml-risk-panel {
+            grid-column:auto;
+          }
+
           .ml-gauge-wrap {
-            min-height:220px;
-            padding:20px 14px;
+            min-height:260px;
+            padding:24px 16px;
           }
 
           .ml-risk-distribution {
-            gap:21px;
+            gap:25px;
+          }
+
+          .ml-risk-label {
+            font-size:13px;
+          }
+
+          .ml-risk-count {
+            font-size:21px;
+          }
+
+          .ml-risk-percent {
+            font-size:12px;
+          }
+
+          .ml-risk-track {
+            height:17px;
+          }
+
+          .ml-risk-total {
+            font-size:11px;
+          }
+
+          .ml-risk-total strong {
+            font-size:14px;
           }
         }
       `;
@@ -675,7 +719,15 @@ document.addEventListener("DOMContentLoaded", () => {
       document.head.appendChild(style);
     }
 
-    $("#retryModelBtn")?.addEventListener("click", runBatchPredictions);
+    if (!document.body.dataset.mlRetryListener) {
+      document.body.dataset.mlRetryListener = "true";
+
+      document.addEventListener("click", event => {
+        if (event.target.closest("#retryModelBtn")) {
+          runBatchPredictions();
+        }
+      });
+    }
 
     initializeMLRiskDistribution();
   }
@@ -695,9 +747,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const messageElement = container.querySelector(".model-api-message");
     const retryButton = $("#retryModelBtn");
 
-    if (messageElement) {
-      messageElement.textContent = message;
-    }
+    if (messageElement) messageElement.textContent = message;
 
     if (retryButton) {
       retryButton.disabled = modelApiLoading;
@@ -708,11 +758,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getMLBadge(student) {
     if (!student.mlPrediction) {
-      if (modelApiStatus === "offline") {
-        return `<span class="ml-badge ml-unavailable">Unavailable</span>`;
-      }
-
-      return `<span class="ml-badge ml-pending">Pending</span>`;
+      return modelApiStatus === "offline"
+        ? `<span class="ml-badge ml-unavailable">Unavailable</span>`
+        : `<span class="ml-badge ml-pending">Pending</span>`;
     }
 
     const isRisk = student.mlPrediction === "At Risk";
@@ -721,8 +769,350 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="ml-badge ${isRisk ? "ml-risk" : "ml-safe"}">
         ${escapeHTML(student.mlPrediction)}
       </span>
-      <small class="ml-score">Model score: ${Number(student.mlScore).toFixed(2)}%</small>
+      ${
+        Number.isFinite(student.mlScore)
+          ? `<small class="ml-score">Model score: ${student.mlScore.toFixed(2)}%</small>`
+          : `<small class="ml-score">Model score: Not provided</small>`
+      }
     `;
+  }
+
+  // --------------------------------------------------
+  // ML DISTRIBUTION DATA
+  // --------------------------------------------------
+
+  function getMLRiskDistribution() {
+    const analyzed = students.filter(student =>
+      student.mlPrediction === "At Risk" ||
+      student.mlPrediction === "Not At Risk"
+    );
+
+    const risk = analyzed.filter(student =>
+      student.mlPrediction === "At Risk"
+    ).length;
+
+    const safe = analyzed.filter(student =>
+      student.mlPrediction === "Not At Risk"
+    ).length;
+
+    return {
+      analyzed:analyzed.length,
+      risk,
+      safe
+    };
+  }
+
+  // --------------------------------------------------
+  // ML DISTRIBUTION INITIALIZATION
+  // --------------------------------------------------
+
+  function initializeMLRiskDistribution() {
+    const gaugeWraps = $$(".ml-gauge-wrap");
+
+    if (!gaugeWraps.length) {
+      console.warn("ML distribution container .ml-gauge-wrap was not found.");
+      return;
+    }
+
+    gaugeWraps.forEach(gaugeWrap => {
+      const alreadyInitialized =
+        gaugeWrap.dataset.mlDistributionInitialized === "true" &&
+        gaugeWrap.querySelector("[data-ml-risk-row]") &&
+        gaugeWrap.querySelector("[data-ml-safe-row]");
+
+      if (alreadyInitialized) return;
+
+      gaugeWrap.innerHTML = `
+        <div class="ml-risk-distribution">
+
+          <div class="ml-risk-row" data-ml-risk-row hidden>
+            <div class="ml-risk-row-top">
+              <div class="ml-risk-label">
+                <span class="ml-risk-dot danger"></span>
+                At Risk
+              </div>
+              <div class="ml-risk-values">
+                <strong class="ml-risk-count" data-ml-risk-count>0</strong>
+                <span class="ml-risk-percent" data-ml-risk-percent>0%</span>
+              </div>
+            </div>
+            <div class="ml-risk-track">
+              <div class="ml-risk-fill danger" data-ml-risk-bar></div>
+            </div>
+          </div>
+
+          <div class="ml-risk-row" data-ml-safe-row hidden>
+            <div class="ml-risk-row-top">
+              <div class="ml-risk-label">
+                <span class="ml-risk-dot success"></span>
+                Not At Risk
+              </div>
+              <div class="ml-risk-values">
+                <strong class="ml-risk-count" data-ml-safe-count>0</strong>
+                <span class="ml-risk-percent" data-ml-safe-percent>0%</span>
+              </div>
+            </div>
+            <div class="ml-risk-track">
+              <div class="ml-risk-fill success" data-ml-safe-bar></div>
+            </div>
+          </div>
+
+          <div class="ml-risk-total" data-ml-total hidden>
+            <span>Total analyzed students</span>
+            <strong data-ml-analyzed-count>0</strong>
+          </div>
+
+        </div>
+      `;
+
+      gaugeWrap.dataset.mlDistributionInitialized = "true";
+    });
+
+    updateMLRiskChart();
+  }
+
+  // --------------------------------------------------
+  // ML DISTRIBUTION UPDATE
+  // --------------------------------------------------
+
+  function updateMLRiskChart() {
+    const gaugeWraps = $$(".ml-gauge-wrap");
+    if (!gaugeWraps.length) return;
+
+    const needsInitialization = gaugeWraps.some(gaugeWrap =>
+      gaugeWrap.dataset.mlDistributionInitialized !== "true" ||
+      !gaugeWrap.querySelector("[data-ml-risk-row]") ||
+      !gaugeWrap.querySelector("[data-ml-safe-row]")
+    );
+
+    if (needsInitialization) {
+      initializeMLRiskDistribution();
+      return;
+    }
+
+    const distribution = getMLRiskDistribution();
+    const hasPredictions = distribution.analyzed > 0;
+
+    const riskPercentage = hasPredictions
+      ? getPercentage(distribution.risk, distribution.analyzed)
+      : 0;
+
+    const safePercentage = hasPredictions
+      ? getPercentage(distribution.safe, distribution.analyzed)
+      : 0;
+
+    gaugeWraps.forEach(gaugeWrap => {
+      const riskRow = gaugeWrap.querySelector("[data-ml-risk-row]");
+      const safeRow = gaugeWrap.querySelector("[data-ml-safe-row]");
+      const totalRow = gaugeWrap.querySelector("[data-ml-total]");
+
+      const riskCount = gaugeWrap.querySelector("[data-ml-risk-count]");
+      const riskPercent = gaugeWrap.querySelector("[data-ml-risk-percent]");
+      const riskBar = gaugeWrap.querySelector("[data-ml-risk-bar]");
+
+      const safeCount = gaugeWrap.querySelector("[data-ml-safe-count]");
+      const safePercent = gaugeWrap.querySelector("[data-ml-safe-percent]");
+      const safeBar = gaugeWrap.querySelector("[data-ml-safe-bar]");
+
+      const analyzedCount = gaugeWrap.querySelector("[data-ml-analyzed-count]");
+
+      if (!riskRow || !safeRow || !totalRow) return;
+
+      if (!hasPredictions) {
+        riskRow.hidden = true;
+        safeRow.hidden = true;
+        totalRow.hidden = true;
+
+        if (riskBar) riskBar.style.width = "0%";
+        if (safeBar) safeBar.style.width = "0%";
+
+        return;
+      }
+
+      riskRow.hidden = false;
+      safeRow.hidden = false;
+      totalRow.hidden = false;
+
+      if (riskCount) {
+        riskCount.textContent = distribution.risk.toLocaleString();
+      }
+
+      if (riskPercent) {
+        riskPercent.textContent = `${riskPercentage.toFixed(1)}%`;
+      }
+
+      if (riskBar) {
+        riskBar.style.width = `${riskPercentage}%`;
+      }
+
+      if (safeCount) {
+        safeCount.textContent = distribution.safe.toLocaleString();
+      }
+
+      if (safePercent) {
+        safePercent.textContent = `${safePercentage.toFixed(1)}%`;
+      }
+
+      if (safeBar) {
+        safeBar.style.width = `${safePercentage}%`;
+      }
+
+      if (analyzedCount) {
+        analyzedCount.textContent = distribution.analyzed.toLocaleString();
+      }
+    });
+
+    const note = $("#mlRiskChartNote");
+
+    if (note) {
+      note.textContent = hasPredictions
+        ? `${distribution.analyzed} students analyzed. ${distribution.risk} classified At Risk (${riskPercentage.toFixed(1)}%) and ${distribution.safe} classified Not At Risk (${safePercentage.toFixed(1)}%).`
+        : "";
+    }
+  }
+
+  // --------------------------------------------------
+  // API RESPONSE NORMALIZATION
+  // --------------------------------------------------
+
+  function normalizePredictionResponse(data) {
+    let predictions =
+      Array.isArray(data) ? data :
+      Array.isArray(data?.predictions) ? data.predictions :
+      Array.isArray(data?.results) ? data.results :
+      Array.isArray(data?.data?.predictions) ? data.data.predictions :
+      Array.isArray(data?.data?.results) ? data.data.results :
+      Array.isArray(data?.data) ? data.data :
+      null;
+
+    if (!predictions) {
+      throw new Error("The API response does not contain a recognizable predictions array.");
+    }
+
+    if (predictions.length !== students.length) {
+      throw new Error(
+        `Expected ${students.length} predictions, but received ${predictions.length}.`
+      );
+    }
+
+    const validatedResults = new Array(students.length);
+    const receivedIndexes = new Set();
+
+    predictions.forEach((result, position) => {
+      if (!result || typeof result !== "object") {
+        throw new Error(`Prediction result ${position + 1} is invalid.`);
+      }
+
+      const rawIndex =
+        result.index ??
+        result.student_index ??
+        result.studentIndex ??
+        position;
+
+      const index = Number(rawIndex);
+
+      if (
+        !Number.isInteger(index) ||
+        index < 0 ||
+        index >= students.length
+      ) {
+        throw new Error(`The API returned an invalid student index at result ${position + 1}.`);
+      }
+
+      if (receivedIndexes.has(index)) {
+        throw new Error(`The API returned a duplicate student result for index ${index}.`);
+      }
+
+      const rawPrediction =
+        result.prediction ??
+        result.predicted_class ??
+        result.predictedClass ??
+        result.classification ??
+        result.label ??
+        result.result;
+
+      const normalizedLabel = String(rawPrediction ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ");
+
+      let prediction;
+
+      if ([
+        "at risk",
+        "risk",
+        "1",
+        "true",
+        "high risk"
+      ].includes(normalizedLabel)) {
+        prediction = "At Risk";
+      } else if ([
+        "not at risk",
+        "not risk",
+        "safe",
+        "0",
+        "false",
+        "low risk",
+        "no risk"
+      ].includes(normalizedLabel)) {
+        prediction = "Not At Risk";
+      } else {
+        throw new Error(
+          `Unsupported prediction label at result ${position + 1}: ${rawPrediction}`
+        );
+      }
+
+      let rawScore =
+        result.at_risk_probability ??
+        result.atRiskProbability ??
+        result.risk_probability ??
+        result.riskProbability ??
+        result.risk_score ??
+        result.riskScore ??
+        result.probability ??
+        result.confidence ??
+        result.score;
+
+      if (rawScore && typeof rawScore === "object") {
+        rawScore =
+          rawScore["At Risk"] ??
+          rawScore["at_risk"] ??
+          rawScore["1"] ??
+          rawScore.risk ??
+          rawScore.probability ??
+          null;
+      }
+
+      let score = rawScore === null || rawScore === undefined
+        ? null
+        : Number(rawScore);
+
+      if (score !== null && Number.isFinite(score)) {
+        if (score >= 0 && score <= 1) {
+          score *= 100;
+        }
+
+        if (score < 0 || score > 100) {
+          score = null;
+        }
+      } else {
+        score = null;
+      }
+
+      receivedIndexes.add(index);
+
+      validatedResults[index] = {
+        prediction,
+        score
+      };
+    });
+
+    if (receivedIndexes.size !== students.length) {
+      throw new Error("The API did not return results for every student.");
+    }
+
+    return validatedResults;
   }
 
   // --------------------------------------------------
@@ -734,20 +1124,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     modelApiLoading = true;
 
-    updateModelApiStatus(
-      "connecting",
-      "Connecting to prediction service..."
-    );
+    updateModelApiStatus("connecting", "Connecting to prediction service...");
+    updateMLRiskChart();
 
-    updateMLOverview(
-      "connecting",
-      null,
-      null,
-      null,
-      "The Decision Tree model is being contacted. Please wait while student records are analyzed."
-    );
+    const existingDistribution = getMLRiskDistribution();
 
-    updateMLRiskChart("connecting");
+    if (existingDistribution.analyzed > 0) {
+      updateMLOverview(
+        "connecting",
+        existingDistribution.analyzed,
+        existingDistribution.risk,
+        existingDistribution.safe,
+        "Previously received Decision Tree classifications remain visible while the service reconnects."
+      );
+    } else {
+      updateMLOverview(
+        "connecting",
+        null,
+        null,
+        null,
+        "The Decision Tree model is being contacted. Please wait while student records are analyzed."
+      );
+    }
 
     const retryButton = $("#retryModelBtn");
 
@@ -756,166 +1154,127 @@ document.addEventListener("DOMContentLoaded", () => {
       retryButton.textContent = "Connecting...";
     }
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120000);
+
     try {
       const payload = {
-        students: students.map(student => ({
-          Previous_GWA: student.previousGwa,
-          Current_GWA: student.gwa,
-          Attendance_Rate: student.attendance,
-          Academic_Progress: student.progress,
-          Failed_Subjects: student.failedSubjects
+        students:students.map(student => ({
+          Previous_GWA:student.previousGwa,
+          Current_GWA:student.gwa,
+          Attendance_Rate:student.attendance,
+          Academic_Progress:student.progress,
+          Failed_Subjects:student.failedSubjects
         }))
       };
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 90000);
+      console.info("Sending ML prediction request.", {
+        endpoint:API_URL,
+        totalStudents:payload.students.length
+      });
 
-      let response;
-
-      try {
-        response = await fetch(API_URL, {
-          method:"POST",
-          headers:{
-            "Content-Type":"application/json",
-            "Accept":"application/json"
-          },
-          body:JSON.stringify(payload),
-          signal:controller.signal
-        });
-      } finally {
-        clearTimeout(timeout);
-      }
+      const response = await fetch(API_URL, {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Accept":"application/json"
+        },
+        body:JSON.stringify(payload),
+        signal:controller.signal
+      });
 
       if (!response.ok) {
-        throw new Error(`API returned HTTP ${response.status}`);
+        let detail = "";
+
+        try {
+          const errorData = await response.json();
+          detail = errorData.detail || errorData.message || "";
+        } catch (_) {
+          // The server may return a non-JSON error response.
+        }
+
+        throw new Error(
+          `API returned HTTP ${response.status}${detail ? `: ${detail}` : ""}`
+        );
       }
 
       const data = await response.json();
 
-      if (!Array.isArray(data.predictions) ||
-          data.predictions.length !== students.length) {
-        throw new Error("The API returned an unexpected prediction result.");
-      }
+      console.info("ML API response received.", data);
 
-      if (data.total_students !== students.length) {
-        throw new Error("The API returned an incorrect student count.");
-      }
+      // Validate the full batch before updating student records.
+      const validatedResults = normalizePredictionResponse(data);
 
-      const validatedResults = new Array(students.length);
-      const receivedIndexes = new Set();
-
-      data.predictions.forEach(result => {
-        if (!Number.isInteger(result.index) ||
-            result.index < 0 ||
-            result.index >= students.length) {
-          throw new Error("The API returned an invalid student index.");
-        }
-
-        if (receivedIndexes.has(result.index)) {
-          throw new Error("The API returned a duplicate student result.");
-        }
-
-        if (
-          result.prediction !== "At Risk" &&
-          result.prediction !== "Not At Risk"
-        ) {
-          throw new Error("The API returned an invalid prediction label.");
-        }
-
-        const score = Number(result.at_risk_probability);
-
-        if (!Number.isFinite(score) || score < 0 || score > 100) {
-          throw new Error("The API returned an invalid model score.");
-        }
-
-        receivedIndexes.add(result.index);
-
-        validatedResults[result.index] = {
-          prediction:result.prediction,
-          score
-        };
-      });
-
-      if (receivedIndexes.size !== students.length) {
-        throw new Error("The API did not return results for every student.");
-      }
-
-      // Apply predictions only after the entire response
-      // has passed validation.
-
-      validatedResults.forEach((result, index) => {
+      validatedResults.forEach((result,index) => {
         students[index].mlPrediction = result.prediction;
         students[index].mlScore = result.score;
       });
 
-      const totalAnalyzed = students.filter(student =>
-        student.mlPrediction === "At Risk" ||
-        student.mlPrediction === "Not At Risk"
-      ).length;
-
-      const riskCount = students.filter(
-        student => student.mlPrediction === "At Risk"
-      ).length;
-
-      const safeCount = students.filter(
-        student => student.mlPrediction === "Not At Risk"
-      ).length;
-
-      updateMLOverview(
-        "online",
-        totalAnalyzed,
-        riskCount,
-        safeCount,
-        `${totalAnalyzed} student records successfully classified by the Decision Tree model.`
-      );
+      const distribution = getMLRiskDistribution();
 
       updateModelApiStatus(
         "online",
-        `Prediction service online · ${totalAnalyzed} students analyzed`
+        `Prediction service online · ${distribution.analyzed} students analyzed`
+      );
+
+      updateMLOverview(
+        "online",
+        distribution.analyzed,
+        distribution.risk,
+        distribution.safe,
+        `${distribution.analyzed} student records successfully classified by the Decision Tree model.`
       );
 
       renderStudents();
+      updateMLRiskChart();
       renderDashboardCharts();
-      updateMLRiskChart("online");
 
-      showToast(`ML predictions received for ${totalAnalyzed} students.`);
+      showToast(`ML predictions received for ${distribution.analyzed} students.`);
 
       console.info("BSUniSync ML batch prediction completed.", {
-        totalStudents:totalAnalyzed,
-        atRiskPredictions:riskCount,
-        notAtRiskPredictions:safeCount,
-        model:data.model
+        totalStudents:distribution.analyzed,
+        atRiskPredictions:distribution.risk,
+        notAtRiskPredictions:distribution.safe,
+        model:data.model || data.model_name || "Decision Tree"
       });
 
     } catch (error) {
-      console.error("BSUniSync prediction API error:",error);
+      console.error("BSUniSync prediction API error:", error);
 
-      students.forEach(student => {
-        student.mlPrediction = null;
-        student.mlScore = null;
-      });
+      const existing = getMLRiskDistribution();
+
+      const errorMessage = error.name === "AbortError"
+        ? "Prediction request timed out after 120 seconds. The service may be unavailable or still starting."
+        : error.message || "Prediction service unavailable.";
 
       updateModelApiStatus(
         "offline",
-        error.name === "AbortError"
-          ? "Prediction request timed out. The service may be waking up."
-          : "Prediction service unavailable. Existing portal features remain active."
+        `${errorMessage} Existing portal features remain active.`
       );
 
-      updateMLOverview(
-        "offline",
-        null,
-        null,
-        null,
-        error.name === "AbortError"
-          ? "The prediction request timed out. The service may be waking up. Please retry."
-          : "The prediction service is currently unavailable. Student records and other portal features remain accessible."
-      );
+      if (existing.analyzed > 0) {
+        updateMLOverview(
+          "offline",
+          existing.analyzed,
+          existing.risk,
+          existing.safe,
+          "The latest connection attempt was unsuccessful. Previously received ML classifications are still displayed."
+        );
+      } else {
+        updateMLOverview(
+          "offline",
+          null,
+          null,
+          null,
+          `${errorMessage} Please retry the prediction service.`
+        );
+      }
 
       renderStudents();
-      updateMLRiskChart("offline");
+      updateMLRiskChart();
 
     } finally {
+      clearTimeout(timeout);
       modelApiLoading = false;
 
       const retryButtonAfter = $("#retryModelBtn");
@@ -924,6 +1283,8 @@ document.addEventListener("DOMContentLoaded", () => {
         retryButtonAfter.disabled = false;
         retryButtonAfter.textContent = "Retry";
       }
+
+      updateMLRiskChart();
     }
   }
 
@@ -949,16 +1310,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (standing === "At Risk") counts.risk++;
     });
 
-    $("#studentTotalCount").textContent = counts.total;
-    $("#excellentCount").textContent = counts.excellent;
-    $("#goodStandingCount").textContent = counts.good;
-    $("#monitoringCount").textContent = counts.monitoring;
-    $("#studentRiskCount").textContent = counts.risk;
-
-    // This KPI intentionally remains GWA-based.
-    $("#kpiAtRisk").textContent = counts.risk;
-    $("#kpiAtRiskDetail").textContent = `${counts.risk} students require academic attention`;
-    $("#kpiStudents").textContent = counts.total;
+    if ($("#studentTotalCount")) $("#studentTotalCount").textContent = counts.total;
+    if ($("#excellentCount")) $("#excellentCount").textContent = counts.excellent;
+    if ($("#goodStandingCount")) $("#goodStandingCount").textContent = counts.good;
+    if ($("#monitoringCount")) $("#monitoringCount").textContent = counts.monitoring;
+    if ($("#studentRiskCount")) $("#studentRiskCount").textContent = counts.risk;
   }
 
   function renderStudents() {
@@ -970,22 +1326,35 @@ document.addEventListener("DOMContentLoaded", () => {
       const standing = getStanding(student.gwa);
 
       const matchesQuery = [
-        student.id,student.name,student.program,student.year
+        student.id,
+        student.name,
+        student.program,
+        student.year
       ].join(" ").toLowerCase().includes(query);
 
-      return matchesQuery &&
+      return (
+        matchesQuery &&
         (year === "all" || student.year === year) &&
-        (standingFilter === "all" || standing === standingFilter);
+        (standingFilter === "all" || standing === standingFilter)
+      );
     });
 
     const tbody = $("#studentTable");
     if (!tbody) return;
 
-    $("#studentResultCount").textContent =
-      `${filtered.length} ${filtered.length === 1 ? "record" : "records"}`;
+    if ($("#studentResultCount")) {
+      $("#studentResultCount").textContent =
+        `${filtered.length} ${filtered.length === 1 ? "record" : "records"}`;
+    }
 
     if (!filtered.length) {
-      tbody.innerHTML = `<tr><td colspan="9" class="empty-row">No student records match your search or filters.</td></tr>`;
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" class="empty-row">
+            No student records match your search or filters.
+          </td>
+        </tr>
+      `;
       return;
     }
 
@@ -1000,11 +1369,24 @@ document.addEventListener("DOMContentLoaded", () => {
           <td>${escapeHTML(student.program)}</td>
           <td>${escapeHTML(student.year)}</td>
           <td><strong>${Number(student.gwa).toFixed(2)}</strong></td>
-          <td><span class="standing-badge ${standingClass(standing)}">${escapeHTML(standing)}</span></td>
-          <td><span class="record-status ${statusClass}">${escapeHTML(student.status)}</span></td>
+          <td>
+            <span class="standing-badge ${standingClass(standing)}">
+              ${escapeHTML(standing)}
+            </span>
+          </td>
+          <td>
+            <span class="record-status ${statusClass}">
+              ${escapeHTML(student.status)}
+            </span>
+          </td>
           <td>${getMLBadge(student)}</td>
-          <td><button class="view-record" data-student-id="${escapeHTML(student.id)}">View</button></td>
-        </tr>`;
+          <td>
+            <button class="view-record" data-student-id="${escapeHTML(student.id)}">
+              View
+            </button>
+          </td>
+        </tr>
+      `;
     }).join("");
   }
 
@@ -1026,7 +1408,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="detail-cell">
           <span>Model Risk Score</span>
-          <strong>${Number(student.mlScore).toFixed(2)}%</strong>
+          <strong>${Number.isFinite(student.mlScore) ? `${student.mlScore.toFixed(2)}%` : "Not provided"}</strong>
         </div>
       `
       : `
@@ -1044,46 +1426,88 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $("#modalBody").innerHTML = `
       <div class="student-detail-grid">
-        <div class="detail-cell"><span>Student Name</span><strong>${escapeHTML(student.name)}</strong></div>
-        <div class="detail-cell"><span>Student ID</span><strong>${escapeHTML(student.id)}</strong></div>
-        <div class="detail-cell"><span>Program</span><strong>${escapeHTML(student.program)}</strong></div>
-        <div class="detail-cell"><span>Year Level</span><strong>${escapeHTML(student.year)}</strong></div>
-        <div class="detail-cell"><span>General Weighted Average</span><strong>${Number(student.gwa).toFixed(2)}</strong></div>
-        <div class="detail-cell"><span>Academic Standing</span><strong><span class="standing-badge ${standingClass(standing)}">${escapeHTML(standing)}</span></strong></div>
-        <div class="detail-cell"><span>Attendance</span><strong>${student.attendance}%</strong></div>
-        <div class="detail-cell"><span>Academic Progress</span><strong>${student.progress}%</strong></div>
-        <div class="detail-cell"><span>Record Status</span><strong>${escapeHTML(student.status)}</strong></div>
+        <div class="detail-cell">
+          <span>Student Name</span>
+          <strong>${escapeHTML(student.name)}</strong>
+        </div>
+        <div class="detail-cell">
+          <span>Student ID</span>
+          <strong>${escapeHTML(student.id)}</strong>
+        </div>
+        <div class="detail-cell">
+          <span>Program</span>
+          <strong>${escapeHTML(student.program)}</strong>
+        </div>
+        <div class="detail-cell">
+          <span>Year Level</span>
+          <strong>${escapeHTML(student.year)}</strong>
+        </div>
+        <div class="detail-cell">
+          <span>General Weighted Average</span>
+          <strong>${Number(student.gwa).toFixed(2)}</strong>
+        </div>
+        <div class="detail-cell">
+          <span>Academic Standing</span>
+          <strong>
+            <span class="standing-badge ${standingClass(standing)}">
+              ${escapeHTML(standing)}
+            </span>
+          </strong>
+        </div>
+        <div class="detail-cell">
+          <span>Attendance</span>
+          <strong>${student.attendance}%</strong>
+        </div>
+        <div class="detail-cell">
+          <span>Academic Progress</span>
+          <strong>${student.progress}%</strong>
+        </div>
+        <div class="detail-cell">
+          <span>Record Status</span>
+          <strong>${escapeHTML(student.status)}</strong>
+        </div>
         ${mlDetails}
       </div>
 
       <div class="detail-note">
-        **GWA-based standing:** ${standing === "At Risk"
-          ? "This student is classified as At Risk based on the current GWA. Academic consultation and follow-up are recommended."
-          : standing === "Needs Monitoring"
-            ? "This student's academic standing should be monitored. Consider checking progress and providing support when necessary."
-            : standing === "Excellent"
-              ? "This student is performing excellently based on the current GWA."
-              : "This student is currently within the Good Standing range."}
+        **GWA-based standing:** ${
+          standing === "At Risk"
+            ? "This student is classified as At Risk based on the current GWA. Academic consultation and follow-up are recommended."
+            : standing === "Needs Monitoring"
+              ? "This student's academic standing should be monitored. Consider checking progress and providing support when necessary."
+              : standing === "Excellent"
+                ? "This student is performing excellently based on the current GWA."
+                : "This student is currently within the Good Standing range."
+        }
 
         <br><br>
-        **ML model inputs:** Previous GWA: ${student.previousGwa}; Failed subjects: ${student.failedSubjects}.
-        These two values are synthetic demonstration inputs, not actual student records.
+
+        **ML model inputs:** Previous GWA: ${student.previousGwa};
+        Failed subjects: ${student.failedSubjects}.
+
+        These two values are synthetic demonstration inputs,
+        not actual student records.
 
         <br><br>
-        The Decision Tree prediction is a decision-support indicator only. Its score is not a calibrated probability of future academic failure. It must not replace faculty assessment or institutional academic policies.
-      </div>`;
+
+        The Decision Tree prediction is a decision-support
+        indicator only. Its score is not a calibrated probability
+        of future academic failure. It must not replace faculty
+        assessment or institutional academic policies.
+      </div>
+    `;
 
     $("#modalBackdrop").classList.remove("hidden");
   }
 
-  $("#studentTable").addEventListener("click", event => {
+  $("#studentTable")?.addEventListener("click", event => {
     const button = event.target.closest("[data-student-id]");
     if (button) openStudentRecord(button.dataset.studentId);
   });
 
   ["#studentSearch","#studentYearFilter","#studentStandingFilter"].forEach(selector => {
-    $(selector).addEventListener("input", renderStudents);
-    $(selector).addEventListener("change", renderStudents);
+    $(selector)?.addEventListener("input", renderStudents);
+    $(selector)?.addEventListener("change", renderStudents);
   });
 
   // --------------------------------------------------
@@ -1091,24 +1515,40 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------------------------------------------------
 
   function renderClasses() {
-    $("#classTable").innerHTML = classes.map(item => `
-      <tr>
-        <td><strong>${escapeHTML(item.code)}</strong></td>
-        <td>${escapeHTML(item.name)}</td>
-        <td>${escapeHTML(item.section)}</td>
-        <td>${item.students}</td>
-        <td>${escapeHTML(item.schedule)}</td>
-        <td><span class="status-pill success">${escapeHTML(item.status)}</span></td>
-      </tr>`).join("");
+    const classTable = $("#classTable");
 
-    $("#miniClassList").innerHTML = classes.map(item => `
-      <div class="mini-class-item">
-        <div><strong>${escapeHTML(item.code)} · ${escapeHTML(item.name)}</strong><small>${escapeHTML(item.section)} · ${item.students} students</small></div>
-        <b>${item.students}</b>
-      </div>`).join("");
+    if (classTable) {
+      classTable.innerHTML = classes.map(item => `
+        <tr>
+          <td><strong>${escapeHTML(item.code)}</strong></td>
+          <td>${escapeHTML(item.name)}</td>
+          <td>${escapeHTML(item.section)}</td>
+          <td>${item.students}</td>
+          <td>${escapeHTML(item.schedule)}</td>
+          <td><span class="status-pill success">${escapeHTML(item.status)}</span></td>
+        </tr>
+      `).join("");
+    }
+
+    const miniClassList = $("#miniClassList");
+
+    if (miniClassList) {
+      miniClassList.innerHTML = classes.map(item => `
+        <div class="mini-class-item">
+          <div>
+            <strong>${escapeHTML(item.code)} · ${escapeHTML(item.name)}</strong>
+            <small>${escapeHTML(item.section)} · ${item.students} students</small>
+          </div>
+          <b>${item.students}</b>
+        </div>
+      `).join("");
+    }
   }
 
   function renderSchedule() {
+    const table = $("#scheduleTable");
+    if (!table) return;
+
     const dayOrder = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
     const ordered = [...schedule].sort((a,b) => {
@@ -1116,14 +1556,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return dayDifference || a.time.localeCompare(b.time);
     });
 
-    $("#scheduleTable").innerHTML = ordered.map(item => `
+    table.innerHTML = ordered.map(item => `
       <tr>
         <td><strong>${escapeHTML(item.day)}</strong></td>
         <td>${escapeHTML(item.time)}</td>
         <td>${escapeHTML(item.subject)}</td>
         <td>${escapeHTML(item.section)}</td>
         <td>${escapeHTML(item.room)}</td>
-      </tr>`).join("");
+      </tr>
+    `).join("");
   }
 
   // --------------------------------------------------
@@ -1133,54 +1574,73 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderAlerts() {
     const openAlerts = alerts.filter(alert => alert.open);
 
-    $("#alertTotal").textContent = openAlerts.length;
-    $("#alertNavCount").textContent = openAlerts.length;
+    if ($("#alertTotal")) $("#alertTotal").textContent = openAlerts.length;
 
-    $("#alertNavCount").classList.toggle("hidden", openAlerts.length === 0);
+    if ($("#alertNavCount")) {
+      $("#alertNavCount").textContent = openAlerts.length;
+      $("#alertNavCount").classList.toggle("hidden", openAlerts.length === 0);
+    }
 
-    $("#fullAlertList").innerHTML = openAlerts.length
-      ? openAlerts.map(alert => `
-        <div class="alert-item">
-          <div class="alert-content">
-            <strong>${escapeHTML(alert.title)}</strong>
-            <p>${escapeHTML(alert.description)}</p>
-            <p>${escapeHTML(alert.date)}</p>
-            <button
-              class="text-button alert-action"
-              data-alert-target="${escapeHTML(alert.target)}"
-              data-alert-filter="${escapeHTML(alert.filter)}">
-              ${escapeHTML(alert.actionLabel)} →
-            </button>
+    const fullAlertList = $("#fullAlertList");
+
+    if (fullAlertList) {
+      fullAlertList.innerHTML = openAlerts.length
+        ? openAlerts.map(alert => `
+          <div class="alert-item">
+            <div class="alert-content">
+              <strong>${escapeHTML(alert.title)}</strong>
+              <p>${escapeHTML(alert.description)}</p>
+              <p>${escapeHTML(alert.date)}</p>
+              <button
+                class="text-button alert-action"
+                data-alert-target="${escapeHTML(alert.target)}"
+                data-alert-filter="${escapeHTML(alert.filter)}">
+                ${escapeHTML(alert.actionLabel)} →
+              </button>
+            </div>
+            <span class="status-pill ${
+              alert.type === "Urgent" ? "danger" :
+              alert.type === "Reminder" ? "info" : "warning"
+            }">
+              ${escapeHTML(alert.type)}
+            </span>
           </div>
-          <span class="status-pill ${
-            alert.type === "Urgent" ? "danger" :
-            alert.type === "Reminder" ? "info" : "warning"
-          }">${escapeHTML(alert.type)}</span>
-        </div>`).join("")
-      : `<div class="empty-alert-state">
-          <strong>You're all caught up!</strong>
-          <p>There are currently no open academic alerts.</p>
-        </div>`;
+        `).join("")
+        : `
+          <div class="empty-alert-state">
+            <strong>You're all caught up!</strong>
+            <p>There are currently no open academic alerts.</p>
+          </div>
+        `;
+    }
 
     renderNotifications();
   }
 
   function renderNotifications() {
     const openAlerts = alerts.filter(alert => alert.open);
+    const notificationItems = $("#notificationItems");
 
-    $("#notificationItems").innerHTML = openAlerts.length
-      ? openAlerts.map(alert => `
-        <div class="notification-item">
-          <strong>${escapeHTML(alert.title)}</strong>
-          ${escapeHTML(alert.description)}
-        </div>`).join("")
-      : `<div class="notification-item">No new notifications.</div>`;
+    if (notificationItems) {
+      notificationItems.innerHTML = openAlerts.length
+        ? openAlerts.map(alert => `
+          <div class="notification-item">
+            <strong>${escapeHTML(alert.title)}</strong>
+            ${escapeHTML(alert.description)}
+          </div>
+        `).join("")
+        : `<div class="notification-item">No new notifications.</div>`;
+    }
 
-    $("#notificationDot").classList.toggle("hidden", notificationsRead || !openAlerts.length);
-    $("#notificationDot").textContent = openAlerts.length;
+    const dot = $("#notificationDot");
+
+    if (dot) {
+      dot.classList.toggle("hidden", notificationsRead || !openAlerts.length);
+      dot.textContent = openAlerts.length;
+    }
   }
 
-  $("#fullAlertList").addEventListener("click", event => {
+  $("#fullAlertList")?.addEventListener("click", event => {
     const button = event.target.closest("[data-alert-target]");
     if (!button) return;
 
@@ -1191,32 +1651,31 @@ document.addEventListener("DOMContentLoaded", () => {
       $("#studentSearch").value = "";
       $("#studentYearFilter").value = "all";
       $("#studentStandingFilter").value = filter || "all";
-
       renderStudents();
     }
 
     showPage(target);
   });
 
-  $("#clearAlertsBtn").addEventListener("click", () => {
+  $("#clearAlertsBtn")?.addEventListener("click", () => {
     alerts = alerts.map(alert => ({...alert,open:false}));
     renderAlerts();
     showToast("All alerts marked as reviewed.");
   });
 
-  $("#markReadBtn").addEventListener("click", () => {
+  $("#markReadBtn")?.addEventListener("click", () => {
     notificationsRead = true;
     renderNotifications();
     showToast("Notifications marked as read.");
   });
 
-  $("#notificationBtn").addEventListener("click", () => {
-    $("#notificationPopover").classList.toggle("hidden");
+  $("#notificationBtn")?.addEventListener("click", () => {
+    $("#notificationPopover")?.classList.toggle("hidden");
   });
 
   document.addEventListener("click", event => {
     if (!event.target.closest(".notification-wrap")) {
-      $("#notificationPopover").classList.add("hidden");
+      $("#notificationPopover")?.classList.add("hidden");
     }
   });
 
@@ -1225,20 +1684,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------------------------------------------------
 
   function closeModal() {
-    $("#modalBackdrop").classList.add("hidden");
+    $("#modalBackdrop")?.classList.add("hidden");
   }
 
-  $("#modalClose").addEventListener("click", closeModal);
-  $("#modalCancel").addEventListener("click", closeModal);
+  $("#modalClose")?.addEventListener("click", closeModal);
+  $("#modalCancel")?.addEventListener("click", closeModal);
 
-  $("#modalBackdrop").addEventListener("click", event => {
+  $("#modalBackdrop")?.addEventListener("click", event => {
     if (event.target === $("#modalBackdrop")) closeModal();
   });
 
   document.addEventListener("keydown", event => {
     if (event.key === "Escape") {
       closeModal();
-      $("#notificationPopover").classList.add("hidden");
+      $("#notificationPopover")?.classList.add("hidden");
     }
   });
 
@@ -1257,19 +1716,19 @@ document.addEventListener("DOMContentLoaded", () => {
       link.classList.toggle("active", link.dataset.page === pageName);
     });
 
-    $("#sidebar").classList.remove("open");
+    $("#sidebar")?.classList.remove("open");
 
     const mainArea = $(".main-area");
 
     if (mainArea) {
-      mainArea.scrollTo({
-        top:0,
-        left:0,
-        behavior:"instant"
-      });
+      mainArea.scrollTo({top:0,left:0,behavior:"instant"});
     }
 
-    if (pageName === "overview") renderDashboardCharts();
+    if (pageName === "overview") {
+      renderDashboardCharts();
+      updateMLRiskChart();
+    }
+
     if (pageName === "analytics") renderAnalyticsCharts();
     if (pageName === "evaluation") renderEvaluationCharts();
   }
@@ -1282,13 +1741,13 @@ document.addEventListener("DOMContentLoaded", () => {
     button.addEventListener("click", () => showPage(button.dataset.go));
   });
 
-  $("#menuToggle").addEventListener("click", () => {
-    $("#sidebar").classList.toggle("open");
+  $("#menuToggle")?.addEventListener("click", () => {
+    $("#sidebar")?.classList.toggle("open");
   });
 
-  $("#profileTrigger").addEventListener("click", () => showPage("profile"));
+  $("#profileTrigger")?.addEventListener("click", () => showPage("profile"));
 
-  $("#signOutBtn").addEventListener("click", () => {
+  $("#signOutBtn")?.addEventListener("click", () => {
     if (confirm("Are you sure you want to sign out?")) {
       showToast("You have signed out of the demo portal.");
     }
@@ -1298,7 +1757,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // GLOBAL SEARCH
   // --------------------------------------------------
 
-  $("#globalSearch").addEventListener("keydown", event => {
+  $("#globalSearch")?.addEventListener("keydown", event => {
     if (event.key !== "Enter") return;
 
     const query = event.target.value.trim();
@@ -1317,19 +1776,31 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------------------------------------------------
 
   function updateDashboardFilters() {
-    const year = $("#yearFilter").value;
-    const semester = $("#semesterFilter").value;
+    const year = $("#yearFilter")?.value || "all";
+    const semester = $("#semesterFilter")?.value || "all";
 
-    $("#lastUpdated").textContent =
-      `Showing ${year} · ${semester === "all" ? "Both Semesters" : semester === "1" ? "1st Semester" : "2nd Semester"}`;
+    const yearLabel = year === "all" ? "All Academic Years" : year;
+
+    const semesterLabel =
+      semester === "all" ? "Both Semesters" :
+      semester === "1" ? "1st Semester" : "2nd Semester";
+
+    if ($("#lastUpdated")) {
+      $("#lastUpdated").textContent = `Showing ${yearLabel} · ${semesterLabel}`;
+    }
+
+    updateDashboardKPIs();
+    renderDashboardCharts();
+    updateMLRiskChart();
   }
 
-  $("#yearFilter").addEventListener("change", updateDashboardFilters);
-  $("#semesterFilter").addEventListener("change", updateDashboardFilters);
+  $("#yearFilter")?.addEventListener("change", updateDashboardFilters);
+  $("#semesterFilter")?.addEventListener("change", updateDashboardFilters);
 
-  $("#resetFilters").addEventListener("click", () => {
-    $("#yearFilter").value = "2025-2026";
-    $("#semesterFilter").value = "all";
+  $("#resetFilters")?.addEventListener("click", () => {
+    if ($("#yearFilter")) $("#yearFilter").value = "2025-2026";
+    if ($("#semesterFilter")) $("#semesterFilter").value = "all";
+
     updateDashboardFilters();
     showToast("Dashboard filters have been reset.");
   });
@@ -1347,6 +1818,7 @@ document.addEventListener("DOMContentLoaded", () => {
       responsive:true,
       maintainAspectRatio:false,
       animation:{duration:450},
+
       plugins:{
         legend:{
           labels:{
@@ -1355,6 +1827,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
       },
+
       scales:{
         x:{
           ticks:{color:"#9ba8ae",font:{family:"Inter",size:9}},
@@ -1407,10 +1880,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --------------------------------------------------
-  // ADDITIONAL OVERVIEW CHART DATA
+  // OVERVIEW CHART DATA
   // --------------------------------------------------
 
   function getGwaDistribution() {
+    const records = getDashboardStudents();
+
     const categories = [
       "Excellent",
       "Good Standing",
@@ -1419,207 +1894,25 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     const counts = categories.map(category =>
-      students.filter(student => getStanding(student.gwa) === category).length
+      records.filter(student => getStanding(student.gwa) === category).length
     );
 
     return {categories,counts};
   }
 
   function getAttendanceDistribution() {
-    const labels = [
-      "Below 70%",
-      "70–79%",
-      "80–89%",
-      "90–100%"
-    ];
+    const records = getDashboardStudents();
+
+    const labels = ["Below 70%","70–79%","80–89%","90–100%"];
 
     const counts = [
-      students.filter(student => Number(student.attendance) < 70).length,
-      students.filter(student => Number(student.attendance) >= 70 && Number(student.attendance) < 80).length,
-      students.filter(student => Number(student.attendance) >= 80 && Number(student.attendance) < 90).length,
-      students.filter(student => Number(student.attendance) >= 90 && Number(student.attendance) <= 100).length
+      records.filter(student => Number(student.attendance) < 70).length,
+      records.filter(student => Number(student.attendance) >= 70 && Number(student.attendance) < 80).length,
+      records.filter(student => Number(student.attendance) >= 80 && Number(student.attendance) < 90).length,
+      records.filter(student => Number(student.attendance) >= 90 && Number(student.attendance) <= 100).length
     ];
 
     return {labels,counts};
-  }
-
-  function getMLRiskDistribution() {
-    const analyzed = students.filter(student =>
-      student.mlPrediction === "At Risk" ||
-      student.mlPrediction === "Not At Risk"
-    );
-
-    return {
-      analyzed:analyzed.length,
-      risk:analyzed.filter(student => student.mlPrediction === "At Risk").length,
-      safe:analyzed.filter(student => student.mlPrediction === "Not At Risk").length
-    };
-  }
-
-  // --------------------------------------------------
-  // ML RISK DISTRIBUTION
-  // Replaces the old semicircular gauge completely.
-  // --------------------------------------------------
-
-  function initializeMLRiskDistribution() {
-    const gaugeWrap = $(".ml-gauge-wrap");
-
-    if (!gaugeWrap) {
-      console.warn("ML distribution container .ml-gauge-wrap was not found.");
-      return;
-    }
-
-    gaugeWrap.innerHTML = `
-      <div class="ml-risk-distribution" id="mlRiskDistribution">
-
-        <div class="ml-risk-empty" id="mlRiskEmpty">
-          <strong>Waiting for ML analysis</strong>
-          <span>The student classifications will appear here after the prediction service responds.</span>
-        </div>
-
-        <div class="ml-risk-row" id="mlRiskRow" hidden>
-          <div class="ml-risk-row-top">
-            <div class="ml-risk-label">
-              <span class="ml-risk-dot danger"></span>
-              At Risk
-            </div>
-
-            <div class="ml-risk-values">
-              <strong class="ml-risk-count" id="mlRiskCount">0</strong>
-              <span class="ml-risk-percent" id="mlRiskPercent">0%</span>
-            </div>
-          </div>
-
-          <div class="ml-risk-track">
-            <div class="ml-risk-fill danger" id="mlRiskBar"></div>
-          </div>
-        </div>
-
-        <div class="ml-risk-row" id="mlSafeRow" hidden>
-          <div class="ml-risk-row-top">
-            <div class="ml-risk-label">
-              <span class="ml-risk-dot success"></span>
-              Not At Risk
-            </div>
-
-            <div class="ml-risk-values">
-              <strong class="ml-risk-count" id="mlSafeCount">0</strong>
-              <span class="ml-risk-percent" id="mlSafePercent">0%</span>
-            </div>
-          </div>
-
-          <div class="ml-risk-track">
-            <div class="ml-risk-fill success" id="mlSafeBar"></div>
-          </div>
-        </div>
-
-        <div class="ml-risk-total" id="mlRiskTotal" hidden>
-          <span>Total analyzed students</span>
-          <strong id="mlAnalyzedCount">0</strong>
-        </div>
-
-      </div>
-    `;
-
-    updateMLRiskChart("connecting");
-  }
-
-  function updateMLRiskChart(status) {
-    const emptyState = $("#mlRiskEmpty");
-    const riskRow = $("#mlRiskRow");
-    const safeRow = $("#mlSafeRow");
-    const totalRow = $("#mlRiskTotal");
-    const note = $("#mlRiskChartNote");
-
-    if (!emptyState || !riskRow || !safeRow || !totalRow) return;
-
-    // Reset the visualization before applying a new state.
-
-    riskRow.hidden = true;
-    safeRow.hidden = true;
-    totalRow.hidden = true;
-
-    if (status === "connecting") {
-      emptyState.hidden = false;
-
-      emptyState.innerHTML = `
-        <strong>Connecting to prediction service...</strong>
-        <span>Waiting for the Decision Tree model. No classifications or percentages are displayed yet.</span>
-      `;
-
-      if (note) {
-        note.textContent =
-          "The distribution will be populated using actual API classifications after analysis is complete.";
-      }
-
-      return;
-    }
-
-    if (status === "offline") {
-      emptyState.hidden = false;
-
-      emptyState.innerHTML = `
-        <strong>Prediction service unavailable</strong>
-        <span>ML classifications cannot currently be displayed. Use Retry in Student Records to reconnect.</span>
-      `;
-
-      if (note) {
-        note.textContent =
-          "No ML distribution is available because the prediction service did not return a valid result.";
-      }
-
-      return;
-    }
-
-    const distribution = getMLRiskDistribution();
-
-    if (!distribution.analyzed) {
-      emptyState.hidden = false;
-
-      emptyState.innerHTML = `
-        <strong>No analyzed records</strong>
-        <span>The prediction service did not return any classified student records.</span>
-      `;
-
-      return;
-    }
-
-    const riskPercent =
-      (distribution.risk / distribution.analyzed) * 100;
-
-    const safePercent =
-      (distribution.safe / distribution.analyzed) * 100;
-
-    emptyState.hidden = true;
-    riskRow.hidden = false;
-    safeRow.hidden = false;
-    totalRow.hidden = false;
-
-    $("#mlRiskCount").textContent =
-      distribution.risk.toLocaleString();
-
-    $("#mlRiskPercent").textContent =
-      `${riskPercent.toFixed(1)}%`;
-
-    $("#mlRiskBar").style.width =
-      `${riskPercent}%`;
-
-    $("#mlSafeCount").textContent =
-      distribution.safe.toLocaleString();
-
-    $("#mlSafePercent").textContent =
-      `${safePercent.toFixed(1)}%`;
-
-    $("#mlSafeBar").style.width =
-      `${safePercent}%`;
-
-    $("#mlAnalyzedCount").textContent =
-      distribution.analyzed.toLocaleString();
-
-    if (note) {
-      note.textContent =
-        `${distribution.analyzed} students analyzed. The bars show the proportion classified into each model category.`;
-    }
   }
 
   // --------------------------------------------------
@@ -1627,16 +1920,19 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------------------------------------------------
 
   function renderDashboardCharts() {
-    if (!chartAvailable()) return;
+    updateMLRiskChart();
 
-    // Existing chart: Academic Performance
+    if (!chartAvailable()) {
+      console.warn("Chart.js is unavailable. ML distribution remains active.");
+      return;
+    }
 
     createChart("performanceChart", {
       type:"line",
       data:{
         labels:["2023–2024","1st Sem 2024–2025","2nd Sem 2024–2025","1st Sem 2025–2026"],
         datasets:[{
-          label:"Academic Performance",
+          label:"Illustrative Academic Performance",
           data:[84,86,88,91],
           borderColor:"#168fa0",
           backgroundColor:"rgba(22,143,160,.15)",
@@ -1654,7 +1950,7 @@ document.addEventListener("DOMContentLoaded", () => {
           y:{
             min:70,
             max:100,
-            ticks:{color:"#9ba8ae",callback:value=>value+"%"},
+            ticks:{color:"#9ba8ae",callback:value => value + "%"},
             grid:{color:"rgba(255,255,255,.06)"}
           },
           x:{
@@ -1664,8 +1960,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
-
-    // Existing chart: Teaching Effectiveness
 
     createChart("seteChart", {
       type:"doughnut",
@@ -1686,8 +1980,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // CHART 1: STUDENT GWA DISTRIBUTION
-
     const gwaDistribution = getGwaDistribution();
 
     createChart("gwaDistributionChart", {
@@ -1697,12 +1989,7 @@ document.addEventListener("DOMContentLoaded", () => {
         datasets:[{
           label:"Number of Students",
           data:gwaDistribution.counts,
-          backgroundColor:[
-            "#188b45",
-            "#168fa0",
-            "#c99539",
-            "#d92332"
-          ],
+          backgroundColor:["#188b45","#168fa0","#c99539","#d92332"],
           borderColor:"#222b32",
           borderWidth:3,
           hoverOffset:9,
@@ -1738,8 +2025,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // CHART 2: ATTENDANCE DISTRIBUTION
-
     const attendanceDistribution = getAttendanceDistribution();
 
     createChart("attendanceDistributionChart", {
@@ -1755,12 +2040,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "rgba(57,139,182,.78)",
             "rgba(24,139,69,.78)"
           ],
-          borderColor:[
-            "#d92332",
-            "#c99539",
-            "#398bb6",
-            "#188b45"
-          ],
+          borderColor:["#d92332","#c99539","#398bb6","#188b45"],
           borderWidth:2,
           hoverOffset:9
         }]
@@ -1772,16 +2052,9 @@ document.addEventListener("DOMContentLoaded", () => {
         scales:{
           r:{
             beginAtZero:true,
-            ticks:{
-              display:false,
-              backdropColor:"transparent"
-            },
-            grid:{
-              color:"rgba(255,255,255,.10)"
-            },
-            angleLines:{
-              color:"rgba(255,255,255,.10)"
-            },
+            ticks:{display:false,backdropColor:"transparent"},
+            grid:{color:"rgba(255,255,255,.10)"},
+            angleLines:{color:"rgba(255,255,255,.10)"},
             pointLabels:{
               color:"#a4b0b6",
               font:{family:"Inter",size:9}
@@ -1812,11 +2085,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // CHART 3: ML RISK DISTRIBUTION
-    // This is now HTML-based, not a Chart.js gauge.
-
-    updateMLRiskChart(modelApiStatus);
-
     resizePageCharts("overview");
   }
 
@@ -1832,7 +2100,7 @@ document.addEventListener("DOMContentLoaded", () => {
       data:{
         labels:["2023–2024","1st Sem 2024–2025","2nd Sem 2024–2025","1st Sem 2025–2026"],
         datasets:[{
-          label:"Passing Rate",
+          label:"Illustrative Passing Rate",
           data:[84,86,88,89.2],
           borderColor:"#168fa0",
           backgroundColor:"rgba(22,143,160,.13)",
@@ -1848,7 +2116,7 @@ document.addEventListener("DOMContentLoaded", () => {
           y:{
             min:70,
             max:100,
-            ticks:{color:"#9ba8ae",callback:value=>value+"%"},
+            ticks:{color:"#9ba8ae",callback:value => value + "%"},
             grid:{color:"rgba(255,255,255,.06)"}
           },
           x:{
@@ -1859,13 +2127,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    const gwaDistribution = getGwaDistribution();
+
     createChart("gradeChart", {
       type:"bar",
       data:{
         labels:["1.00–1.50","1.51–2.00","2.01–2.25","2.26–2.75","Above 2.75"],
         datasets:[{
           label:"Students",
-          data:[42,96,118,58,28],
+          data:[
+            ...gwaDistribution.counts.slice(0,1),
+            students.filter(student => student.gwa > 1.50 && student.gwa <= 2.00).length,
+            students.filter(student => student.gwa > 2.00 && student.gwa <= 2.25).length,
+            students.filter(student => student.gwa > 2.25 && student.gwa <= 2.75).length,
+            students.filter(student => student.gwa > 2.75).length
+          ],
           backgroundColor:["#188b45","#168fa0","#398bb6","#c99539","#d92332"],
           borderRadius:5,
           maxBarThickness:42
@@ -1893,7 +2169,7 @@ document.addEventListener("DOMContentLoaded", () => {
       data:{
         labels:classes.map(item => item.code),
         datasets:[{
-          label:"Passing Rate",
+          label:"Illustrative Passing Rate",
           data:subjectPassingRates,
           backgroundColor:["#168fa0","#398bb6","#188b45","#d1a34c","#168fa0","#398bb6"],
           borderRadius:6,
@@ -1910,7 +2186,7 @@ document.addEventListener("DOMContentLoaded", () => {
           legend:{display:false},
           tooltip:{
             callbacks:{
-              label:context => ` Passing Rate: ${context.raw}%`
+              label:context => ` Illustrative Passing Rate: ${context.raw}%`
             }
           }
         },
@@ -1918,12 +2194,15 @@ document.addEventListener("DOMContentLoaded", () => {
           x:{
             min:0,
             max:100,
-            ticks:{color:"#a4b0b6",callback:value=>value+"%",stepSize:20},
+            ticks:{color:"#a4b0b6",callback:value => value + "%",stepSize:20},
             grid:{color:"rgba(255,255,255,.07)"}
           },
           y:{
             beginAtZero:true,
-            ticks:{color:"#e0e7e9",font:{family:"Inter",size:11,weight:"600"}},
+            ticks:{
+              color:"#e0e7e9",
+              font:{family:"Inter",size:11,weight:"600"}
+            },
             grid:{display:false}
           }
         }
@@ -1945,7 +2224,7 @@ document.addEventListener("DOMContentLoaded", () => {
       data:{
         labels:["Subject Knowledge","Communication","Class Management","Learning Support","Professionalism"],
         datasets:[{
-          label:"Average Rating",
+          label:"Illustrative Average Rating",
           data:[4.4,4.3,4.2,4.25,4.35],
           backgroundColor:["#168fa0","#398bb6","#188b45","#168fa0","#398bb6"],
           borderRadius:5,
@@ -2000,46 +2279,63 @@ document.addEventListener("DOMContentLoaded", () => {
   // PROFILE AND SETTINGS
   // --------------------------------------------------
 
-  const savedProfile = JSON.parse(localStorage.getItem("bsunisyncProfile") || "{}");
+  let savedProfile = {};
+
+  try {
+    savedProfile = JSON.parse(localStorage.getItem("bsunisyncProfile") || "{}");
+  } catch (error) {
+    console.warn("Unable to read saved profile settings.", error);
+    savedProfile = {};
+  }
+
   const initialName = savedProfile.name || "Faculty Member";
 
   function updateFacultyName(name) {
     const cleanName = name.trim() || "Faculty Member";
 
-    $("#welcomeName").textContent = cleanName;
-    $("#topFacultyName").textContent = cleanName;
-    $("#profileNameHeading").textContent = cleanName;
-    $(".profile-trigger .avatar").textContent = getInitials(cleanName);
-    $(".profile-large .avatar").textContent = getInitials(cleanName);
+    if ($("#welcomeName")) $("#welcomeName").textContent = cleanName;
+    if ($("#topFacultyName")) $("#topFacultyName").textContent = cleanName;
+    if ($("#profileNameHeading")) $("#profileNameHeading").textContent = cleanName;
+
+    if ($(".profile-trigger .avatar")) {
+      $(".profile-trigger .avatar").textContent = getInitials(cleanName);
+    }
+
+    if ($(".profile-large .avatar")) {
+      $(".profile-large .avatar").textContent = getInitials(cleanName);
+    }
   }
 
-  $("#facultyName").value = initialName;
+  if ($("#facultyName")) $("#facultyName").value = initialName;
   updateFacultyName(initialName);
 
   if (savedProfile.theme === "light") {
     document.body.classList.add("light-theme");
-    $("#themeSelect").value = "light";
+    if ($("#themeSelect")) $("#themeSelect").value = "light";
   }
 
-  $("#profileForm").addEventListener("submit", event => {
+  $("#profileForm")?.addEventListener("submit", event => {
     event.preventDefault();
 
     const name = $("#facultyName").value.trim() || "Faculty Member";
     const theme = $("#themeSelect").value;
 
-    localStorage.setItem("bsunisyncProfile", JSON.stringify({name,theme}));
-    updateFacultyName(name);
+    localStorage.setItem("bsunisyncProfile",JSON.stringify({name,theme}));
 
-    document.body.classList.toggle("light-theme", theme === "light");
+    updateFacultyName(name);
+    document.body.classList.toggle("light-theme",theme === "light");
 
     Object.keys(chartInstances).forEach(id => {
       const chart = chartInstances[id];
 
-      if (chart) {
-        if (chart.options.plugins.legend.labels) {
-          chart.options.plugins.legend.labels.color =
-            getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#a4b0b6";
-        }
+      if (
+        chart &&
+        chart.options.plugins &&
+        chart.options.plugins.legend &&
+        chart.options.plugins.legend.labels
+      ) {
+        chart.options.plugins.legend.labels.color =
+          getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#a4b0b6";
 
         chart.update();
       }
@@ -2048,15 +2344,21 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast("Profile and settings saved successfully.");
   });
 
-  $("#themeSelect").addEventListener("change", event => {
-    document.body.classList.toggle("light-theme", event.target.value === "light");
+  $("#themeSelect")?.addEventListener("change", event => {
+    document.body.classList.toggle("light-theme",event.target.value === "light");
+
+    Object.values(chartInstances).forEach(chart => {
+      if (chart) chart.update();
+    });
   });
 
   // --------------------------------------------------
   // PRINT
   // --------------------------------------------------
 
-  $("#printSchedule").addEventListener("click", () => window.print());
+  $("#printSchedule")?.addEventListener("click", () => {
+    window.print();
+  });
 
   // --------------------------------------------------
   // INITIAL RENDER
@@ -2078,14 +2380,17 @@ document.addEventListener("DOMContentLoaded", () => {
   renderSchedule();
   renderAlerts();
   renderNotifications();
-  updateDashboardFilters();
 
+  // Start the API request before chart rendering.
+  // A chart rendering issue should not prevent ML analysis.
+  runBatchPredictions();
+
+  updateDashboardFilters();
   renderDashboardCharts();
 
-  // Start the batch prediction request after the portal
-  // has rendered. The rest of the interface remains usable.
-
-  runBatchPredictions();
+  // --------------------------------------------------
+  // WINDOW RESIZE AND TAB VISIBILITY
+  // --------------------------------------------------
 
   window.addEventListener("resize", () => {
     Object.values(chartInstances).forEach(chart => {
@@ -2094,15 +2399,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      const activePage = $(".page.active");
-      if (!activePage) return;
+    if (document.hidden) return;
 
-      const pageName = activePage.id.replace("page-","");
+    const activePage = $(".page.active");
+    if (!activePage) return;
 
-      if (pageName === "overview") renderDashboardCharts();
-      if (pageName === "analytics") renderAnalyticsCharts();
-      if (pageName === "evaluation") renderEvaluationCharts();
+    const pageName = activePage.id.replace("page-","");
+
+    if (pageName === "overview") {
+      renderDashboardCharts();
+      updateMLRiskChart();
     }
+
+    if (pageName === "analytics") renderAnalyticsCharts();
+    if (pageName === "evaluation") renderEvaluationCharts();
   });
+
 });

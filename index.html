@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BSUniSync Faculty Portal - Academic monitoring, analytics, and student risk decision support.">
   <title>BSUniSync | Faculty Portal</title>
 
   <link rel="stylesheet" href="style.css">
@@ -14,212 +15,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- STUDENT RISK OVERVIEW DESIGN -->
   <style>
-    .ml-overview-panel {
-      padding: 24px;
-      margin: 20px 0;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--surface);
-    }
-
-    .ml-overview-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-
-    .ml-overview-header h2 {
-      margin: 5px 0 7px;
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .ml-overview-header p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.6;
-    }
-
-    .ml-overview-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-      padding: 9px 13px;
-      border: 1px solid var(--border);
-      border-radius: 30px;
-      background: var(--surface-soft);
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .ml-overview-status-dot {
-      width: 8px;
-      height: 8px;
-      display: inline-block;
-      border-radius: 50%;
-      background: #d5a64b;
-    }
-
-    .ml-overview-status.online {
-      color: #55c78c;
-      border-color: rgba(53,185,120,.2);
-      background: rgba(53,185,120,.08);
-    }
-
-    .ml-overview-status.online .ml-overview-status-dot {
-      background: #35b978;
-      box-shadow: 0 0 9px rgba(53,185,120,.4);
-    }
-
-    .ml-overview-status.offline {
-      color: #ff858b;
-      border-color: rgba(217,35,50,.25);
-      background: rgba(217,35,50,.08);
-    }
-
-    .ml-overview-status.offline .ml-overview-status-dot {
-      background: #e45b63;
-    }
-
-    .ml-overview-stats {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .ml-overview-stat {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      min-width: 0;
-      padding: 20px;
-      border: 1px solid var(--border);
-      border-radius: 13px;
-      background: var(--surface-soft);
-      transition: transform .2s ease, border-color .2s ease;
-    }
-
-    .ml-overview-stat:hover {
-      transform: translateY(-2px);
-      border-color: rgba(22,143,160,.35);
-    }
-
-    .ml-overview-stat-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      width: 43px;
-      height: 43px;
-      border-radius: 12px;
-      background: rgba(22,143,160,.13);
-      color: #48bac6;
-      font-size: 19px;
-      font-weight: 700;
-    }
-
-    .ml-overview-stat > div {
-      min-width: 0;
-    }
-
-    .ml-overview-stat small {
-      display: block;
-      margin-bottom: 7px;
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 600;
-      line-height: 1.4;
-    }
-
-    .ml-overview-stat strong {
-      display: block;
-      color: var(--text);
-      font-size: 29px;
-      font-weight: 800;
-      line-height: 1;
-      letter-spacing: -.8px;
-    }
-
-    .ml-overview-risk {
-      border-color: rgba(217,35,50,.17);
-    }
-
-    .ml-overview-risk .ml-overview-stat-icon {
-      color: #ff858b;
-      background: rgba(217,35,50,.13);
-    }
-
-    .ml-overview-risk strong {
-      color: #ff858b;
-    }
-
-    .ml-overview-safe {
-      border-color: rgba(24,139,69,.17);
-    }
-
-    .ml-overview-safe .ml-overview-stat-icon {
-      color: #55c78c;
-      background: rgba(24,139,69,.13);
-    }
-
-    .ml-overview-safe strong {
-      color: #55c78c;
-    }
-
-    .ml-overview-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-top: 19px;
-    }
-
-    .ml-overview-footer p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.6;
-    }
-
-    .ml-overview-footer .button {
-      flex-shrink: 0;
-    }
-
-    .ml-overview-disclaimer {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      margin-top: 20px;
-      padding: 13px 15px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: rgba(22,143,160,.055);
-      color: var(--muted);
-      font-size: 10px;
-      line-height: 1.7;
-    }
-
-    .ml-overview-disclaimer strong {
-      color: var(--text);
-    }
-
-    .ml-overview-disclaimer-icon {
-      flex-shrink: 0;
-      color: #48bac6;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    /* ADDITIONAL OVERVIEW CHARTS */
+    /* =========================================
+       OVERVIEW CHART LAYOUT
+    ========================================= */
 
     .overview-insights-heading {
       margin: 28px 0 15px;
@@ -239,11 +38,9 @@
       line-height: 1.6;
     }
 
-    /* THREE-COLUMN CHART LAYOUT */
-
     .overview-insights-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px;
       width: 100%;
       margin-bottom: 20px;
@@ -254,20 +51,24 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-    }
-
-    .overview-insight-panel .chart-wrap {
-      min-height: 245px;
-      height: 245px;
-      position: relative;
-    }
-
-    .overview-insight-panel .chart-wrap canvas {
-      max-height: 245px;
+      margin-bottom: 0;
     }
 
     .overview-insight-panel .panel-header {
       margin-bottom: 15px;
+    }
+
+    .overview-insight-panel .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 245px;
+      min-height: 245px;
+    }
+
+    .overview-insight-panel .chart-wrap canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
     }
 
     .overview-chart-note {
@@ -277,75 +78,101 @@
       line-height: 1.6;
     }
 
-    /* ML SEMICIRCULAR GAUGE CONTAINER */
+    /* ML distribution uses the entire row */
 
-    .ml-gauge-wrap {
+    .ml-risk-distribution-panel {
+      grid-column: 1 / -1;
+    }
+
+    .ml-risk-distribution-panel .ml-gauge-wrap {
       position: relative;
       width: 100%;
-      height: 245px;
-      min-height: 245px;
+      min-height: 150px;
+      height: auto;
+      display: block;
+      overflow: visible;
+    }
+
+    /* =========================================
+       ML OVERVIEW
+    ========================================= */
+
+    .ml-overview-panel {
+      margin: 20px 0 22px;
+    }
+
+    .ml-overview-header {
       display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
     }
 
-    .ml-gauge-wrap canvas {
-      width: 100% !important;
-      height: 245px !important;
-      max-height: 245px;
+    .ml-overview-heading {
+      min-width: 0;
     }
 
-    .ml-gauge-center {
-      position: absolute;
-      left: 50%;
-      top: 67%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      text-align: center;
-      pointer-events: none;
+    .ml-overview-heading h2 {
+      margin: 5px 0 7px;
+      font-size: 19px;
+    }
+
+    .ml-overview-heading p {
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .ml-overview-status {
+      flex-shrink: 0;
+    }
+
+    .ml-overview-message {
+      padding: 11px 13px;
+      background: rgba(22,143,160,.08);
+      border: 1px solid rgba(22,143,160,.15);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    .ml-overview-actions {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
+      justify-content: flex-end;
+      margin-top: 14px;
     }
 
-    .ml-gauge-center strong {
+    .ml-overview-disclaimer {
+      margin-top: 13px;
+      padding: 12px 14px;
+      background: rgba(22,143,160,.055);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.7;
+    }
+
+    .ml-overview-disclaimer strong {
       color: var(--text);
-      font-size: 30px;
-      font-weight: 800;
-      line-height: 1;
     }
 
-    .ml-gauge-center span {
+    /* The JavaScript replaces this container with
+       the actual API-derived horizontal distribution. */
+
+    .ml-gauge-wrap {
+      width: 100%;
+      min-height: 120px;
+    }
+
+    .ml-gauge-wrap:empty::before {
+      content: "Waiting for prediction results...";
+      display: block;
+      padding: 35px 15px;
       color: var(--muted);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .7px;
-      text-transform: uppercase;
-    }
-
-    .ml-gauge-legend {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 14px;
-      margin-top: 2px;
-    }
-
-    .ml-gauge-legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--muted);
-      font-size: 10px;
-    }
-
-    .ml-gauge-legend-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
+      text-align: center;
+      font-size: 11px;
     }
 
     @media(max-width:1050px) {
@@ -355,39 +182,24 @@
     }
 
     @media(max-width:760px) {
+      .overview-insights-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .ml-risk-distribution-panel {
+        grid-column: auto;
+      }
+
       .ml-overview-header {
         flex-direction: column;
       }
 
-      .ml-overview-footer {
-        align-items: flex-start;
-        flex-direction: column;
+      .ml-overview-status {
+        align-self: flex-start;
       }
 
-      .ml-overview-stats {
-        grid-template-columns: 1fr;
-      }
-
-      .ml-overview-stat {
-        padding: 16px;
-      }
-
-      .overview-insights-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media(max-width:480px) {
-      .ml-overview-panel {
-        padding: 16px;
-      }
-
-      .ml-overview-header h2 {
-        font-size: 18px;
-      }
-
-      .ml-overview-stat strong {
-        font-size: 25px;
+      .overview-insight-panel .chart-wrap {
+        height: 260px;
       }
     }
   </style>
@@ -396,373 +208,887 @@
 <body>
 <div class="app-shell">
 
+  <!-- =========================================
+       SIDEBAR
+  ========================================= -->
+
   <aside class="sidebar" id="sidebar">
+
     <div class="brand">
       <img src="./images/BSUniSync-logo.jpg" alt="BSUniSync logo" class="brand-logo">
     </div>
 
     <nav class="side-nav">
+
       <div class="nav-group">
         <p class="nav-heading">DASHBOARD</p>
+
         <button class="nav-link active" data-page="overview">
-          <span class="nav-icon">⌂</span><span>Overview</span>
+          <span class="nav-icon">⌂</span>
+          <span>Overview</span>
         </button>
       </div>
 
       <div class="nav-group">
         <p class="nav-heading">ACADEMIC WORKSPACE</p>
-        <button class="nav-link" data-page="students"><span class="nav-icon">♙</span><span>Student Records</span></button>
-        <button class="nav-link" data-page="classes"><span class="nav-icon">▤</span><span>Classes & Subjects</span></button>
-        <button class="nav-link" data-page="schedule"><span class="nav-icon">▦</span><span>Teaching Schedule</span></button>
-        <button class="nav-link" data-page="analytics"><span class="nav-icon">▥</span><span>Academic Analytics</span></button>
+
+        <button class="nav-link" data-page="students">
+          <span class="nav-icon">♙</span>
+          <span>Student Records</span>
+        </button>
+
+        <button class="nav-link" data-page="classes">
+          <span class="nav-icon">▤</span>
+          <span>Classes & Subjects</span>
+        </button>
+
+        <button class="nav-link" data-page="schedule">
+          <span class="nav-icon">▦</span>
+          <span>Teaching Schedule</span>
+        </button>
+
+        <button class="nav-link" data-page="analytics">
+          <span class="nav-icon">▥</span>
+          <span>Academic Analytics</span>
+        </button>
       </div>
 
       <div class="nav-group">
         <p class="nav-heading">FACULTY WORKSPACE</p>
-        <button class="nav-link" data-page="evaluation"><span class="nav-icon">☆</span><span>Teaching Evaluation</span></button>
+
+        <button class="nav-link" data-page="evaluation">
+          <span class="nav-icon">☆</span>
+          <span>Teaching Evaluation</span>
+        </button>
+
         <button class="nav-link" data-page="alerts">
-          <span class="nav-icon">♧</span><span>Academic Alerts</span>
+          <span class="nav-icon">♧</span>
+          <span>Academic Alerts</span>
           <span class="nav-count" id="alertNavCount">3</span>
         </button>
       </div>
 
       <div class="nav-group account-group">
         <p class="nav-heading">ACCOUNT</p>
-        <button class="nav-link" data-page="profile"><span class="nav-icon">♙</span><span>Profile & Settings</span></button>
-        <button class="nav-link" id="signOutBtn"><span class="nav-icon">⇥</span><span>Sign Out</span></button>
+
+        <button class="nav-link" data-page="profile">
+          <span class="nav-icon">♙</span>
+          <span>Profile & Settings</span>
+        </button>
+
+        <button class="nav-link" id="signOutBtn">
+          <span class="nav-icon">⇥</span>
+          <span>Sign Out</span>
+        </button>
       </div>
+
     </nav>
 
-    <div class="sidebar-footer">BSUniSync Faculty Portal <span>v1.0</span></div>
+    <div class="sidebar-footer">
+      BSUniSync Faculty Portal
+      <span>v1.0</span>
+    </div>
+
   </aside>
 
+  <!-- =========================================
+       MAIN AREA
+  ========================================= -->
+
   <main class="main-area">
+
+    <!-- TOPBAR -->
+
     <header class="topbar">
-      <button class="icon-button menu-toggle" id="menuToggle" aria-label="Toggle sidebar">☰</button>
-      <div class="topbar-brand"><strong>BSUni<span>Sync</span></strong><small>Faculty Portal</small></div>
+
+      <button class="icon-button menu-toggle" id="menuToggle" aria-label="Toggle sidebar">
+        ☰
+      </button>
+
+      <div class="topbar-brand">
+        <strong>BSUni<span>Sync</span></strong>
+        <small>Faculty Portal</small>
+      </div>
+
       <div class="topbar-spacer"></div>
 
       <label class="global-search">
         <span>⌕</span>
-        <input id="globalSearch" type="search" placeholder="Search students, subjects, or sections...">
+        <input
+          id="globalSearch"
+          type="search"
+          placeholder="Search students, subjects, or sections..."
+          aria-label="Search portal"
+        >
         <kbd>Enter</kbd>
       </label>
 
       <div class="notification-wrap">
-        <button class="icon-button notification-button" id="notificationBtn" aria-label="Notifications">
-          ♧<span class="notification-dot" id="notificationDot">3</span>
+
+        <button
+          class="icon-button notification-button"
+          id="notificationBtn"
+          aria-label="Notifications"
+        >
+          ♧
+          <span class="notification-dot" id="notificationDot">3</span>
         </button>
+
         <div class="notification-popover hidden" id="notificationPopover">
-          <div class="popover-title"><strong>Notifications</strong><button id="markReadBtn">Mark all read</button></div>
+
+          <div class="popover-title">
+            <strong>Notifications</strong>
+            <button id="markReadBtn">Mark all read</button>
+          </div>
+
           <div id="notificationItems"></div>
+
         </div>
+
       </div>
 
       <button class="profile-trigger" id="profileTrigger">
+
         <span class="avatar">FM</span>
-        <span class="profile-meta"><strong id="topFacultyName">Faculty Member</strong><small>Faculty Member</small></span>
+
+        <span class="profile-meta">
+          <strong id="topFacultyName">Faculty Member</strong>
+          <small>Faculty Member</small>
+        </span>
+
         <span>⌄</span>
+
       </button>
+
     </header>
+
+    <!-- =========================================
+         CONTENT
+    ========================================= -->
 
     <div class="content-area">
 
-      <!-- OVERVIEW -->
+      <!-- =====================================
+           OVERVIEW
+      ====================================== -->
+
       <section class="page active" id="page-overview">
+
+        <!-- WELCOME AND FILTERS -->
+
         <div class="welcome-banner">
+
           <div class="welcome-copy">
+
             <span class="eyebrow">FACULTY DASHBOARD</span>
-            <h1>Good day, <span id="welcomeName">Faculty Member</span>!</h1>
-            <p>Here's your academic overview for the current term.</p>
+
+            <h1>
+              Good day,
+              <span id="welcomeName">Faculty Member</span>!
+            </h1>
+
+            <p>
+              Academic monitoring and decision-support overview.
+            </p>
+
           </div>
 
           <div class="filter-row">
-            <label>Academic Year
+
+            <label>
+              Academic Year
+
               <select id="yearFilter">
                 <option value="2025-2026">2025–2026</option>
                 <option value="2024-2025">2024–2025</option>
                 <option value="2023-2024">2023–2024</option>
               </select>
+
             </label>
-            <label>Semester
+
+            <label>
+              Semester
+
               <select id="semesterFilter">
                 <option value="all">Both Semesters</option>
                 <option value="1">1st Semester</option>
                 <option value="2">2nd Semester</option>
               </select>
+
             </label>
-            <button class="button button-outline" id="resetFilters">↻ Reset</button>
+
+            <button class="button button-outline" id="resetFilters" type="button">
+              ↻ Reset
+            </button>
+
           </div>
+
         </div>
 
+        <!-- KPI OVERVIEW -->
+
         <div class="section-heading">
-          <div><span class="section-mark"></span><h2>At a glance</h2><small>Academic overview</small></div>
-          <span class="muted-text" id="lastUpdated">Updated just now</span>
+
+          <div>
+            <span class="section-mark"></span>
+            <h2>At a glance</h2>
+            <small>Academic overview</small>
+          </div>
+
+          <span class="muted-text" id="lastUpdated">
+            Demonstration data
+          </span>
+
         </div>
 
         <div class="kpi-grid">
+
           <article class="kpi-card red-card">
+
             <div class="kpi-icon">♙</div>
-            <div class="kpi-info"><span>Total Students</span><strong id="kpiStudents">342</strong><small class="positive">↑ 4.1% from previous term</small></div>
+
+            <div class="kpi-info">
+              <span>Total Students</span>
+              <strong id="kpiStudents">—</strong>
+              <small>Records in demonstration dataset</small>
+            </div>
+
             <span class="kpi-decoration">01</span>
+
           </article>
+
           <article class="kpi-card teal-card">
+
             <div class="kpi-icon">▤</div>
-            <div class="kpi-info"><span>Subject Passing Rate</span><strong id="kpiPassing">89.2%</strong><small class="positive">↑ 1.2% from previous term</small></div>
+
+            <div class="kpi-info">
+              <span>Subject Passing Rate</span>
+              <strong id="kpiPassing">89.2%</strong>
+              <small>Illustrative sample indicator</small>
+            </div>
+
             <span class="kpi-decoration">02</span>
+
           </article>
+
           <article class="kpi-card green-card">
+
             <div class="kpi-icon">☆</div>
-            <div class="kpi-info"><span>SETE Rating</span><strong id="kpiSete">4.28<span class="small-unit">/5</span></strong><small class="positive">↑ 0.1 from previous term</small></div>
+
+            <div class="kpi-info">
+              <span>SETE Rating</span>
+              <strong id="kpiSete">4.28<span class="small-unit">/5</span></strong>
+              <small>Illustrative evaluation result</small>
+            </div>
+
             <span class="kpi-decoration">03</span>
+
           </article>
+
           <article class="kpi-card blue-card">
+
             <div class="kpi-icon">♧</div>
-            <div class="kpi-info"><span>On-Time Graduation</span><strong id="kpiCompletion">88.0%</strong><small class="positive">↑ 0.3% from previous term</small></div>
+
+            <div class="kpi-info">
+              <span>On-Time Graduation</span>
+              <strong id="kpiCompletion">88.0%</strong>
+              <small>Illustrative sample indicator</small>
+            </div>
+
             <span class="kpi-decoration">04</span>
+
           </article>
+
           <article class="kpi-card risk-card">
+
             <div class="kpi-icon">!</div>
-            <div class="kpi-info"><span>At Risk Students</span><strong id="kpiAtRisk">0</strong><small id="kpiAtRiskDetail">Based on current student records</small></div>
+
+            <div class="kpi-info">
+              <span>At Risk Students</span>
+              <strong id="kpiAtRisk">0</strong>
+              <small id="kpiAtRiskDetail">Based on current student records</small>
+            </div>
+
             <span class="kpi-decoration">05</span>
+
           </article>
+
         </div>
 
-        <!-- STUDENT RISK PREDICTION -->
+        <!-- =================================
+             STUDENT RISK PREDICTION
+        ================================== -->
+
         <article class="panel ml-overview-panel">
+
           <div class="ml-overview-header">
-            <div>
+
+            <div class="ml-overview-heading">
+
               <span class="eyebrow">PREDICTIVE ANALYTICS</span>
+
               <h2>Student Risk Prediction</h2>
-              <p>Academic risk classification to help identify students who may need additional support.</p>
+
+              <p>
+                Machine learning classification to help faculty identify
+                students who may need additional academic support.
+              </p>
+
             </div>
 
             <div class="ml-overview-status connecting" id="mlOverviewStatus">
-              <span class="ml-overview-status-dot"></span>
-              <span id="mlOverviewStatusText">Connecting to model...</span>
+
+              <span></span>
+
+              <span id="mlOverviewStatusText">
+                Connecting to model...
+              </span>
+
             </div>
+
           </div>
 
-          <div class="ml-overview-stats">
-            <div class="ml-overview-stat">
-              <span class="ml-overview-stat-icon">♙</span>
-              <div>
-                <small>Students Analyzed</small>
-                <strong id="mlOverviewTotal">—</strong>
-              </div>
+          <div class="ml-overview-metrics">
+
+            <div class="ml-overview-card">
+
+              <span>Students Analyzed</span>
+              <strong id="mlOverviewTotal">—</strong>
+
             </div>
 
-            <div class="ml-overview-stat ml-overview-risk">
-              <span class="ml-overview-stat-icon">!</span>
-              <div>
-                <small>Classified At Risk</small>
-                <strong id="mlOverviewRisk">—</strong>
-              </div>
+            <div class="ml-overview-card risk">
+
+              <span>Classified At Risk</span>
+              <strong id="mlOverviewRisk">—</strong>
+
             </div>
 
-            <div class="ml-overview-stat ml-overview-safe">
-              <span class="ml-overview-stat-icon">✓</span>
-              <div>
-                <small>Classified Not At Risk</small>
-                <strong id="mlOverviewSafe">—</strong>
-              </div>
+            <div class="ml-overview-card safe">
+
+              <span>Classified Not At Risk</span>
+              <strong id="mlOverviewSafe">—</strong>
+
             </div>
+
           </div>
 
-          <div class="ml-overview-footer">
-            <p id="mlOverviewMessage">Waiting for the prediction service to analyze student records.</p>
-            <button class="button button-outline" type="button" data-go="students">View Student Predictions →</button>
+          <div class="ml-overview-message" id="mlOverviewMessage">
+            Waiting for the prediction service to analyze student records.
+          </div>
+
+          <div class="ml-overview-actions">
+
+            <button
+              class="button button-outline"
+              type="button"
+              data-go="students"
+            >
+              View Student Predictions →
+            </button>
+
           </div>
 
           <div class="ml-overview-disclaimer">
-            <span class="ml-overview-disclaimer-icon">ⓘ</span>
-            <div>
-              <strong>About these insights</strong><br>
-              These predictions are intended to help faculty identify students who may benefit from additional academic support. They should be considered alongside academic records and faculty judgment, not used as the sole basis for academic decisions. The current version uses sample student records and simulated historical inputs; predictions are illustrative and have not been validated against actual student outcomes.
-            </div>
+
+            <strong>Important:</strong>
+
+            The prediction results are decision-support indicators, not
+            definitive judgments about student performance. The current
+            demonstration uses sample student records and simulated
+            historical inputs. Predictions have not been validated against
+            actual institutional student outcomes. Faculty judgment and
+            appropriate academic review must remain part of every decision.
+
           </div>
+
         </article>
-        <!-- END STUDENT RISK PREDICTION -->
 
-        <!-- EXISTING OVERVIEW CHARTS -->
+        <!-- =================================
+             PRIMARY OVERVIEW CHARTS
+        ================================== -->
+
         <div class="dashboard-grid two-columns">
+
           <article class="panel">
+
             <div class="panel-header">
-              <div><h3>Academic Performance</h3><p>Student performance across recent terms</p></div>
-              <button class="text-button" data-go="analytics">View details →</button>
+
+              <div>
+                <h3>Academic Performance</h3>
+                <p>Student performance across recent terms</p>
+              </div>
+
+              <button class="text-button" data-go="analytics">
+                View details →
+              </button>
+
             </div>
-            <div class="chart-wrap"><canvas id="performanceChart"></canvas></div>
+
+            <div class="chart-wrap">
+              <canvas id="performanceChart"></canvas>
+            </div>
+
           </article>
 
           <article class="panel">
+
             <div class="panel-header">
-              <div><h3>Teaching Effectiveness</h3><p>Student evaluation distribution</p></div>
-              <button class="text-button" data-go="evaluation">View details →</button>
+
+              <div>
+                <h3>Teaching Effectiveness</h3>
+                <p>Illustrative student evaluation distribution</p>
+              </div>
+
+              <button class="text-button" data-go="evaluation">
+                View details →
+              </button>
+
             </div>
+
             <div class="donut-layout">
+
               <div class="donut-wrap">
+
                 <canvas id="seteChart"></canvas>
-                <div class="donut-center"><strong>4.28</strong><small>Overall rating</small></div>
+
+                <div class="donut-center">
+                  <strong>4.28</strong>
+                  <small>Sample rating</small>
+                </div>
+
               </div>
+
               <div class="legend-list">
-                <div><i class="legend-dot green"></i><span>Very Satisfactory</span><strong>72%</strong></div>
-                <div><i class="legend-dot teal"></i><span>Satisfactory</span><strong>21%</strong></div>
-                <div><i class="legend-dot blue"></i><span>Needs Improvement</span><strong>7%</strong></div>
+
+                <div>
+                  <i class="legend-dot green"></i>
+                  <span>Very Satisfactory</span>
+                  <strong>72%</strong>
+                </div>
+
+                <div>
+                  <i class="legend-dot teal"></i>
+                  <span>Satisfactory</span>
+                  <strong>21%</strong>
+                </div>
+
+                <div>
+                  <i class="legend-dot blue"></i>
+                  <span>Needs Improvement</span>
+                  <strong>7%</strong>
+                </div>
+
               </div>
+
             </div>
+
           </article>
+
         </div>
 
-        <!-- ADDITIONAL ACADEMIC INSIGHTS -->
+        <!-- =================================
+             ADDITIONAL ACADEMIC INSIGHTS
+        ================================== -->
+
         <div class="overview-insights-heading">
+
           <h2>Additional Academic Insights</h2>
-          <p>Explore student academic standing, attendance patterns, and machine learning risk classifications.</p>
+
+          <p>
+            Explore student academic standing, attendance patterns,
+            and machine learning risk classifications.
+          </p>
+
         </div>
 
         <div class="overview-insights-grid">
 
-          <!-- GWA DOUGHNUT -->
+          <!-- GWA DISTRIBUTION -->
+
           <article class="panel overview-insight-panel">
+
             <div class="panel-header">
+
               <div>
                 <h3>Student GWA Distribution</h3>
-                <p>Distribution of students by academic standing</p>
+                <p>Distribution by academic standing</p>
               </div>
-              <button class="text-button" data-go="students">View records →</button>
+
+              <button class="text-button" data-go="students">
+                View records →
+              </button>
+
             </div>
+
             <div class="chart-wrap">
               <canvas id="gwaDistributionChart"></canvas>
             </div>
-            <p class="overview-chart-note">Classification follows the portal's GWA categories: Excellent, Good Standing, Needs Monitoring, and At Risk.</p>
+
+            <p class="overview-chart-note">
+              Student classifications follow the portal's GWA categories:
+              Excellent, Good Standing, Needs Monitoring, and At Risk.
+              Values are based on the demonstration dataset.
+            </p>
+
           </article>
 
-          <!-- ATTENDANCE POLAR AREA -->
+          <!-- ATTENDANCE DISTRIBUTION -->
+
           <article class="panel overview-insight-panel">
+
             <div class="panel-header">
+
               <div>
                 <h3>Attendance Distribution</h3>
                 <p>Student attendance grouped by percentage</p>
               </div>
-              <button class="text-button" data-go="students">Review students →</button>
+
+              <button class="text-button" data-go="students">
+                Review students →
+              </button>
+
             </div>
+
             <div class="chart-wrap">
               <canvas id="attendanceDistributionChart"></canvas>
             </div>
-            <p class="overview-chart-note">Attendance groups help identify students who may need attendance monitoring and follow-up.</p>
+
+            <p class="overview-chart-note">
+              Attendance groups help identify students who may need
+              attendance monitoring and follow-up.
+            </p>
+
           </article>
 
-          <!-- ML RISK SEMICIRCULAR GAUGE -->
-          <article class="panel overview-insight-panel">
+          <!-- ML RISK DISTRIBUTION -->
+
+          <article class="panel overview-insight-panel ml-risk-distribution-panel">
+
             <div class="panel-header">
+
               <div>
-                <h3>ML Risk Prediction</h3>
-                <p>Share of analyzed students classified At Risk</p>
+                <h3>ML Risk Classification Distribution</h3>
+                <p>
+                  Actual classification counts returned by the prediction API
+                </p>
               </div>
-              <button class="text-button" data-go="students">View predictions →</button>
+
+              <button class="text-button" data-go="students">
+                View predictions →
+              </button>
+
             </div>
 
-            <div class="ml-gauge-wrap">
-              <canvas id="mlRiskChart"></canvas>
+            <!--
+              script.js replaces this container's contents
+              with the horizontal At Risk / Not At Risk bars.
+            -->
 
-              <div class="ml-gauge-center">
-                <strong id="mlRiskGaugeValue">—%</strong>
-                <span id="mlRiskGaugeLabel">Awaiting analysis</span>
+            <div class="ml-gauge-wrap" id="mlRiskDistribution">
+
+              <div class="ml-gauge-wrap-inner">
+                <p class="overview-chart-note">
+                  Waiting for the prediction service. No classification
+                  percentages are displayed until analysis is complete.
+                </p>
               </div>
+
             </div>
 
-            <div class="ml-gauge-legend">
-              <span class="ml-gauge-legend-item">
-                <i class="ml-gauge-legend-dot" style="background:#d92332"></i>
-                At Risk
-              </span>
-              <span class="ml-gauge-legend-item">
-                <i class="ml-gauge-legend-dot" style="background:#168f70"></i>
-                Not At Risk
-              </span>
-            </div>
+            <p class="overview-chart-note" id="mlRiskChartNote">
+              Classification distribution is calculated from the prediction
+              results returned by the machine learning API. These are
+              classifications, not calibrated individual probabilities.
+            </p>
 
-            <p class="overview-chart-note" id="mlRiskChartNote">Waiting for the prediction service. No prediction counts are displayed until analysis is complete.</p>
           </article>
 
         </div>
-        <!-- END ADDITIONAL ACADEMIC INSIGHTS -->
+
+        <!-- =================================
+             ANNOUNCEMENTS AND QUICK ACTIONS
+        ================================== -->
 
         <div class="dashboard-grid bottom-columns">
+
           <article class="panel">
+
             <div class="panel-header">
-              <div><h3>Announcements</h3><p>Updates and faculty reminders</p></div>
-              <button class="text-button" data-go="alerts">View alerts →</button>
+
+              <div>
+                <h3>Announcements</h3>
+                <p>Updates and faculty reminders</p>
+              </div>
+
+              <button class="text-button" data-go="alerts">
+                View alerts →
+              </button>
+
             </div>
+
             <div class="announcement-list" id="announcementList">
-              <div class="announcement"><span class="announcement-icon red-bg">!</span><div><strong>System Maintenance</strong><p>The portal will undergo scheduled maintenance this weekend.</p><small>November 15, 2026</small></div></div>
-              <div class="announcement"><span class="announcement-icon teal-bg">i</span><div><strong>Faculty Development Program</strong><p>Check the faculty development schedule and registration details.</p><small>November 12, 2026</small></div></div>
-              <div class="announcement"><span class="announcement-icon green-bg">✓</span><div><strong>Updated Grading Policy</strong><p>Please review the latest grading guidelines and reminders.</p><small>November 10, 2026</small></div></div>
+
+              <div class="announcement">
+
+                <span class="announcement-icon red-bg">!</span>
+
+                <div>
+                  <strong>System Maintenance</strong>
+                  <p>
+                    The portal will undergo scheduled maintenance this weekend.
+                  </p>
+                  <small>November 15, 2026</small>
+                </div>
+
+              </div>
+
+              <div class="announcement">
+
+                <span class="announcement-icon teal-bg">i</span>
+
+                <div>
+                  <strong>Faculty Development Program</strong>
+                  <p>
+                    Check the faculty development schedule and registration details.
+                  </p>
+                  <small>November 12, 2026</small>
+                </div>
+
+              </div>
+
+              <div class="announcement">
+
+                <span class="announcement-icon green-bg">✓</span>
+
+                <div>
+                  <strong>Updated Grading Policy</strong>
+                  <p>
+                    Please review the latest grading guidelines and reminders.
+                  </p>
+                  <small>November 10, 2026</small>
+                </div>
+
+              </div>
+
             </div>
+
           </article>
 
           <article class="panel">
+
             <div class="panel-header">
-              <div><h3>Quick Actions</h3><p>Frequently used academic tools</p></div>
+
+              <div>
+                <h3>Quick Actions</h3>
+                <p>Frequently used academic tools</p>
+              </div>
+
             </div>
+
             <div class="quick-action-grid">
-              <button class="quick-action" data-go="students"><span>♙</span>Student Records <b>→</b></button>
-              <button class="quick-action" data-go="schedule"><span>▦</span>Class Schedule <b>→</b></button>
-              <button class="quick-action" data-go="classes"><span>▤</span>My Classes <b>→</b></button>
-              <button class="quick-action" data-go="alerts"><span>♧</span>View Alerts <b>→</b></button>
+
+              <button class="quick-action" data-go="students">
+                <span>♙</span>
+                Student Records
+                <b>→</b>
+              </button>
+
+              <button class="quick-action" data-go="schedule">
+                <span>▦</span>
+                Class Schedule
+                <b>→</b>
+              </button>
+
+              <button class="quick-action" data-go="classes">
+                <span>▤</span>
+                My Classes
+                <b>→</b>
+              </button>
+
+              <button class="quick-action" data-go="alerts">
+                <span>♧</span>
+                View Alerts
+                <b>→</b>
+              </button>
+
             </div>
+
           </article>
+
         </div>
+
+        <!-- =================================
+             TEACHING LOAD AND FOLLOW-UP
+        ================================== -->
 
         <div class="dashboard-grid two-columns">
+
           <article class="panel">
+
             <div class="panel-header">
-              <div><h3>My Teaching Load</h3><p>Current assigned classes</p></div>
-              <button class="text-button" data-go="classes">View classes →</button>
+
+              <div>
+                <h3>My Teaching Load</h3>
+                <p>Current assigned classes</p>
+              </div>
+
+              <button class="text-button" data-go="classes">
+                View classes →
+              </button>
+
             </div>
+
             <div class="mini-class-list" id="miniClassList"></div>
+
           </article>
 
           <article class="panel">
+
             <div class="panel-header">
-              <div><h3>Priority Follow-up</h3><p>Items that may need your attention</p></div>
-              <button class="text-button" data-go="alerts">See all →</button>
+
+              <div>
+                <h3>Priority Follow-up</h3>
+                <p>Items that may need your attention</p>
+              </div>
+
+              <button class="text-button" data-go="alerts">
+                See all →
+              </button>
+
             </div>
+
             <div class="followup-list">
-              <div><span class="status-pill danger">Urgent</span><p><strong>Grade submission</strong><small>2 classes have pending grade entries.</small></p></div>
-              <div><span class="status-pill warning">Review</span><p><strong>Student consultation</strong><small>3 students have requested a consultation.</small></p></div>
-              <div><span class="status-pill info">Reminder</span><p><strong>SETE evaluation</strong><small>Evaluation period is currently open.</small></p></div>
+
+              <div>
+                <span class="status-pill danger">Urgent</span>
+                <p>
+                  <strong>Grade submission</strong>
+                  <small>2 classes have pending grade entries.</small>
+                </p>
+              </div>
+
+              <div>
+                <span class="status-pill warning">Review</span>
+                <p>
+                  <strong>Student consultation</strong>
+                  <small>3 students have requested a consultation.</small>
+                </p>
+              </div>
+
+              <div>
+                <span class="status-pill info">Reminder</span>
+                <p>
+                  <strong>SETE evaluation</strong>
+                  <small>Evaluation period is currently open.</small>
+                </p>
+              </div>
+
             </div>
+
           </article>
+
         </div>
+
       </section>
 
-      <!-- STUDENT RECORDS -->
+      <!-- =====================================
+           STUDENT RECORDS
+      ====================================== -->
+
       <section class="page" id="page-students">
+
         <div class="page-title">
-          <div><span class="eyebrow">ACADEMIC WORKSPACE</span><h1>Student Records</h1><p>Monitor student academic standing and review individual student records.</p></div>
+
+          <div>
+            <span class="eyebrow">ACADEMIC WORKSPACE</span>
+            <h1>Student Records</h1>
+            <p>
+              Monitor student academic standing and review individual student records.
+            </p>
+          </div>
+
         </div>
 
         <div class="standing-summary-grid">
-          <article class="standing-summary-card"><div class="standing-summary-icon total-icon">♙</div><div><span>Total Students</span><strong id="studentTotalCount">8</strong></div></article>
-          <article class="standing-summary-card excellent-summary"><div class="standing-summary-icon excellent-icon">★</div><div><span>Excellent</span><strong id="excellentCount">1</strong></div></article>
-          <article class="standing-summary-card good-summary"><div class="standing-summary-icon good-icon">✓</div><div><span>Good Standing</span><strong id="goodStandingCount">5</strong></div></article>
-          <article class="standing-summary-card monitoring-summary"><div class="standing-summary-icon monitoring-icon">◷</div><div><span>Needs Monitoring</span><strong id="monitoringCount">0</strong></div></article>
-          <article class="standing-summary-card risk-summary"><div class="standing-summary-icon risk-icon">!</div><div><span>At Risk</span><strong id="studentRiskCount">2</strong></div></article>
+
+          <article class="standing-summary-card">
+            <div class="standing-summary-icon total-icon">♙</div>
+            <div>
+              <span>Total Students</span>
+              <strong id="studentTotalCount">—</strong>
+            </div>
+          </article>
+
+          <article class="standing-summary-card excellent-summary">
+            <div class="standing-summary-icon excellent-icon">★</div>
+            <div>
+              <span>Excellent</span>
+              <strong id="excellentCount">—</strong>
+            </div>
+          </article>
+
+          <article class="standing-summary-card good-summary">
+            <div class="standing-summary-icon good-icon">✓</div>
+            <div>
+              <span>Good Standing</span>
+              <strong id="goodStandingCount">—</strong>
+            </div>
+          </article>
+
+          <article class="standing-summary-card monitoring-summary">
+            <div class="standing-summary-icon monitoring-icon">◷</div>
+            <div>
+              <span>Needs Monitoring</span>
+              <strong id="monitoringCount">—</strong>
+            </div>
+          </article>
+
+          <article class="standing-summary-card risk-summary">
+            <div class="standing-summary-icon risk-icon">!</div>
+            <div>
+              <span>At Risk</span>
+              <strong id="studentRiskCount">—</strong>
+            </div>
+          </article>
+
         </div>
 
         <article class="panel student-record-panel">
+
           <div class="student-record-heading">
-            <div><h3>Academic Records Overview</h3><p>Student classification based on General Weighted Average (GWA).</p></div>
-            <span class="record-count" id="studentResultCount">8 records</span>
+
+            <div>
+              <h3>Academic Records Overview</h3>
+              <p>
+                Student classification based on General Weighted Average (GWA).
+              </p>
+            </div>
+
+            <span class="record-count" id="studentResultCount">
+              Loading records...
+            </span>
+
           </div>
 
           <div class="table-toolbar student-toolbar">
-            <input id="studentSearch" type="search" placeholder="Search student name, ID, or program...">
-            <select id="studentYearFilter">
+
+            <input
+              id="studentSearch"
+              type="search"
+              placeholder="Search student name, ID, or program..."
+              aria-label="Search student records"
+            >
+
+            <select id="studentYearFilter" aria-label="Filter by year level">
               <option value="all">All year levels</option>
-              <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+              <option>1st Year</option>
+              <option>2nd Year</option>
+              <option>3rd Year</option>
+              <option>4th Year</option>
             </select>
-            <select id="studentStandingFilter">
+
+            <select id="studentStandingFilter" aria-label="Filter by academic standing">
               <option value="all">All academic standings</option>
               <option value="Excellent">Excellent</option>
               <option value="Good Standing">Good Standing</option>
@@ -770,181 +1096,539 @@
               <option value="At Risk">At Risk</option>
               <option value="No GWA">No GWA</option>
             </select>
+
           </div>
 
           <div class="standing-guide">
-            <span><i class="guide-dot excellent-dot"></i>Excellent: 1.00–1.50</span>
-            <span><i class="guide-dot good-dot"></i>Good Standing: 1.51–2.25</span>
-            <span><i class="guide-dot monitoring-dot"></i>Needs Monitoring: 2.26–2.75</span>
-            <span><i class="guide-dot risk-dot"></i>At Risk: Above 2.75</span>
+
+            <span>
+              <i class="guide-dot excellent-dot"></i>
+              Excellent: 1.00–1.50
+            </span>
+
+            <span>
+              <i class="guide-dot good-dot"></i>
+              Good Standing: 1.51–2.25
+            </span>
+
+            <span>
+              <i class="guide-dot monitoring-dot"></i>
+              Needs Monitoring: 2.26–2.75
+            </span>
+
+            <span>
+              <i class="guide-dot risk-dot"></i>
+              At Risk: Above 2.75
+            </span>
+
           </div>
 
           <div class="table-scroll">
+
             <table class="student-table">
+
               <thead>
                 <tr>
-                  <th>Student ID</th><th>Student Name</th><th>Program</th><th>Year Level</th><th>GWA</th><th>Academic Standing</th><th>Record Status</th><th>Action</th>
+                  <th>Student ID</th>
+                  <th>Student Name</th>
+                  <th>Program</th>
+                  <th>Year Level</th>
+                  <th>GWA</th>
+                  <th>Academic Standing</th>
+                  <th>Record Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
+
               <tbody id="studentTable"></tbody>
+
             </table>
+
           </div>
+
         </article>
+
       </section>
 
-      <!-- CLASSES -->
+      <!-- =====================================
+           CLASSES AND SUBJECTS
+      ====================================== -->
+
       <section class="page" id="page-classes">
+
         <div class="page-title">
-          <div><span class="eyebrow">ACADEMIC WORKSPACE</span><h1>Classes & Subjects</h1><p>Your assigned subjects, sections, and class information.</p></div>
-          <button class="button button-primary" data-go="schedule">View Schedule</button>
+
+          <div>
+            <span class="eyebrow">ACADEMIC WORKSPACE</span>
+            <h1>Classes & Subjects</h1>
+            <p>
+              Your assigned subjects, sections, and class information.
+            </p>
+          </div>
+
+          <button class="button button-primary" data-go="schedule">
+            View Schedule
+          </button>
+
         </div>
 
         <div class="stat-strip">
-          <div><span>Assigned Subjects</span><strong>6</strong></div>
-          <div><span>Sections</span><strong>6</strong></div>
-          <div><span>Total Class Students</span><strong>186</strong></div>
+
+          <div>
+            <span>Assigned Subjects</span>
+            <strong>6</strong>
+          </div>
+
+          <div>
+            <span>Sections</span>
+            <strong>6</strong>
+          </div>
+
+          <div>
+            <span>Total Class Students</span>
+            <strong>186</strong>
+          </div>
+
         </div>
 
         <article class="panel">
-          <div class="panel-header"><div><h3>Assigned Subjects</h3><p>Current academic term</p></div></div>
+
+          <div class="panel-header">
+            <div>
+              <h3>Assigned Subjects</h3>
+              <p>Current academic term</p>
+            </div>
+          </div>
+
           <div class="table-scroll">
+
             <table>
-              <thead><tr><th>Subject Code</th><th>Subject Name</th><th>Section</th><th>Students</th><th>Schedule</th><th>Status</th></tr></thead>
+
+              <thead>
+                <tr>
+                  <th>Subject Code</th>
+                  <th>Subject Name</th>
+                  <th>Section</th>
+                  <th>Students</th>
+                  <th>Schedule</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
               <tbody id="classTable"></tbody>
+
             </table>
+
           </div>
+
         </article>
+
       </section>
 
-      <!-- SCHEDULE -->
+      <!-- =====================================
+           TEACHING SCHEDULE
+      ====================================== -->
+
       <section class="page" id="page-schedule">
+
         <div class="page-title">
-          <div><span class="eyebrow">ACADEMIC WORKSPACE</span><h1>Teaching Schedule</h1><p>Keep track of your class meetings and teaching hours.</p></div>
-          <button class="button button-outline" id="printSchedule">Print Schedule</button>
+
+          <div>
+            <span class="eyebrow">ACADEMIC WORKSPACE</span>
+            <h1>Teaching Schedule</h1>
+            <p>
+              Keep track of your class meetings and teaching hours.
+            </p>
+          </div>
+
+          <button class="button button-outline" id="printSchedule">
+            Print Schedule
+          </button>
+
         </div>
 
         <article class="panel">
-          <div class="panel-header"><div><h3>Weekly Class Schedule</h3><p>Monday to Saturday</p></div><span class="status-pill info">1st Semester</span></div>
-          <div class="table-scroll">
-            <table>
-              <thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Section</th><th>Room</th></tr></thead>
-              <tbody id="scheduleTable"></tbody>
-            </table>
+
+          <div class="panel-header">
+
+            <div>
+              <h3>Weekly Class Schedule</h3>
+              <p>Monday to Saturday</p>
+            </div>
+
+            <span class="status-pill info">1st Semester</span>
+
           </div>
+
+          <div class="table-scroll">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>Time</th>
+                  <th>Subject</th>
+                  <th>Section</th>
+                  <th>Room</th>
+                </tr>
+              </thead>
+
+              <tbody id="scheduleTable"></tbody>
+
+            </table>
+
+          </div>
+
         </article>
+
       </section>
 
-      <!-- ANALYTICS -->
+      <!-- =====================================
+           ACADEMIC ANALYTICS
+      ====================================== -->
+
       <section class="page" id="page-analytics">
+
         <div class="page-title">
-          <div><span class="eyebrow">ACADEMIC WORKSPACE</span><h1>Academic Analytics</h1><p>Monitor student progress and class performance.</p></div>
+
+          <div>
+            <span class="eyebrow">ACADEMIC WORKSPACE</span>
+            <h1>Academic Analytics</h1>
+            <p>
+              Monitor student progress and class performance.
+            </p>
+          </div>
+
         </div>
 
         <div class="dashboard-grid two-columns">
+
           <article class="panel">
-            <div class="panel-header"><div><h3>Passing Rate Trend</h3><p>Performance over recent terms</p></div></div>
-            <div class="chart-wrap tall"><canvas id="passingTrendChart"></canvas></div>
+
+            <div class="panel-header">
+              <div>
+                <h3>Passing Rate Trend</h3>
+                <p>Illustrative performance across recent terms</p>
+              </div>
+            </div>
+
+            <div class="chart-wrap tall">
+              <canvas id="passingTrendChart"></canvas>
+            </div>
+
           </article>
+
           <article class="panel">
-            <div class="panel-header"><div><h3>Grade Distribution</h3><p>Current student grade profile</p></div></div>
-            <div class="chart-wrap tall"><canvas id="gradeChart"></canvas></div>
+
+            <div class="panel-header">
+              <div>
+                <h3>Grade Distribution</h3>
+                <p>Illustrative student grade profile</p>
+              </div>
+            </div>
+
+            <div class="chart-wrap tall">
+              <canvas id="gradeChart"></canvas>
+            </div>
+
           </article>
+
         </div>
 
         <article class="panel analytics-subject-panel">
-          <div class="panel-header"><div><h3>Subject Performance</h3><p>Passing rate by assigned subject</p></div></div>
-          <div class="chart-wrap tall"><canvas id="subjectChart"></canvas></div>
+
+          <div class="panel-header">
+            <div>
+              <h3>Subject Performance</h3>
+              <p>Illustrative passing rate by assigned subject</p>
+            </div>
+          </div>
+
+          <div class="chart-wrap tall">
+            <canvas id="subjectChart"></canvas>
+          </div>
+
         </article>
+
       </section>
 
-      <!-- TEACHING EVALUATION -->
+      <!-- =====================================
+           TEACHING EVALUATION
+      ====================================== -->
+
       <section class="page" id="page-evaluation">
+
         <div class="page-title">
-          <div><span class="eyebrow">FACULTY WORKSPACE</span><h1>Teaching Evaluation</h1><p>Review Student Evaluation of Teaching Effectiveness results.</p></div>
+
+          <div>
+            <span class="eyebrow">FACULTY WORKSPACE</span>
+            <h1>Teaching Evaluation</h1>
+            <p>
+              Review Student Evaluation of Teaching Effectiveness results.
+            </p>
+          </div>
+
         </div>
 
         <div class="kpi-grid three-kpis">
-          <article class="kpi-card green-card"><div class="kpi-info"><span>Overall SETE Rating</span><strong>4.28/5</strong><small class="positive">Very Satisfactory</small></div></article>
-          <article class="kpi-card teal-card"><div class="kpi-info"><span>Response Rate</span><strong>68%</strong><small>Across assigned classes</small></div></article>
-          <article class="kpi-card blue-card"><div class="kpi-info"><span>Evaluated Sections</span><strong>5/6</strong><small>One section pending</small></div></article>
+
+          <article class="kpi-card green-card">
+
+            <div class="kpi-info">
+              <span>Overall SETE Rating</span>
+              <strong>4.28/5</strong>
+              <small>Illustrative sample result</small>
+            </div>
+
+          </article>
+
+          <article class="kpi-card teal-card">
+
+            <div class="kpi-info">
+              <span>Response Rate</span>
+              <strong>68%</strong>
+              <small>Illustrative sample result</small>
+            </div>
+
+          </article>
+
+          <article class="kpi-card blue-card">
+
+            <div class="kpi-info">
+              <span>Evaluated Sections</span>
+              <strong>5/6</strong>
+              <small>Illustrative sample result</small>
+            </div>
+
+          </article>
+
         </div>
 
         <div class="dashboard-grid two-columns">
+
           <article class="panel">
-            <div class="panel-header"><div><h3>Evaluation Dimensions</h3><p>Average rating per dimension</p></div></div>
-            <div class="chart-wrap tall"><canvas id="dimensionChart"></canvas></div>
+
+            <div class="panel-header">
+              <div>
+                <h3>Evaluation Dimensions</h3>
+                <p>Illustrative average rating per dimension</p>
+              </div>
+            </div>
+
+            <div class="chart-wrap tall">
+              <canvas id="dimensionChart"></canvas>
+            </div>
+
           </article>
+
           <article class="panel">
-            <div class="panel-header"><div><h3>Rating Distribution</h3><p>Student evaluation summary</p></div></div>
-            <div class="chart-wrap tall"><canvas id="evaluationChart"></canvas></div>
+
+            <div class="panel-header">
+              <div>
+                <h3>Rating Distribution</h3>
+                <p>Illustrative student evaluation summary</p>
+              </div>
+            </div>
+
+            <div class="chart-wrap tall">
+              <canvas id="evaluationChart"></canvas>
+            </div>
+
           </article>
+
         </div>
+
       </section>
 
-      <!-- ALERTS -->
+      <!-- =====================================
+           ACADEMIC ALERTS
+      ====================================== -->
+
       <section class="page" id="page-alerts">
+
         <div class="page-title">
-          <div><span class="eyebrow">FACULTY WORKSPACE</span><h1>Academic Alerts</h1><p>Items requiring attention and follow-up.</p></div>
-          <button class="button button-outline" id="clearAlertsBtn">Mark all reviewed</button>
+
+          <div>
+            <span class="eyebrow">FACULTY WORKSPACE</span>
+            <h1>Academic Alerts</h1>
+            <p>
+              Items requiring attention and follow-up.
+            </p>
+          </div>
+
+          <button class="button button-outline" id="clearAlertsBtn">
+            Mark all reviewed
+          </button>
+
         </div>
 
         <div class="alert-summary">
-          <div><strong id="alertTotal">3</strong><span>Open alerts</span></div>
-          <div><strong>2</strong><span>Grade reminders</span></div>
-          <div><strong>1</strong><span>Student concern</span></div>
+
+          <div>
+            <strong id="alertTotal">3</strong>
+            <span>Open alerts</span>
+          </div>
+
+          <div>
+            <strong>2</strong>
+            <span>Grade reminders</span>
+          </div>
+
+          <div>
+            <strong>1</strong>
+            <span>Student concern</span>
+          </div>
+
         </div>
 
         <article class="panel">
-          <div class="panel-header"><div><h3>Recent Alerts & Reminders</h3><p>Review each item and take appropriate action.</p></div></div>
+
+          <div class="panel-header">
+            <div>
+              <h3>Recent Alerts & Reminders</h3>
+              <p>
+                Review each item and take appropriate action.
+              </p>
+            </div>
+          </div>
+
           <div class="full-alert-list" id="fullAlertList"></div>
+
         </article>
+
       </section>
 
-      <!-- PROFILE -->
+      <!-- =====================================
+           PROFILE AND SETTINGS
+      ====================================== -->
+
       <section class="page" id="page-profile">
+
         <div class="page-title">
-          <div><span class="eyebrow">ACCOUNT</span><h1>Profile & Settings</h1><p>Manage your faculty information and portal preferences.</p></div>
+
+          <div>
+            <span class="eyebrow">ACCOUNT</span>
+            <h1>Profile & Settings</h1>
+            <p>
+              Manage your faculty information and portal preferences.
+            </p>
+          </div>
+
         </div>
 
         <article class="panel profile-panel">
+
           <div class="profile-large">
+
             <span class="avatar avatar-large">FM</span>
-            <div><h2 id="profileNameHeading">Faculty Member</h2><p>Faculty Member</p></div>
+
+            <div>
+              <h2 id="profileNameHeading">Faculty Member</h2>
+              <p>Faculty Member</p>
+            </div>
+
           </div>
 
           <form id="profileForm" class="settings-form">
-            <label>Display Name<input id="facultyName" value="Faculty Member" required></label>
-            <label>Faculty ID<input placeholder="Enter faculty ID"></label>
-            <label>Department<input placeholder="Enter department"></label>
-            <label>Email Address<input type="email" placeholder="Enter email address"></label>
-            <label>Position<input value="Faculty Member"></label>
-            <label>Theme<select id="themeSelect"><option value="dark">Dark workspace</option><option value="light">Light workspace</option></select></label>
-            <button class="button button-primary" type="submit">Save Changes</button>
+
+            <label>
+              Display Name
+              <input id="facultyName" value="Faculty Member" required>
+            </label>
+
+            <label>
+              Faculty ID
+              <input placeholder="Enter faculty ID">
+            </label>
+
+            <label>
+              Department
+              <input placeholder="Enter department">
+            </label>
+
+            <label>
+              Email Address
+              <input type="email" placeholder="Enter email address">
+            </label>
+
+            <label>
+              Position
+              <input value="Faculty Member">
+            </label>
+
+            <label>
+              Theme
+              <select id="themeSelect">
+                <option value="dark">Dark workspace</option>
+                <option value="light">Light workspace</option>
+              </select>
+            </label>
+
+            <button class="button button-primary" type="submit">
+              Save Changes
+            </button>
+
           </form>
+
         </article>
+
       </section>
 
     </div>
+
   </main>
+
 </div>
 
-<!-- MODAL -->
+<!-- =========================================
+     MODAL
+========================================= -->
+
 <div class="modal-backdrop hidden" id="modalBackdrop">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+
+  <div
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modalTitle"
+  >
+
     <div class="modal-header">
+
       <h2 id="modalTitle">Details</h2>
-      <button class="icon-button" id="modalClose" aria-label="Close">×</button>
+
+      <button class="icon-button" id="modalClose" aria-label="Close">
+        ×
+      </button>
+
     </div>
+
     <div id="modalBody"></div>
+
     <div class="modal-footer">
-      <button class="button button-outline" id="modalCancel">Close</button>
-      <button class="button button-primary hidden" id="modalConfirm">Confirm</button>
+
+      <button class="button button-outline" id="modalCancel">
+        Close
+      </button>
+
+      <button class="button button-primary hidden" id="modalConfirm">
+        Confirm
+      </button>
+
     </div>
+
   </div>
+
 </div>
+
+<!-- TOAST NOTIFICATIONS -->
 
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- APPLICATION SCRIPT -->
+
 <script src="script.js"></script>
+
 </body>
 </html>
