@@ -118,9 +118,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // SYNTHETIC ML INPUT PREPARATION
   // --------------------------------------------------
 
-  // The frontend demo records do not contain Previous_GWA
-  // or Failed_Subjects. These are generated deterministically
-  // for demonstration and are NOT actual student records.
+  // Previous_GWA and Failed_Subjects are generated
+  // synthetic demonstration inputs.
+  // They are NOT actual student academic records.
 
   students.forEach((student, index) => {
     const previousVariation = ((index % 7) - 3) * 0.12;
@@ -266,6 +266,45 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --------------------------------------------------
+  // OVERVIEW ML SUMMARY
+  // --------------------------------------------------
+
+  function updateMLOverview(status, total = null, risk = null, safe = null, message = "") {
+    const statusElement = $("#mlOverviewStatus");
+    const statusText = $("#mlOverviewStatusText");
+    const totalElement = $("#mlOverviewTotal");
+    const riskElement = $("#mlOverviewRisk");
+    const safeElement = $("#mlOverviewSafe");
+    const messageElement = $("#mlOverviewMessage");
+
+    if (!statusElement || !statusText || !totalElement ||
+        !riskElement || !safeElement || !messageElement) {
+      return;
+    }
+
+    statusElement.className = `ml-overview-status ${status}`;
+
+    if (status === "online") {
+      statusText.textContent = "Model Online";
+    } else if (status === "offline") {
+      statusText.textContent = "Service Offline";
+    } else {
+      statusText.textContent = "Connecting...";
+    }
+
+    totalElement.textContent =
+      total === null ? "—" : Number(total).toLocaleString();
+
+    riskElement.textContent =
+      risk === null ? "—" : Number(risk).toLocaleString();
+
+    safeElement.textContent =
+      safe === null ? "—" : Number(safe).toLocaleString();
+
+    messageElement.textContent = message;
+  }
+
+  // --------------------------------------------------
   // DYNAMIC ML INTERFACE
   // --------------------------------------------------
 
@@ -276,6 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const status = document.createElement("div");
       status.id = "modelApiStatus";
       status.className = "model-api-status";
+
       status.innerHTML = `
         <div class="model-api-indicator">
           <span class="model-api-dot"></span>
@@ -346,6 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
           border-radius:50%;
           background:#d6a044;
           display:inline-block;
+          flex-shrink:0;
         }
 
         .model-api-status.online .model-api-dot {
@@ -364,6 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
           padding:6px 9px;
           font-size:9px;
           font-weight:700;
+          cursor:pointer;
         }
 
         .model-retry-button:disabled {
@@ -425,8 +467,178 @@ document.addEventListener("DOMContentLoaded", () => {
         .student-table th:nth-child(8) { width:13%; }
         .student-table th:nth-child(9) { width:8%; }
 
+        /* ML distribution visualization */
+
+        .ml-gauge-wrap {
+          height:auto !important;
+          min-height:245px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:24px 20px;
+          box-sizing:border-box;
+        }
+
+        .ml-risk-distribution {
+          width:100%;
+          max-width:560px;
+          display:flex;
+          flex-direction:column;
+          justify-content:center;
+          gap:25px;
+          margin:auto;
+        }
+
+        .ml-risk-row {
+          width:100%;
+          display:flex;
+          flex-direction:column;
+          gap:10px;
+        }
+
+        .ml-risk-row-top {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:12px;
+        }
+
+        .ml-risk-label {
+          display:flex;
+          align-items:center;
+          gap:9px;
+          color:var(--text);
+          font-size:12px;
+          font-weight:700;
+        }
+
+        .ml-risk-dot {
+          width:9px;
+          height:9px;
+          border-radius:50%;
+          flex-shrink:0;
+        }
+
+        .ml-risk-dot.danger {
+          background:#e34b55;
+          box-shadow:0 0 10px rgba(227,75,85,.3);
+        }
+
+        .ml-risk-dot.success {
+          background:#2eb879;
+          box-shadow:0 0 10px rgba(46,184,121,.3);
+        }
+
+        .ml-risk-values {
+          display:flex;
+          align-items:baseline;
+          gap:7px;
+          white-space:nowrap;
+        }
+
+        .ml-risk-count {
+          color:var(--text);
+          font-size:17px;
+          font-weight:800;
+          font-variant-numeric:tabular-nums;
+        }
+
+        .ml-risk-percent {
+          color:var(--muted);
+          font-size:10px;
+          font-weight:600;
+        }
+
+        .ml-risk-track {
+          width:100%;
+          height:13px;
+          overflow:hidden;
+          border-radius:20px;
+          background:rgba(150,160,165,.13);
+        }
+
+        .ml-risk-fill {
+          height:100%;
+          width:0%;
+          border-radius:20px;
+          transition:width .65s ease;
+        }
+
+        .ml-risk-fill.danger {
+          background:linear-gradient(90deg,#bd2634,#ef626b);
+        }
+
+        .ml-risk-fill.success {
+          background:linear-gradient(90deg,#168b55,#43c78b);
+        }
+
+        .ml-risk-empty {
+          display:flex;
+          min-height:150px;
+          align-items:center;
+          justify-content:center;
+          flex-direction:column;
+          gap:9px;
+          text-align:center;
+          color:var(--muted);
+        }
+
+        .ml-risk-empty strong {
+          color:var(--text);
+          font-size:13px;
+        }
+
+        .ml-risk-empty span {
+          max-width:320px;
+          font-size:10px;
+          line-height:1.6;
+        }
+
+        .ml-risk-total {
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:10px;
+          padding-top:13px;
+          border-top:1px solid var(--border);
+          color:var(--muted);
+          font-size:10px;
+        }
+
+        .ml-risk-total strong {
+          color:var(--text);
+          font-size:12px;
+        }
+
+        .overview-insights-grid {
+          display:grid !important;
+          grid-template-columns:repeat(3,minmax(0,1fr));
+          align-items:stretch;
+          gap:18px;
+          width:100%;
+        }
+
+        .overview-insights-grid > * {
+          min-width:0;
+          width:100%;
+        }
+
+        .overview-insight-panel {
+          min-width:0;
+          height:100%;
+          display:flex;
+          flex-direction:column;
+        }
+
+        .overview-insight-panel .chart-wrap {
+          flex:1;
+          min-width:0;
+        }
+
         @media(max-width:1050px) {
-          .student-table { min-width:1050px; }
+          .overview-insights-grid {
+            grid-template-columns:repeat(2,minmax(0,1fr));
+          }
         }
 
         @media(max-width:760px) {
@@ -435,8 +647,28 @@ document.addEventListener("DOMContentLoaded", () => {
             flex-direction:column;
           }
 
-          .model-api-status { margin-left:0; }
-          .ml-disclaimer { padding-left:14px; padding-right:14px; }
+          .model-api-status {
+            margin-left:0;
+          }
+
+          .ml-disclaimer {
+            padding-left:14px;
+            padding-right:14px;
+          }
+
+          .overview-insights-grid {
+            grid-template-columns:minmax(0,1fr);
+            gap:14px;
+          }
+
+          .ml-gauge-wrap {
+            min-height:220px;
+            padding:20px 14px;
+          }
+
+          .ml-risk-distribution {
+            gap:21px;
+          }
         }
       `;
 
@@ -444,6 +676,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     $("#retryModelBtn")?.addEventListener("click", runBatchPredictions);
+
+    initializeMLRiskDistribution();
   }
 
   function updateModelApiStatus(status, message) {
@@ -454,13 +688,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!container) return;
 
     container.classList.remove("online","offline");
+
     if (status === "online") container.classList.add("online");
     if (status === "offline") container.classList.add("offline");
 
     const messageElement = container.querySelector(".model-api-message");
     const retryButton = $("#retryModelBtn");
 
-    if (messageElement) messageElement.textContent = message;
+    if (messageElement) {
+      messageElement.textContent = message;
+    }
 
     if (retryButton) {
       retryButton.disabled = modelApiLoading;
@@ -496,10 +733,28 @@ document.addEventListener("DOMContentLoaded", () => {
     if (modelApiLoading) return;
 
     modelApiLoading = true;
-    updateModelApiStatus("connecting","Connecting to prediction service...");
+
+    updateModelApiStatus(
+      "connecting",
+      "Connecting to prediction service..."
+    );
+
+    updateMLOverview(
+      "connecting",
+      null,
+      null,
+      null,
+      "The Decision Tree model is being contacted. Please wait while student records are analyzed."
+    );
+
+    updateMLRiskChart("connecting");
 
     const retryButton = $("#retryModelBtn");
-    if (retryButton) retryButton.disabled = true;
+
+    if (retryButton) {
+      retryButton.disabled = true;
+      retryButton.textContent = "Connecting...";
+    }
 
     try {
       const payload = {
@@ -542,31 +797,93 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("The API returned an unexpected prediction result.");
       }
 
+      if (data.total_students !== students.length) {
+        throw new Error("The API returned an incorrect student count.");
+      }
+
+      const validatedResults = new Array(students.length);
+      const receivedIndexes = new Set();
+
       data.predictions.forEach(result => {
-        const student = students[result.index];
+        if (!Number.isInteger(result.index) ||
+            result.index < 0 ||
+            result.index >= students.length) {
+          throw new Error("The API returned an invalid student index.");
+        }
 
-        if (!student) return;
+        if (receivedIndexes.has(result.index)) {
+          throw new Error("The API returned a duplicate student result.");
+        }
 
-        student.mlPrediction = result.prediction;
-        student.mlScore = Number(result.at_risk_probability);
+        if (
+          result.prediction !== "At Risk" &&
+          result.prediction !== "Not At Risk"
+        ) {
+          throw new Error("The API returned an invalid prediction label.");
+        }
+
+        const score = Number(result.at_risk_probability);
+
+        if (!Number.isFinite(score) || score < 0 || score > 100) {
+          throw new Error("The API returned an invalid model score.");
+        }
+
+        receivedIndexes.add(result.index);
+
+        validatedResults[result.index] = {
+          prediction:result.prediction,
+          score
+        };
       });
+
+      if (receivedIndexes.size !== students.length) {
+        throw new Error("The API did not return results for every student.");
+      }
+
+      // Apply predictions only after the entire response
+      // has passed validation.
+
+      validatedResults.forEach((result, index) => {
+        students[index].mlPrediction = result.prediction;
+        students[index].mlScore = result.score;
+      });
+
+      const totalAnalyzed = students.filter(student =>
+        student.mlPrediction === "At Risk" ||
+        student.mlPrediction === "Not At Risk"
+      ).length;
 
       const riskCount = students.filter(
         student => student.mlPrediction === "At Risk"
       ).length;
 
+      const safeCount = students.filter(
+        student => student.mlPrediction === "Not At Risk"
+      ).length;
+
+      updateMLOverview(
+        "online",
+        totalAnalyzed,
+        riskCount,
+        safeCount,
+        `${totalAnalyzed} student records successfully classified by the Decision Tree model.`
+      );
+
       updateModelApiStatus(
         "online",
-        `Prediction service online · ${students.length} students analyzed`
+        `Prediction service online · ${totalAnalyzed} students analyzed`
       );
 
       renderStudents();
+      renderDashboardCharts();
+      updateMLRiskChart("online");
 
-      showToast(`ML predictions received for ${students.length} students.`);
+      showToast(`ML predictions received for ${totalAnalyzed} students.`);
 
       console.info("BSUniSync ML batch prediction completed.", {
-        totalStudents:students.length,
+        totalStudents:totalAnalyzed,
         atRiskPredictions:riskCount,
+        notAtRiskPredictions:safeCount,
         model:data.model
       });
 
@@ -585,12 +902,24 @@ document.addEventListener("DOMContentLoaded", () => {
           : "Prediction service unavailable. Existing portal features remain active."
       );
 
+      updateMLOverview(
+        "offline",
+        null,
+        null,
+        null,
+        error.name === "AbortError"
+          ? "The prediction request timed out. The service may be waking up. Please retry."
+          : "The prediction service is currently unavailable. Student records and other portal features remain accessible."
+      );
+
       renderStudents();
+      updateMLRiskChart("offline");
 
     } finally {
       modelApiLoading = false;
 
       const retryButtonAfter = $("#retryModelBtn");
+
       if (retryButtonAfter) {
         retryButtonAfter.disabled = false;
         retryButtonAfter.textContent = "Retry";
@@ -1078,11 +1407,229 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --------------------------------------------------
+  // ADDITIONAL OVERVIEW CHART DATA
+  // --------------------------------------------------
+
+  function getGwaDistribution() {
+    const categories = [
+      "Excellent",
+      "Good Standing",
+      "Needs Monitoring",
+      "At Risk"
+    ];
+
+    const counts = categories.map(category =>
+      students.filter(student => getStanding(student.gwa) === category).length
+    );
+
+    return {categories,counts};
+  }
+
+  function getAttendanceDistribution() {
+    const labels = [
+      "Below 70%",
+      "70–79%",
+      "80–89%",
+      "90–100%"
+    ];
+
+    const counts = [
+      students.filter(student => Number(student.attendance) < 70).length,
+      students.filter(student => Number(student.attendance) >= 70 && Number(student.attendance) < 80).length,
+      students.filter(student => Number(student.attendance) >= 80 && Number(student.attendance) < 90).length,
+      students.filter(student => Number(student.attendance) >= 90 && Number(student.attendance) <= 100).length
+    ];
+
+    return {labels,counts};
+  }
+
+  function getMLRiskDistribution() {
+    const analyzed = students.filter(student =>
+      student.mlPrediction === "At Risk" ||
+      student.mlPrediction === "Not At Risk"
+    );
+
+    return {
+      analyzed:analyzed.length,
+      risk:analyzed.filter(student => student.mlPrediction === "At Risk").length,
+      safe:analyzed.filter(student => student.mlPrediction === "Not At Risk").length
+    };
+  }
+
+  // --------------------------------------------------
+  // ML RISK DISTRIBUTION
+  // Replaces the old semicircular gauge completely.
+  // --------------------------------------------------
+
+  function initializeMLRiskDistribution() {
+    const gaugeWrap = $(".ml-gauge-wrap");
+
+    if (!gaugeWrap) {
+      console.warn("ML distribution container .ml-gauge-wrap was not found.");
+      return;
+    }
+
+    gaugeWrap.innerHTML = `
+      <div class="ml-risk-distribution" id="mlRiskDistribution">
+
+        <div class="ml-risk-empty" id="mlRiskEmpty">
+          <strong>Waiting for ML analysis</strong>
+          <span>The student classifications will appear here after the prediction service responds.</span>
+        </div>
+
+        <div class="ml-risk-row" id="mlRiskRow" hidden>
+          <div class="ml-risk-row-top">
+            <div class="ml-risk-label">
+              <span class="ml-risk-dot danger"></span>
+              At Risk
+            </div>
+
+            <div class="ml-risk-values">
+              <strong class="ml-risk-count" id="mlRiskCount">0</strong>
+              <span class="ml-risk-percent" id="mlRiskPercent">0%</span>
+            </div>
+          </div>
+
+          <div class="ml-risk-track">
+            <div class="ml-risk-fill danger" id="mlRiskBar"></div>
+          </div>
+        </div>
+
+        <div class="ml-risk-row" id="mlSafeRow" hidden>
+          <div class="ml-risk-row-top">
+            <div class="ml-risk-label">
+              <span class="ml-risk-dot success"></span>
+              Not At Risk
+            </div>
+
+            <div class="ml-risk-values">
+              <strong class="ml-risk-count" id="mlSafeCount">0</strong>
+              <span class="ml-risk-percent" id="mlSafePercent">0%</span>
+            </div>
+          </div>
+
+          <div class="ml-risk-track">
+            <div class="ml-risk-fill success" id="mlSafeBar"></div>
+          </div>
+        </div>
+
+        <div class="ml-risk-total" id="mlRiskTotal" hidden>
+          <span>Total analyzed students</span>
+          <strong id="mlAnalyzedCount">0</strong>
+        </div>
+
+      </div>
+    `;
+
+    updateMLRiskChart("connecting");
+  }
+
+  function updateMLRiskChart(status) {
+    const emptyState = $("#mlRiskEmpty");
+    const riskRow = $("#mlRiskRow");
+    const safeRow = $("#mlSafeRow");
+    const totalRow = $("#mlRiskTotal");
+    const note = $("#mlRiskChartNote");
+
+    if (!emptyState || !riskRow || !safeRow || !totalRow) return;
+
+    // Reset the visualization before applying a new state.
+
+    riskRow.hidden = true;
+    safeRow.hidden = true;
+    totalRow.hidden = true;
+
+    if (status === "connecting") {
+      emptyState.hidden = false;
+
+      emptyState.innerHTML = `
+        <strong>Connecting to prediction service...</strong>
+        <span>Waiting for the Decision Tree model. No classifications or percentages are displayed yet.</span>
+      `;
+
+      if (note) {
+        note.textContent =
+          "The distribution will be populated using actual API classifications after analysis is complete.";
+      }
+
+      return;
+    }
+
+    if (status === "offline") {
+      emptyState.hidden = false;
+
+      emptyState.innerHTML = `
+        <strong>Prediction service unavailable</strong>
+        <span>ML classifications cannot currently be displayed. Use Retry in Student Records to reconnect.</span>
+      `;
+
+      if (note) {
+        note.textContent =
+          "No ML distribution is available because the prediction service did not return a valid result.";
+      }
+
+      return;
+    }
+
+    const distribution = getMLRiskDistribution();
+
+    if (!distribution.analyzed) {
+      emptyState.hidden = false;
+
+      emptyState.innerHTML = `
+        <strong>No analyzed records</strong>
+        <span>The prediction service did not return any classified student records.</span>
+      `;
+
+      return;
+    }
+
+    const riskPercent =
+      (distribution.risk / distribution.analyzed) * 100;
+
+    const safePercent =
+      (distribution.safe / distribution.analyzed) * 100;
+
+    emptyState.hidden = true;
+    riskRow.hidden = false;
+    safeRow.hidden = false;
+    totalRow.hidden = false;
+
+    $("#mlRiskCount").textContent =
+      distribution.risk.toLocaleString();
+
+    $("#mlRiskPercent").textContent =
+      `${riskPercent.toFixed(1)}%`;
+
+    $("#mlRiskBar").style.width =
+      `${riskPercent}%`;
+
+    $("#mlSafeCount").textContent =
+      distribution.safe.toLocaleString();
+
+    $("#mlSafePercent").textContent =
+      `${safePercent.toFixed(1)}%`;
+
+    $("#mlSafeBar").style.width =
+      `${safePercent}%`;
+
+    $("#mlAnalyzedCount").textContent =
+      distribution.analyzed.toLocaleString();
+
+    if (note) {
+      note.textContent =
+        `${distribution.analyzed} students analyzed. The bars show the proportion classified into each model category.`;
+    }
+  }
+
+  // --------------------------------------------------
   // OVERVIEW CHARTS
   // --------------------------------------------------
 
   function renderDashboardCharts() {
     if (!chartAvailable()) return;
+
+    // Existing chart: Academic Performance
 
     createChart("performanceChart", {
       type:"line",
@@ -1118,6 +1665,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    // Existing chart: Teaching Effectiveness
+
     createChart("seteChart", {
       type:"doughnut",
       data:{
@@ -1136,6 +1685,137 @@ document.addEventListener("DOMContentLoaded", () => {
         plugins:{legend:{display:false}}
       }
     });
+
+    // CHART 1: STUDENT GWA DISTRIBUTION
+
+    const gwaDistribution = getGwaDistribution();
+
+    createChart("gwaDistributionChart", {
+      type:"doughnut",
+      data:{
+        labels:gwaDistribution.categories,
+        datasets:[{
+          label:"Number of Students",
+          data:gwaDistribution.counts,
+          backgroundColor:[
+            "#188b45",
+            "#168fa0",
+            "#c99539",
+            "#d92332"
+          ],
+          borderColor:"#222b32",
+          borderWidth:3,
+          hoverOffset:9,
+          spacing:2
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        cutout:"62%",
+        animation:{animateRotate:true,animateScale:true,duration:650},
+        plugins:{
+          legend:{
+            position:"bottom",
+            labels:{
+              color:getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#a4b0b6",
+              padding:14,
+              usePointStyle:true,
+              pointStyle:"circle",
+              font:{family:"Inter",size:9}
+            }
+          },
+          tooltip:{
+            callbacks:{
+              label:context => {
+                const total = context.dataset.data.reduce((sum,value) => sum + value,0);
+                const percentage = total ? (context.raw / total * 100).toFixed(1) : "0.0";
+                return ` ${context.label}: ${context.raw} students (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // CHART 2: ATTENDANCE DISTRIBUTION
+
+    const attendanceDistribution = getAttendanceDistribution();
+
+    createChart("attendanceDistributionChart", {
+      type:"polarArea",
+      data:{
+        labels:attendanceDistribution.labels,
+        datasets:[{
+          label:"Number of Students",
+          data:attendanceDistribution.counts,
+          backgroundColor:[
+            "rgba(217,35,50,.78)",
+            "rgba(201,149,57,.78)",
+            "rgba(57,139,182,.78)",
+            "rgba(24,139,69,.78)"
+          ],
+          borderColor:[
+            "#d92332",
+            "#c99539",
+            "#398bb6",
+            "#188b45"
+          ],
+          borderWidth:2,
+          hoverOffset:9
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        animation:{duration:650},
+        scales:{
+          r:{
+            beginAtZero:true,
+            ticks:{
+              display:false,
+              backdropColor:"transparent"
+            },
+            grid:{
+              color:"rgba(255,255,255,.10)"
+            },
+            angleLines:{
+              color:"rgba(255,255,255,.10)"
+            },
+            pointLabels:{
+              color:"#a4b0b6",
+              font:{family:"Inter",size:9}
+            }
+          }
+        },
+        plugins:{
+          legend:{
+            position:"bottom",
+            labels:{
+              color:getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#a4b0b6",
+              padding:13,
+              usePointStyle:true,
+              pointStyle:"circle",
+              font:{family:"Inter",size:9}
+            }
+          },
+          tooltip:{
+            callbacks:{
+              label:context => {
+                const total = context.dataset.data.reduce((sum,value) => sum + value,0);
+                const percentage = total ? (context.raw / total * 100).toFixed(1) : "0.0";
+                return ` ${context.label}: ${context.raw} students (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // CHART 3: ML RISK DISTRIBUTION
+    // This is now HTML-based, not a Chart.js gauge.
+
+    updateMLRiskChart(modelApiStatus);
 
     resizePageCharts("overview");
   }
@@ -1356,8 +2036,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const chart = chartInstances[id];
 
       if (chart) {
-        chart.options.plugins.legend.labels.color =
-          getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#a4b0b6";
+        if (chart.options.plugins.legend.labels) {
+          chart.options.plugins.legend.labels.color =
+            getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#a4b0b6";
+        }
 
         chart.update();
       }
@@ -1382,6 +2064,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   addMLInterface();
 
+  updateMLOverview(
+    "connecting",
+    null,
+    null,
+    null,
+    "Connecting to the Decision Tree prediction service..."
+  );
+
   renderStudentSummary();
   renderStudents();
   renderClasses();
@@ -1394,6 +2084,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Start the batch prediction request after the portal
   // has rendered. The rest of the interface remains usable.
+
   runBatchPredictions();
 
   window.addEventListener("resize", () => {

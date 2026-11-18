@@ -40,8 +40,6 @@ button { cursor: pointer; }
 
 /* =========================================
    MAIN APP LAYOUT
-   The application fills the viewport.
-   Only the right-side main area scrolls.
 ========================================= */
 
 .app-shell {
@@ -94,10 +92,6 @@ button { cursor: pointer; }
   object-fit: contain;
   object-position: center;
 }
-
-/* Navigation takes the remaining sidebar space.
-   Account is pushed toward the bottom.
-   No sidebar scrollbar is created. */
 
 .side-nav {
   flex: 1 1 auto;
@@ -166,7 +160,6 @@ button { cursor: pointer; }
   font-size: 9px;
 }
 
-/* Keeps account controls near the bottom. */
 .account-group {
   margin-top: auto;
   margin-bottom: 5px;
@@ -186,7 +179,6 @@ button { cursor: pointer; }
 
 /* =========================================
    MAIN AREA
-   This is the only desktop scrolling region.
 ========================================= */
 
 .main-area {
@@ -607,6 +599,188 @@ select:focus, input:focus { border-color: var(--teal); }
 .risk-card .kpi-icon { color: #ff9a69; }
 .risk-card { border-color: rgba(217,35,50,.28); }
 .three-kpis { grid-template-columns: repeat(3,minmax(0,1fr)); }
+
+/* =========================================
+   STUDENT RISK PREDICTION OVERVIEW
+========================================= */
+
+.ml-overview-panel {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  padding: 21px;
+  margin: 0 0 22px;
+  background: linear-gradient(115deg,var(--surface),var(--surface-soft));
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--teal);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.ml-overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.ml-overview-heading {
+  min-width: 0;
+}
+
+.ml-overview-heading h2,
+.ml-overview-panel h2 {
+  font-size: 16px;
+  margin: 0 0 6px;
+}
+
+.ml-overview-heading p,
+.ml-overview-panel .ml-overview-subtitle {
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.ml-overview-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 7px 11px;
+  background: rgba(201,149,57,.12);
+  border: 1px solid rgba(201,149,57,.25);
+  border-radius: 30px;
+  color: #e8bc6d;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ml-overview-status::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d6a044;
+  box-shadow: 0 0 0 3px rgba(214,160,68,.12);
+}
+
+.ml-overview-status.online {
+  background: rgba(24,139,69,.12);
+  border-color: rgba(24,139,69,.25);
+  color: #63d296;
+}
+
+.ml-overview-status.online::before {
+  background: #35bd7a;
+  box-shadow: 0 0 0 3px rgba(53,189,122,.12);
+}
+
+.ml-overview-status.offline {
+  background: rgba(217,35,50,.12);
+  border-color: rgba(217,35,50,.25);
+  color: #ff858b;
+}
+
+.ml-overview-status.offline::before {
+  background: #e45b63;
+  box-shadow: 0 0 0 3px rgba(228,91,99,.12);
+}
+
+.ml-overview-status.connecting::before {
+  animation: mlPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes mlPulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: .3; }
+}
+
+.ml-overview-metrics {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 12px;
+  margin-bottom: 17px;
+}
+
+.ml-overview-card {
+  min-width: 0;
+  padding: 15px 16px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.ml-overview-card > span,
+.ml-overview-card .ml-overview-label {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  margin-bottom: 9px;
+}
+
+.ml-overview-card > strong,
+.ml-overview-card .ml-overview-value {
+  display: block;
+  color: var(--text);
+  font-size: 27px;
+  line-height: 1.15;
+  letter-spacing: -.7px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ml-overview-card.risk {
+  border-color: rgba(217,35,50,.23);
+}
+
+.ml-overview-card.risk > strong,
+.ml-overview-card.risk .ml-overview-value {
+  color: #f0787e;
+}
+
+.ml-overview-card.safe {
+  border-color: rgba(24,139,69,.23);
+}
+
+.ml-overview-card.safe > strong,
+.ml-overview-card.safe .ml-overview-value {
+  color: #55c88b;
+}
+
+.ml-overview-message {
+  padding: 11px 13px;
+  background: rgba(22,143,160,.08);
+  border: 1px solid rgba(22,143,160,.15);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.ml-overview-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.ml-overview-panel .button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+}
+
+.ml-overview-disclaimer {
+  margin-top: 13px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.6;
+}
 
 /* =========================================
    PANELS AND CHARTS
@@ -1205,10 +1379,38 @@ body.light-theme .kpi-decoration { color: rgba(0,0,0,.05); }
 
 body.light-theme .student-table tbody tr:hover { background: #f4f7f8; }
 
+/* ML Overview light theme */
+
+body.light-theme .ml-overview-panel {
+  background: linear-gradient(115deg,#ffffff,#f4f8f9);
+  border-color: rgba(20,35,42,.12);
+  border-left-color: var(--teal);
+}
+
+body.light-theme .ml-overview-card {
+  background: rgba(20,35,42,.025);
+}
+
+body.light-theme .ml-overview-card > strong,
+body.light-theme .ml-overview-card .ml-overview-value {
+  color: #253138;
+}
+
+body.light-theme .ml-overview-message {
+  background: rgba(22,143,160,.06);
+  color: #586c73;
+}
+
+body.light-theme .ml-overview-disclaimer {
+  color: #718087;
+}
+
+body.light-theme .detail-note {
+  color: #52656b;
+}
+
 /* =========================================
    SHORT DESKTOP HEIGHTS
-   Tighten sidebar spacing instead of adding
-   a sidebar scrollbar.
 ========================================= */
 
 @media(max-height:760px) and (min-width:761px) {
@@ -1345,7 +1547,6 @@ body.light-theme .student-table tbody tr:hover { background: #f4f7f8; }
 
   .sidebar.open { left: 0; }
 
-  /* No sidebar scrollbar on mobile either. */
   .side-nav {
     flex: 1 1 auto;
     min-height: 0;
@@ -1429,6 +1630,31 @@ body.light-theme .student-table tbody tr:hover { background: #f4f7f8; }
   .standing-guide { gap: 9px; }
   .student-table { min-width: 820px; }
   .chart-wrap.tall { height: 280px; }
+
+  /* ML Overview tablet and mobile layout */
+
+  .ml-overview-panel {
+    padding: 17px;
+  }
+
+  .ml-overview-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ml-overview-metrics {
+    gap: 9px;
+  }
+
+  .ml-overview-card {
+    padding: 13px;
+  }
+
+  .ml-overview-card > strong,
+  .ml-overview-card .ml-overview-value {
+    font-size: 23px;
+  }
 }
 
 @media(max-width:480px) {
@@ -1457,6 +1683,45 @@ body.light-theme .student-table tbody tr:hover { background: #f4f7f8; }
   .settings-form { grid-template-columns: 1fr; }
   .student-detail-grid { grid-template-columns: 1fr 1fr; }
   .page-title { flex-direction: column; }
+
+  .ml-overview-panel {
+    padding: 14px;
+  }
+
+  .ml-overview-metrics {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .ml-overview-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .ml-overview-card > span,
+  .ml-overview-card .ml-overview-label {
+    margin-bottom: 0;
+  }
+
+  .ml-overview-card > strong,
+  .ml-overview-card .ml-overview-value {
+    font-size: 21px;
+  }
+
+  .ml-overview-actions {
+    justify-content: stretch;
+  }
+
+  .ml-overview-actions .button {
+    width: 100%;
+  }
+
+  .ml-overview-status {
+    font-size: 9px;
+  }
 }
 
 /* =========================================
