@@ -23,17 +23,22 @@ features = joblib.load(BASE_DIR / "bsunisync_model_features.pkl")
 app = FastAPI(
     title="BSUniSync Student Risk API",
     description="Student Academic Risk Prediction",
-    version="1.1.0"
+    version="1.2.0"
 )
 
 
-# Temporary CORS configuration for local development
+# ==========================================
+# CORS CONFIGURATION
+# ==========================================
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://jeremy2358.github.io"
+    ],
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Accept"],
 )
 
 
@@ -87,7 +92,7 @@ def home():
         "message": "BSUniSync Student Risk API is running",
         "model": "Decision Tree Classifier",
         "status": "online",
-        "version": "1.1.0"
+        "version": "1.2.0"
     }
 
 
