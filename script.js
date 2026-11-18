@@ -4,6 +4,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const $$ = selector => [...document.querySelectorAll(selector)];
 
   // --------------------------------------------------
+  // API CONFIGURATION
+  // --------------------------------------------------
+
+  const API_URL = "https://bsunisync-api.onrender.com/predict-batch";
+
+  let modelApiStatus = "connecting";
+  let modelApiMessage = "Connecting to prediction service...";
+  let modelApiLoading = false;
+
+  // --------------------------------------------------
   // DEMO STUDENT DATA
   // --------------------------------------------------
 
@@ -18,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
     {id:"2022-008",name:"Camille Bautista",program:"BSIT",year:"4th Year",gwa:1.90,attendance:97,progress:93,status:"Active"}
   ];
 
-  // Generate additional dummy students.
   const firstNames = [
     "Adrian","Alexandra","Andrea","Anthony","Ariana",
     "Benjamin","Bianca","Carl","Chloe","Christian",
@@ -106,6 +115,35 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --------------------------------------------------
+  // SYNTHETIC ML INPUT PREPARATION
+  // --------------------------------------------------
+
+  // The frontend demo records do not contain Previous_GWA
+  // or Failed_Subjects. These are generated deterministically
+  // for demonstration and are NOT actual student records.
+
+  students.forEach((student, index) => {
+    const previousVariation = ((index % 7) - 3) * 0.12;
+
+    student.previousGwa = Number(
+      Math.max(1, Math.min(5, student.gwa + previousVariation)).toFixed(2)
+    );
+
+    if (student.gwa <= 1.50) {
+      student.failedSubjects = index % 5 === 0 ? 1 : 0;
+    } else if (student.gwa <= 2.25) {
+      student.failedSubjects = index % 6 === 0 ? 1 : 0;
+    } else if (student.gwa <= 2.75) {
+      student.failedSubjects = index % 3 === 0 ? 2 : 1;
+    } else {
+      student.failedSubjects = 2 + (index % 4);
+    }
+
+    student.mlPrediction = null;
+    student.mlScore = null;
+  });
+
+  // --------------------------------------------------
   // CLASSES
   // --------------------------------------------------
 
@@ -137,9 +175,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------------------------------------------------
   // ALERTS
   // --------------------------------------------------
-
-  // Alert descriptions are generated from the student data.
-  // The alerts remain available until marked as reviewed.
 
   const atRiskStudents = students.filter(student => Number(student.gwa) > 2.75);
   const lowAttendanceStudents = students.filter(student => Number(student.attendance) < 80);
@@ -231,6 +266,339 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --------------------------------------------------
+  // DYNAMIC ML INTERFACE
+  // --------------------------------------------------
+
+  function addMLInterface() {
+    const heading = $(".student-record-heading");
+
+    if (heading && !$("#modelApiStatus")) {
+      const status = document.createElement("div");
+      status.id = "modelApiStatus";
+      status.className = "model-api-status";
+      status.innerHTML = `
+        <div class="model-api-indicator">
+          <span class="model-api-dot"></span>
+          <span class="model-api-message">Connecting to prediction service...</span>
+        </div>
+        <button type="button" id="retryModelBtn" class="model-retry-button">
+          Retry
+        </button>
+      `;
+
+      heading.appendChild(status);
+    }
+
+    const tableHead = $(".student-table thead tr");
+
+    if (tableHead && !$("#mlPredictionHeader")) {
+      const header = document.createElement("th");
+      header.id = "mlPredictionHeader";
+      header.textContent = "ML Prediction";
+
+      const actionHeader = tableHead.lastElementChild;
+
+      if (actionHeader) {
+        tableHead.insertBefore(header, actionHeader);
+      } else {
+        tableHead.appendChild(header);
+      }
+    }
+
+    if (!$("#mlDisclaimer")) {
+      const guide = $(".standing-guide");
+
+      if (guide) {
+        const disclaimer = document.createElement("div");
+        disclaimer.id = "mlDisclaimer";
+        disclaimer.className = "ml-disclaimer";
+        disclaimer.textContent =
+          "ML predictions use synthetic demonstration inputs. Model scores are not calibrated probabilities and should only support human review.";
+
+        guide.insertAdjacentElement("afterend", disclaimer);
+      }
+    }
+
+    if (!$("#mlDynamicStyles")) {
+      const style = document.createElement("style");
+      style.id = "mlDynamicStyles";
+
+      style.textContent = `
+        .model-api-status {
+          display:flex;
+          align-items:center;
+          gap:12px;
+          flex-wrap:wrap;
+          margin-left:auto;
+        }
+
+        .model-api-indicator {
+          display:flex;
+          align-items:center;
+          gap:7px;
+          font-size:10px;
+          color:var(--muted);
+        }
+
+        .model-api-dot {
+          width:8px;
+          height:8px;
+          border-radius:50%;
+          background:#d6a044;
+          display:inline-block;
+        }
+
+        .model-api-status.online .model-api-dot {
+          background:#35bd7a;
+        }
+
+        .model-api-status.offline .model-api-dot {
+          background:#e45b63;
+        }
+
+        .model-retry-button {
+          background:rgba(22,143,160,.12);
+          border:1px solid rgba(22,143,160,.35);
+          color:#65cbd2;
+          border-radius:6px;
+          padding:6px 9px;
+          font-size:9px;
+          font-weight:700;
+        }
+
+        .model-retry-button:disabled {
+          opacity:.5;
+          cursor:wait;
+        }
+
+        .ml-disclaimer {
+          padding:0 20px 14px;
+          color:var(--muted);
+          font-size:9px;
+          line-height:1.6;
+        }
+
+        .ml-badge {
+          display:inline-block;
+          padding:5px 7px;
+          border-radius:20px;
+          font-size:8px;
+          font-weight:700;
+          line-height:1.4;
+          white-space:nowrap;
+        }
+
+        .ml-risk {
+          background:rgba(217,35,50,.16);
+          color:#ff7e85;
+        }
+
+        .ml-safe {
+          background:rgba(24,139,69,.16);
+          color:#63d296;
+        }
+
+        .ml-pending {
+          background:rgba(201,149,57,.16);
+          color:#e8bc6d;
+        }
+
+        .ml-unavailable {
+          background:rgba(150,160,165,.14);
+          color:#b6c0c4;
+        }
+
+        .ml-score {
+          display:block;
+          color:var(--muted);
+          font-size:8px;
+          margin-top:4px;
+        }
+
+        .student-table th:nth-child(1) { width:10%; }
+        .student-table th:nth-child(2) { width:15%; }
+        .student-table th:nth-child(3) { width:8%; }
+        .student-table th:nth-child(4) { width:8%; }
+        .student-table th:nth-child(5) { width:6%; }
+        .student-table th:nth-child(6) { width:14%; }
+        .student-table th:nth-child(7) { width:11%; }
+        .student-table th:nth-child(8) { width:13%; }
+        .student-table th:nth-child(9) { width:8%; }
+
+        @media(max-width:1050px) {
+          .student-table { min-width:1050px; }
+        }
+
+        @media(max-width:760px) {
+          .student-record-heading {
+            align-items:flex-start;
+            flex-direction:column;
+          }
+
+          .model-api-status { margin-left:0; }
+          .ml-disclaimer { padding-left:14px; padding-right:14px; }
+        }
+      `;
+
+      document.head.appendChild(style);
+    }
+
+    $("#retryModelBtn")?.addEventListener("click", runBatchPredictions);
+  }
+
+  function updateModelApiStatus(status, message) {
+    modelApiStatus = status;
+    modelApiMessage = message;
+
+    const container = $("#modelApiStatus");
+    if (!container) return;
+
+    container.classList.remove("online","offline");
+    if (status === "online") container.classList.add("online");
+    if (status === "offline") container.classList.add("offline");
+
+    const messageElement = container.querySelector(".model-api-message");
+    const retryButton = $("#retryModelBtn");
+
+    if (messageElement) messageElement.textContent = message;
+
+    if (retryButton) {
+      retryButton.disabled = modelApiLoading;
+      retryButton.textContent = modelApiLoading ? "Connecting..." : "Retry";
+      retryButton.classList.toggle("hidden", status === "online");
+    }
+  }
+
+  function getMLBadge(student) {
+    if (!student.mlPrediction) {
+      if (modelApiStatus === "offline") {
+        return `<span class="ml-badge ml-unavailable">Unavailable</span>`;
+      }
+
+      return `<span class="ml-badge ml-pending">Pending</span>`;
+    }
+
+    const isRisk = student.mlPrediction === "At Risk";
+
+    return `
+      <span class="ml-badge ${isRisk ? "ml-risk" : "ml-safe"}">
+        ${escapeHTML(student.mlPrediction)}
+      </span>
+      <small class="ml-score">Model score: ${Number(student.mlScore).toFixed(2)}%</small>
+    `;
+  }
+
+  // --------------------------------------------------
+  // BATCH MACHINE LEARNING PREDICTION
+  // --------------------------------------------------
+
+  async function runBatchPredictions() {
+    if (modelApiLoading) return;
+
+    modelApiLoading = true;
+    updateModelApiStatus("connecting","Connecting to prediction service...");
+
+    const retryButton = $("#retryModelBtn");
+    if (retryButton) retryButton.disabled = true;
+
+    try {
+      const payload = {
+        students: students.map(student => ({
+          Previous_GWA: student.previousGwa,
+          Current_GWA: student.gwa,
+          Attendance_Rate: student.attendance,
+          Academic_Progress: student.progress,
+          Failed_Subjects: student.failedSubjects
+        }))
+      };
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 90000);
+
+      let response;
+
+      try {
+        response = await fetch(API_URL, {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Accept":"application/json"
+          },
+          body:JSON.stringify(payload),
+          signal:controller.signal
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      if (!response.ok) {
+        throw new Error(`API returned HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!Array.isArray(data.predictions) ||
+          data.predictions.length !== students.length) {
+        throw new Error("The API returned an unexpected prediction result.");
+      }
+
+      data.predictions.forEach(result => {
+        const student = students[result.index];
+
+        if (!student) return;
+
+        student.mlPrediction = result.prediction;
+        student.mlScore = Number(result.at_risk_probability);
+      });
+
+      const riskCount = students.filter(
+        student => student.mlPrediction === "At Risk"
+      ).length;
+
+      updateModelApiStatus(
+        "online",
+        `Prediction service online · ${students.length} students analyzed`
+      );
+
+      renderStudents();
+
+      showToast(`ML predictions received for ${students.length} students.`);
+
+      console.info("BSUniSync ML batch prediction completed.", {
+        totalStudents:students.length,
+        atRiskPredictions:riskCount,
+        model:data.model
+      });
+
+    } catch (error) {
+      console.error("BSUniSync prediction API error:",error);
+
+      students.forEach(student => {
+        student.mlPrediction = null;
+        student.mlScore = null;
+      });
+
+      updateModelApiStatus(
+        "offline",
+        error.name === "AbortError"
+          ? "Prediction request timed out. The service may be waking up."
+          : "Prediction service unavailable. Existing portal features remain active."
+      );
+
+      renderStudents();
+
+    } finally {
+      modelApiLoading = false;
+
+      const retryButtonAfter = $("#retryModelBtn");
+      if (retryButtonAfter) {
+        retryButtonAfter.disabled = false;
+        retryButtonAfter.textContent = "Retry";
+      }
+    }
+  }
+
+  // --------------------------------------------------
   // STUDENT RECORDS
   // --------------------------------------------------
 
@@ -258,6 +626,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#monitoringCount").textContent = counts.monitoring;
     $("#studentRiskCount").textContent = counts.risk;
 
+    // This KPI intentionally remains GWA-based.
     $("#kpiAtRisk").textContent = counts.risk;
     $("#kpiAtRiskDetail").textContent = `${counts.risk} students require academic attention`;
     $("#kpiStudents").textContent = counts.total;
@@ -287,7 +656,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `${filtered.length} ${filtered.length === 1 ? "record" : "records"}`;
 
     if (!filtered.length) {
-      tbody.innerHTML = `<tr><td colspan="8" class="empty-row">No student records match your search or filters.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="empty-row">No student records match your search or filters.</td></tr>`;
       return;
     }
 
@@ -304,6 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <td><strong>${Number(student.gwa).toFixed(2)}</strong></td>
           <td><span class="standing-badge ${standingClass(standing)}">${escapeHTML(standing)}</span></td>
           <td><span class="record-status ${statusClass}">${escapeHTML(student.status)}</span></td>
+          <td>${getMLBadge(student)}</td>
           <td><button class="view-record" data-student-id="${escapeHTML(student.id)}">View</button></td>
         </tr>`;
     }).join("");
@@ -314,6 +684,32 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!student) return;
 
     const standing = getStanding(student.gwa);
+
+    const mlDetails = student.mlPrediction
+      ? `
+        <div class="detail-cell">
+          <span>Machine Learning Prediction</span>
+          <strong>
+            <span class="ml-badge ${student.mlPrediction === "At Risk" ? "ml-risk" : "ml-safe"}">
+              ${escapeHTML(student.mlPrediction)}
+            </span>
+          </strong>
+        </div>
+        <div class="detail-cell">
+          <span>Model Risk Score</span>
+          <strong>${Number(student.mlScore).toFixed(2)}%</strong>
+        </div>
+      `
+      : `
+        <div class="detail-cell">
+          <span>Machine Learning Prediction</span>
+          <strong>${modelApiStatus === "offline" ? "Unavailable" : "Pending"}</strong>
+        </div>
+        <div class="detail-cell">
+          <span>Model Risk Score</span>
+          <strong>Not available</strong>
+        </div>
+      `;
 
     $("#modalTitle").textContent = "Student Academic Record";
 
@@ -328,16 +724,24 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="detail-cell"><span>Attendance</span><strong>${student.attendance}%</strong></div>
         <div class="detail-cell"><span>Academic Progress</span><strong>${student.progress}%</strong></div>
         <div class="detail-cell"><span>Record Status</span><strong>${escapeHTML(student.status)}</strong></div>
+        ${mlDetails}
       </div>
 
       <div class="detail-note">
-        ${standing === "At Risk"
+        **GWA-based standing:** ${standing === "At Risk"
           ? "This student is classified as At Risk based on the current GWA. Academic consultation and follow-up are recommended."
           : standing === "Needs Monitoring"
             ? "This student's academic standing should be monitored. Consider checking progress and providing support when necessary."
             : standing === "Excellent"
               ? "This student is performing excellently based on the current GWA."
               : "This student is currently within the Good Standing range."}
+
+        <br><br>
+        **ML model inputs:** Previous GWA: ${student.previousGwa}; Failed subjects: ${student.failedSubjects}.
+        These two values are synthetic demonstration inputs, not actual student records.
+
+        <br><br>
+        The Decision Tree prediction is a decision-support indicator only. Its score is not a calibrated probability of future academic failure. It must not replace faculty assessment or institutional academic policies.
       </div>`;
 
     $("#modalBackdrop").classList.remove("hidden");
@@ -447,7 +851,6 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#notificationDot").textContent = openAlerts.length;
   }
 
-  // Clicking an alert action opens the relevant existing portal page.
   $("#fullAlertList").addEventListener("click", event => {
     const button = event.target.closest("[data-alert-target]");
     if (!button) return;
@@ -977,6 +1380,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // INITIAL RENDER
   // --------------------------------------------------
 
+  addMLInterface();
+
   renderStudentSummary();
   renderStudents();
   renderClasses();
@@ -986,6 +1391,10 @@ document.addEventListener("DOMContentLoaded", () => {
   updateDashboardFilters();
 
   renderDashboardCharts();
+
+  // Start the batch prediction request after the portal
+  // has rendered. The rest of the interface remains usable.
+  runBatchPredictions();
 
   window.addEventListener("resize", () => {
     Object.values(chartInstances).forEach(chart => {
