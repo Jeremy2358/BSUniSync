@@ -1,29 +1,477 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="BSUniSync Faculty Portal - Academic monitoring, analytics, and student risk decision support.">
+
+  <meta name="description"
+    content="BSUniSync Faculty Portal - Academic monitoring, analytics, and student risk decision support.">
 
   <title>BSUniSync | Faculty Portal</title>
 
+  <meta name="theme-color" content="#111820">
+
   <link rel="stylesheet" href="style.css">
 
+  <link rel="icon"
+    type="image/png"
+    href="./images/BSUniSyncPortalLogo.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
 
     /* =========================================
-       OVERVIEW CHART LAYOUT
+       SVG ICON SYSTEM
+    ========================================= */
+
+    .svg-library {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .ui-icon {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    .nav-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-icon .ui-icon {
+      width: 19px;
+      height: 19px;
+    }
+
+    .kpi-icon .ui-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    .panel-title-icon {
+      width: 22px;
+      height: 22px;
+      color: var(--teal);
+      flex-shrink: 0;
+    }
+
+    .panel-heading-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .icon-button .ui-icon {
+      width: 19px;
+      height: 19px;
+    }
+
+    /* =========================================
+       TOPBAR BRAND
+    ========================================= */
+
+    .topbar-identity {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .topbar-divider {
+      width: 1px;
+      height: 32px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .topbar-context {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .topbar-context strong {
+      color: var(--text);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .topbar-context small {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .brand-caption {
+      display: block;
+      text-align: center;
+      font-size: 10px;
+      color: inherit;
+      letter-spacing: .4px;
+    }
+
+    .sidebar-decoration {
+      position: relative;
+      flex-shrink: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    /* =========================================
+       OVERVIEW WELCOME AREA
+    ========================================= */
+
+    #page-overview .welcome-banner {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-heading-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .welcome-copy {
+      min-width: 0;
+    }
+
+    .welcome-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+
+    .welcome-indicator-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--teal);
+    }
+
+    #page-overview .filter-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      width: 100%;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    #page-overview .filter-row label {
+      flex: 1 1 155px;
+      min-width: 0;
+    }
+
+    #page-overview .filter-row select {
+      width: 100%;
+    }
+
+    .filter-row .filter-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-label .ui-icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* =========================================
+       PRIMARY OVERVIEW CHARTS
+    ========================================= */
+
+    #page-overview .three-overview-charts {
+      display: grid;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 20px;
+    }
+
+    #page-overview .three-overview-charts > .panel {
+      min-width: 0;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #page-overview .three-overview-charts .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 235px;
+      min-height: 235px;
+      margin-top: auto;
+    }
+
+    #page-overview .three-overview-charts .chart-wrap canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #page-overview .three-overview-charts .donut-layout {
+      flex-wrap: wrap;
+      gap: 14px;
+      flex: 1;
+    }
+
+    #page-overview .three-overview-charts .donut-wrap {
+      width: 155px;
+      height: 155px;
+    }
+
+    #page-overview .three-overview-charts .panel-header {
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    /* =========================================
+       DECISION SUPPORT AREA
+    ========================================= */
+
+    .overview-decision-grid {
+      display: grid;
+      grid-template-columns:
+        minmax(0,1fr)
+        minmax(0,1.5fr)
+        minmax(0,.9fr);
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 20px;
+    }
+
+    .overview-decision-grid > .panel {
+      min-width: 0;
+      margin: 0;
+    }
+
+    .overview-alert-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .overview-alert-item {
+      display: flex;
+      align-items: flex-start;
+      width: 100%;
+      gap: 11px;
+      padding: 13px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-align: left;
+      color: var(--text);
+    }
+
+    .overview-alert-item:hover {
+      background: var(--surface-hover);
+      border-color: rgba(217,35,50,.3);
+    }
+
+    .overview-alert-icon {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .overview-alert-icon.warning {
+      color: #e8b45c;
+      background: rgba(232,180,92,.12);
+    }
+
+    .overview-alert-icon.danger {
+      color: #ef6872;
+      background: rgba(217,35,50,.12);
+    }
+
+    .overview-alert-icon.info {
+      color: #60b9df;
+      background: rgba(57,139,182,.13);
+    }
+
+    .overview-alert-copy {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .overview-alert-copy strong {
+      display: block;
+      font-size: 11px;
+      margin-bottom: 5px;
+      color: var(--text);
+    }
+
+    .overview-alert-copy small {
+      display: block;
+      font-size: 10px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .overview-alert-arrow {
+      align-self: center;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .overview-quick-actions .quick-action-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .overview-quick-actions .quick-action {
+      width: 100%;
+      min-height: 48px;
+      font-size: 11px;
+    }
+
+    /* =========================================
+       MACHINE LEARNING OVERVIEW
+    ========================================= */
+
+    .ml-overview-panel {
+      min-width: 0;
+    }
+
+    .overview-decision-grid .ml-overview-panel {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ml-overview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 17px;
+    }
+
+    .ml-overview-heading {
+      min-width: 0;
+    }
+
+    .ml-overview-heading h2 {
+      margin: 5px 0 7px;
+      font-size: 17px;
+    }
+
+    .ml-overview-heading p {
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .ml-overview-status {
+      flex-shrink: 0;
+    }
+
+    .overview-decision-grid .ml-overview-metrics {
+      display: grid;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 9px;
+    }
+
+    .overview-decision-grid .ml-overview-card {
+      min-width: 0;
+      padding: 12px 10px;
+    }
+
+    .overview-decision-grid .ml-overview-card > strong {
+      font-size: 23px;
+    }
+
+    .overview-decision-grid .ml-overview-card > span {
+      font-size: 9px;
+      line-height: 1.5;
+    }
+
+    .ml-overview-message {
+      padding: 11px 13px;
+      background: rgba(22,143,160,.08);
+      border: 1px solid rgba(22,143,160,.15);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    .ml-overview-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .overview-decision-grid .ml-overview-actions .button {
+      flex: 1 1 130px;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .ml-overview-disclaimer {
+      margin-top: 13px;
+      padding: 12px 14px;
+      background: rgba(22,143,160,.055);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.7;
+    }
+
+    .ml-overview-disclaimer strong {
+      color: var(--text);
+    }
+
+    /* =========================================
+       ADDITIONAL ACADEMIC INSIGHTS
     ========================================= */
 
     .overview-insights-heading {
-      margin: 28px 0 15px;
+      margin: 26px 0 15px;
     }
 
     .overview-insights-heading h2 {
@@ -40,9 +488,9 @@
       line-height: 1.6;
     }
 
-    .overview-insights-grid {
+    #page-overview .overview-insights-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(2,minmax(0,1fr));
       gap: 18px;
       width: 100%;
       margin-bottom: 20px;
@@ -80,86 +528,24 @@
       line-height: 1.6;
     }
 
-    .ml-risk-distribution-panel {
-      grid-column: 1 / -1;
+    #page-overview
+    .overview-insights-grid
+    > .ml-risk-distribution-panel {
+      grid-column: auto;
     }
 
-    .ml-risk-distribution-panel .ml-gauge-wrap {
+    #page-overview
+    .ml-risk-distribution-panel
+    .ml-gauge-wrap {
       position: relative;
       width: 100%;
-      min-height: 320px;
+      min-height: 245px;
       height: auto;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: visible;
-    }
-
-    /* =========================================
-       ML OVERVIEW
-    ========================================= */
-
-    .ml-overview-panel {
-      margin: 20px 0 22px;
-    }
-
-    .ml-overview-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .ml-overview-heading {
-      min-width: 0;
-    }
-
-    .ml-overview-heading h2 {
-      margin: 5px 0 7px;
-      font-size: 19px;
-    }
-
-    .ml-overview-heading p {
-      font-size: 11px;
-      line-height: 1.6;
-    }
-
-    .ml-overview-status {
-      flex-shrink: 0;
-    }
-
-    .ml-overview-message {
-      padding: 11px 13px;
-      background: rgba(22,143,160,.08);
-      border: 1px solid rgba(22,143,160,.15);
-      border-radius: 8px;
-      color: var(--muted);
-      font-size: 10px;
-      line-height: 1.6;
-    }
-
-    .ml-overview-actions {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .ml-overview-disclaimer {
-      margin-top: 13px;
-      padding: 12px 14px;
-      background: rgba(22,143,160,.055);
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      color: var(--muted);
-      font-size: 9px;
-      line-height: 1.7;
-    }
-
-    .ml-overview-disclaimer strong {
-      color: var(--text);
+      padding: 20px 8px;
     }
 
     .ml-gauge-wrap {
@@ -184,16 +570,28 @@
       margin-bottom: 20px;
     }
 
+    .prediction-workspace {
+      display: grid;
+      grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr);
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 20px;
+    }
+
     .prediction-form-panel,
     .prediction-result-panel,
     .prediction-history-panel {
-      margin-bottom: 20px;
       min-width: 0;
+      margin-bottom: 20px;
+    }
+
+    .prediction-workspace > .panel {
+      margin-bottom: 0;
     }
 
     .prediction-form-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(2,minmax(0,1fr));
       gap: 18px;
     }
 
@@ -257,6 +655,23 @@
       font-size: 15px;
     }
 
+    .prediction-placeholder-icon {
+      display: grid;
+      place-items: center;
+      width: 66px;
+      height: 66px;
+      margin: 0 auto 18px;
+      background: rgba(22,143,160,.1);
+      border: 1px solid rgba(22,143,160,.18);
+      border-radius: 17px;
+      color: var(--teal);
+    }
+
+    .prediction-placeholder-icon .ui-icon {
+      width: 32px;
+      height: 32px;
+    }
+
     .prediction-result-status {
       display: flex;
       justify-content: space-between;
@@ -278,7 +693,7 @@
 
     .prediction-result-details {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(2,minmax(0,1fr));
       gap: 12px;
       margin-top: 18px;
     }
@@ -307,29 +722,129 @@
     .prediction-history-empty {
       padding: 28px 12px;
       text-align: center;
+      font-size: 11px;
+    }
+
+    /* Existing class retained for JavaScript compatibility. */
+
+    .demonstration-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 13px 15px;
+      margin-top: 15px;
+      border-radius: 9px;
+      border: 1px solid rgba(201,149,57,.2);
+      background: rgba(201,149,57,.07);
       color: var(--muted);
       font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .demonstration-notice .ui-icon {
+      color: #d6a044;
+    }
+
+    /* =========================================
+       PORTAL FOOTER
+    ========================================= */
+
+    .portal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 16px 0 5px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.6;
     }
 
     /* =========================================
        RESPONSIVE LAYOUT
     ========================================= */
 
-    @media(max-width:1050px) {
+    @media (max-width: 1500px) {
 
-      .overview-insights-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .topbar-context {
+        display: none;
+      }
+
+      .topbar-divider {
+        display: none;
+      }
+
+      .overview-decision-grid {
+        grid-template-columns:
+          minmax(0,1fr)
+          minmax(0,1.25fr);
+      }
+
+      .overview-quick-actions {
+        grid-column: 1 / -1;
+      }
+
+      .overview-quick-actions .quick-action-grid {
+        grid-template-columns: repeat(4,minmax(0,1fr));
       }
 
     }
 
-    @media(max-width:760px) {
+    @media (max-width: 1150px) {
 
-      .overview-insights-grid {
+      #page-overview .three-overview-charts {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+      }
+
+      #page-overview
+      .three-overview-charts
+      > .panel:last-child {
+        grid-column: 1 / -1;
+      }
+
+      .prediction-workspace {
         grid-template-columns: 1fr;
       }
 
-      .ml-risk-distribution-panel {
+      .overview-quick-actions .quick-action-grid {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+      }
+
+    }
+
+    @media (max-width: 760px) {
+
+      .welcome-heading-row {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .welcome-indicator {
+        align-self: flex-start;
+      }
+
+      #page-overview .three-overview-charts,
+      #page-overview .overview-insights-grid,
+      .overview-decision-grid,
+      .prediction-workspace {
+        grid-template-columns: minmax(0,1fr);
+      }
+
+      #page-overview
+      .three-overview-charts
+      > .panel:last-child {
+        grid-column: auto;
+      }
+
+      .overview-quick-actions {
+        grid-column: auto;
+      }
+
+      #page-overview
+      .overview-insights-grid
+      > .ml-risk-distribution-panel {
         grid-column: auto;
       }
 
@@ -345,7 +860,9 @@
         height: 260px;
       }
 
-      .ml-risk-distribution-panel .ml-gauge-wrap {
+      #page-overview
+      .ml-risk-distribution-panel
+      .ml-gauge-wrap {
         min-height: 250px;
       }
 
@@ -362,6 +879,19 @@
         width: 100%;
       }
 
+      .overview-decision-grid .ml-overview-metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .overview-quick-actions .quick-action-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .portal-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
     }
 
   </style>
@@ -369,6 +899,145 @@
 </head>
 
 <body>
+
+<!-- =========================================
+     REUSABLE SVG ICONS
+========================================= -->
+
+<svg xmlns="http://www.w3.org/2000/svg"
+  class="svg-library"
+  aria-hidden="true">
+
+  <symbol id="icon-home" viewBox="0 0 24 24">
+    <path d="M3 10.5 12 3l9 7.5"></path>
+    <path d="M5 9.5V21h14V9.5"></path>
+    <path d="M9 21v-8h6v8"></path>
+  </symbol>
+
+  <symbol id="icon-users" viewBox="0 0 24 24">
+    <circle cx="9" cy="7" r="3"></circle>
+    <path d="M3 21v-3a6 6 0 0 1 12 0v3"></path>
+    <path d="M16 4a3 3 0 0 1 0 6"></path>
+    <path d="M17 13a5 5 0 0 1 4 5v3"></path>
+  </symbol>
+
+  <symbol id="icon-user" viewBox="0 0 24 24">
+    <circle cx="12" cy="7" r="4"></circle>
+    <path d="M4 21v-2a8 8 0 0 1 16 0v2"></path>
+  </symbol>
+
+  <symbol id="icon-prediction" viewBox="0 0 24 24">
+    <rect x="5" y="5" width="14" height="14" rx="3"></rect>
+    <rect x="9" y="9" width="6" height="6" rx="1"></rect>
+    <path d="M9 2v3M15 2v3M9 19v3M15 19v3"></path>
+    <path d="M2 9h3M2 15h3M19 9h3M19 15h3"></path>
+  </symbol>
+
+  <symbol id="icon-book" viewBox="0 0 24 24">
+    <path d="M4 4h6a3 3 0 0 1 3 3v14"></path>
+    <path d="M20 4h-4a3 3 0 0 0-3 3"></path>
+    <path d="M4 4v15h6a3 3 0 0 1 3 2"></path>
+    <path d="M20 4v15h-4a3 3 0 0 0-3 2"></path>
+  </symbol>
+
+  <symbol id="icon-calendar" viewBox="0 0 24 24">
+    <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+    <path d="M7 3v4M17 3v4M3 10h18"></path>
+    <path d="M7 14h2M12 14h2M17 14h1M7 18h2M12 18h2"></path>
+  </symbol>
+
+  <symbol id="icon-chart" viewBox="0 0 24 24">
+    <path d="M3 3v18h18"></path>
+    <path d="M7 16v-4M12 16V7M17 16v-6"></path>
+  </symbol>
+
+  <symbol id="icon-trend" viewBox="0 0 24 24">
+    <path d="m3 17 6-6 4 4 8-10"></path>
+    <path d="M15 5h6v6"></path>
+  </symbol>
+
+  <symbol id="icon-star" viewBox="0 0 24 24">
+    <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-2.9-5.5 2.9 1-6.2L3 9.6l6.2-.9Z"></path>
+  </symbol>
+
+  <symbol id="icon-bell" viewBox="0 0 24 24">
+    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+    <path d="M10 21h4"></path>
+  </symbol>
+
+  <symbol id="icon-alert" viewBox="0 0 24 24">
+    <path d="m10.3 4-8 14a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z"></path>
+    <path d="M12 9v4"></path>
+    <path d="M12 17h.01"></path>
+  </symbol>
+
+  <symbol id="icon-settings" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M10 2h4l.7 3 2.1 1.2 3-.9 2 3.4-2.3 2.1v2.4l2.3 2.1-2 3.4-3-.9-2.1 1.2-.7 3h-4l-.7-3-2.1-1.2-3 .9-2-3.4 2.3-2.1v-2.4L2.2 8.7l2-3.4 3 .9L9.3 5Z"></path>
+  </symbol>
+
+  <symbol id="icon-logout" viewBox="0 0 24 24">
+    <path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"></path>
+    <path d="M9 12h12m-5-5 5 5-5 5"></path>
+  </symbol>
+
+  <symbol id="icon-search" viewBox="0 0 24 24">
+    <circle cx="10.5" cy="10.5" r="6.5"></circle>
+    <path d="m16 16 5 5"></path>
+  </symbol>
+
+  <symbol id="icon-menu" viewBox="0 0 24 24">
+    <path d="M4 6h16M4 12h16M4 18h16"></path>
+  </symbol>
+
+  <symbol id="icon-graduation" viewBox="0 0 24 24">
+    <path d="m2 9 10-5 10 5-10 5Z"></path>
+    <path d="M6 11v6c3.5 3 8.5 3 12 0v-6"></path>
+    <path d="M22 9v6"></path>
+  </symbol>
+
+  <symbol id="icon-check" viewBox="0 0 24 24">
+    <path d="m5 12 4 4L19 6"></path>
+  </symbol>
+
+  <symbol id="icon-arrow" viewBox="0 0 24 24">
+    <path d="M4 12h15m-6-6 6 6-6 6"></path>
+  </symbol>
+
+  <symbol id="icon-chevron" viewBox="0 0 24 24">
+    <path d="m9 18 6-6-6-6"></path>
+  </symbol>
+
+  <symbol id="icon-refresh" viewBox="0 0 24 24">
+    <path d="M20 7v5h-5"></path>
+    <path d="M20 12a8 8 0 1 0-2.3 5.7"></path>
+  </symbol>
+
+  <symbol id="icon-layers" viewBox="0 0 24 24">
+    <path d="m12 3 10 5-10 5L2 8Z"></path>
+    <path d="m2 12 10 5 10-5"></path>
+    <path d="m2 16 10 5 10-5"></path>
+  </symbol>
+
+  <symbol id="icon-bolt" viewBox="0 0 24 24">
+    <path d="m13 2-10 12h8l-1 8 11-13h-8Z"></path>
+  </symbol>
+
+  <symbol id="icon-info" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9"></circle>
+    <path d="M12 11v6M12 7h.01"></path>
+  </symbol>
+
+  <symbol id="icon-clock" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9"></circle>
+    <path d="M12 7v6l4 2"></path>
+  </symbol>
+
+  <symbol id="icon-close" viewBox="0 0 24 24">
+    <path d="m6 6 12 12M18 6 6 18"></path>
+  </symbol>
+
+</svg>
 
 <div class="app-shell">
 
@@ -379,22 +1048,33 @@
   <aside class="sidebar" id="sidebar">
 
     <div class="brand">
+
       <img
-        src="./images/BSUniSync-logo.jpg"
-        alt="BSUniSync logo"
+        src="./images/BSUniSyncPortalLogo.png"
+        alt="BSUniSync Faculty Portal"
         class="brand-logo"
       >
+
     </div>
 
-    <nav class="side-nav">
+    <nav class="side-nav" aria-label="Main navigation">
 
       <div class="nav-group">
 
         <p class="nav-heading">DASHBOARD</p>
 
-        <button class="nav-link active" data-page="overview">
-          <span class="nav-icon">⌂</span>
+        <button type="button"
+          class="nav-link active"
+          data-page="overview">
+
+          <span class="nav-icon">
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-home"></use>
+            </svg>
+          </span>
+
           <span>Overview</span>
+
         </button>
 
       </div>
@@ -403,29 +1083,64 @@
 
         <p class="nav-heading">ACADEMIC WORKSPACE</p>
 
-        <button class="nav-link" data-page="students">
-          <span class="nav-icon">♙</span>
+        <button type="button" class="nav-link" data-page="students">
+
+          <span class="nav-icon">
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-users"></use>
+            </svg>
+          </span>
+
           <span>Student Records</span>
+
         </button>
 
-        <button class="nav-link" data-page="prediction">
-          <span class="nav-icon">◈</span>
+        <button type="button" class="nav-link" data-page="prediction">
+
+          <span class="nav-icon">
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-prediction"></use>
+            </svg>
+          </span>
+
           <span>Student Prediction</span>
+
         </button>
 
-        <button class="nav-link" data-page="classes">
-          <span class="nav-icon">▤</span>
-          <span>Classes & Subjects</span>
+        <button type="button" class="nav-link" data-page="classes">
+
+          <span class="nav-icon">
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-book"></use>
+            </svg>
+          </span>
+
+          <span>Classes &amp; Subjects</span>
+
         </button>
 
-        <button class="nav-link" data-page="schedule">
-          <span class="nav-icon">▦</span>
+        <button type="button" class="nav-link" data-page="schedule">
+
+          <span class="nav-icon">
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-calendar"></use>
+            </svg>
+          </span>
+
           <span>Teaching Schedule</span>
+
         </button>
 
-        <button class="nav-link" data-page="analytics">
-          <span class="nav-icon">▥</span>
+        <button type="button" class="nav-link" data-page="analytics">
+
+          <span class="nav-icon">
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-chart"></use>
+            </svg>
+          </span>
+
           <span>Academic Analytics</span>
+
         </button>
 
       </div>
@@ -434,15 +1149,30 @@
 
         <p class="nav-heading">FACULTY WORKSPACE</p>
 
-        <button class="nav-link" data-page="evaluation">
-          <span class="nav-icon">☆</span>
+        <button type="button" class="nav-link" data-page="evaluation">
+
+          <span class="nav-icon">
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-star"></use>
+            </svg>
+          </span>
+
           <span>Teaching Evaluation</span>
+
         </button>
 
-        <button class="nav-link" data-page="alerts">
-          <span class="nav-icon">♧</span>
+        <button type="button" class="nav-link" data-page="alerts">
+
+          <span class="nav-icon">
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-bell"></use>
+            </svg>
+          </span>
+
           <span>Academic Alerts</span>
-          <span class="nav-count" id="alertNavCount">3</span>
+
+          <span class="nav-count" id="alertNavCount">0</span>
+
         </button>
 
       </div>
@@ -451,19 +1181,35 @@
 
         <p class="nav-heading">ACCOUNT</p>
 
-        <button class="nav-link" data-page="profile">
-          <span class="nav-icon">♙</span>
-          <span>Profile & Settings</span>
+        <button type="button" class="nav-link" data-page="profile">
+
+          <span class="nav-icon">
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-settings"></use>
+            </svg>
+          </span>
+
+          <span>Profile &amp; Settings</span>
+
         </button>
 
-        <button class="nav-link" id="signOutBtn">
-          <span class="nav-icon">⇥</span>
+        <button type="button" class="nav-link" id="signOutBtn">
+
+          <span class="nav-icon">
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-logout"></use>
+            </svg>
+          </span>
+
           <span>Sign Out</span>
+
         </button>
 
       </div>
 
     </nav>
+
+    <div class="sidebar-decoration" aria-hidden="true"></div>
 
     <div class="sidebar-footer">
       BSUniSync Faculty Portal
@@ -473,39 +1219,69 @@
   </aside>
 
   <!-- =========================================
-       MAIN AREA
+       MAIN WORKSPACE
   ========================================= -->
 
   <main class="main-area">
 
-    <!-- TOPBAR -->
+    <!-- =====================================
+         TOPBAR
+    ====================================== -->
 
     <header class="topbar">
 
       <button
+        type="button"
         class="icon-button menu-toggle"
         id="menuToggle"
         aria-label="Toggle sidebar"
-      >
-        ☰
+        aria-expanded="false">
+
+        <svg class="ui-icon" aria-hidden="true">
+          <use href="#icon-menu"></use>
+        </svg>
+
       </button>
 
-      <div class="topbar-brand">
-        <strong>BSUni<span>Sync</span></strong>
-        <small>Faculty Portal</small>
+      <div class="topbar-identity">
+
+        <div class="topbar-brand">
+
+          <strong>BSUni<span>Sync</span></strong>
+
+          <small>Faculty Portal</small>
+
+        </div>
+
+        <div class="topbar-divider"></div>
+
+        <div class="topbar-context">
+
+          <strong>Analytics &amp; Decision Support</strong>
+
+          <small>Academic Management Workspace</small>
+
+        </div>
+
       </div>
 
       <div class="topbar-spacer"></div>
 
       <label class="global-search">
 
-        <span>⌕</span>
+        <span>
+
+          <svg class="ui-icon" aria-hidden="true">
+            <use href="#icon-search"></use>
+          </svg>
+
+        </span>
 
         <input
           id="globalSearch"
           type="search"
-          placeholder="Search students, subjects, or sections..."
-          aria-label="Search portal"
+          placeholder="Search students, ID, or program..."
+          aria-label="Search student records"
         >
 
         <kbd>Enter</kbd>
@@ -515,24 +1291,27 @@
       <div class="notification-wrap">
 
         <button
+          type="button"
           class="icon-button notification-button"
           id="notificationBtn"
           aria-label="Notifications"
-        >
-          ♧
-          <span class="notification-dot" id="notificationDot">3</span>
+          aria-expanded="false">
+
+          <svg class="ui-icon" aria-hidden="true">
+            <use href="#icon-bell"></use>
+          </svg>
+
+          <span class="notification-dot" id="notificationDot">0</span>
+
         </button>
 
-        <div
-          class="notification-popover hidden"
-          id="notificationPopover"
-        >
+        <div class="notification-popover hidden" id="notificationPopover">
 
           <div class="popover-title">
 
             <strong>Notifications</strong>
 
-            <button id="markReadBtn">
+            <button type="button" id="markReadBtn">
               Mark all read
             </button>
 
@@ -544,7 +1323,7 @@
 
       </div>
 
-      <button class="profile-trigger" id="profileTrigger">
+      <button type="button" class="profile-trigger" id="profileTrigger">
 
         <span class="avatar">FM</span>
 
@@ -565,60 +1344,95 @@
     </header>
 
     <!-- =========================================
-         CONTENT
+         CONTENT AREA
     ========================================= -->
 
     <div class="content-area">
 
       <!-- =====================================
-           OVERVIEW
+           OVERVIEW PAGE
       ====================================== -->
 
       <section class="page active" id="page-overview">
 
-        <!-- WELCOME AND FILTERS -->
+        <!-- WELCOME BANNER -->
 
         <div class="welcome-banner">
 
-          <div class="welcome-copy">
+          <div class="welcome-heading-row">
 
-            <span class="eyebrow">
-              FACULTY DASHBOARD
-            </span>
+            <div class="welcome-copy">
 
-            <h1>
-              Good day,
-              <span id="welcomeName">Faculty Member</span>!
-            </h1>
+              <span class="eyebrow">
+                FACULTY DASHBOARD
+              </span>
 
-            <p>
-              Academic monitoring and decision-support overview.
-            </p>
+              <h1>
+                Good day,
+                <span id="welcomeName">Faculty Member</span>!
+              </h1>
+
+              <p>
+                Monitor academic performance, teaching effectiveness,
+                and student risk indicators in one workspace.
+              </p>
+
+            </div>
+
+            <div class="welcome-indicator">
+
+              <span class="welcome-indicator-dot"></span>
+
+              Faculty Workspace
+
+            </div>
 
           </div>
 
           <div class="filter-row">
 
+            <!-- Data source selector is initialized by script.js. -->
+
             <label>
 
-              Academic Year
+              <span class="filter-label">
+
+                <svg class="ui-icon" aria-hidden="true">
+                  <use href="#icon-calendar"></use>
+                </svg>
+
+                Academic Year
+
+              </span>
 
               <select id="yearFilter">
+
                 <option value="2025-2026">2025–2026</option>
                 <option value="2024-2025">2024–2025</option>
                 <option value="2023-2024">2023–2024</option>
+
               </select>
 
             </label>
 
             <label>
 
-              Semester
+              <span class="filter-label">
+
+                <svg class="ui-icon" aria-hidden="true">
+                  <use href="#icon-layers"></use>
+                </svg>
+
+                Semester
+
+              </span>
 
               <select id="semesterFilter">
+
                 <option value="all">Both Semesters</option>
                 <option value="1">1st Semester</option>
                 <option value="2">2nd Semester</option>
+
               </select>
 
             </label>
@@ -626,16 +1440,23 @@
             <button
               class="button button-outline"
               id="resetFilters"
-              type="button"
-            >
-              ↻ Reset
+              type="button">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-refresh"></use>
+              </svg>
+
+              Reset Filters
+
             </button>
 
           </div>
 
         </div>
 
-        <!-- KPI OVERVIEW -->
+        <!-- =================================
+             ACADEMIC KPI CARDS
+        ================================== -->
 
         <div class="section-heading">
 
@@ -643,23 +1464,31 @@
 
             <span class="section-mark"></span>
 
-            <h2>At a glance</h2>
+            <h2>Academic Overview</h2>
 
-            <small>Academic overview</small>
+            <small>Key Performance Indicators</small>
 
           </div>
 
           <span class="muted-text" id="lastUpdated">
-            Demonstration data
+            Sample academic records
           </span>
 
         </div>
 
-        <div class="kpi-grid">
+        <div class="kpi-grid overview-kpi-grid">
 
-          <article class="kpi-card red-card">
+          <!-- TOTAL STUDENTS -->
 
-            <div class="kpi-icon">♙</div>
+          <article class="kpi-card teal-card students-kpi">
+
+            <div class="kpi-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-users"></use>
+              </svg>
+
+            </div>
 
             <div class="kpi-info">
 
@@ -671,13 +1500,27 @@
 
             </div>
 
-            <span class="kpi-decoration">01</span>
+            <span class="kpi-decoration" aria-hidden="true">
+
+              <svg class="ui-icon">
+                <use href="#icon-users"></use>
+              </svg>
+
+            </span>
 
           </article>
 
-          <article class="kpi-card teal-card">
+          <!-- GWA PASSING INDICATOR -->
 
-            <div class="kpi-icon">▤</div>
+          <article class="kpi-card green-card passing-kpi">
+
+            <div class="kpi-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-graduation"></use>
+              </svg>
+
+            </div>
 
             <div class="kpi-info">
 
@@ -689,13 +1532,27 @@
 
             </div>
 
-            <span class="kpi-decoration">02</span>
+            <span class="kpi-decoration" aria-hidden="true">
+
+              <svg class="ui-icon">
+                <use href="#icon-graduation"></use>
+              </svg>
+
+            </span>
 
           </article>
 
-          <article class="kpi-card green-card">
+          <!-- SETE RATING -->
 
-            <div class="kpi-icon">☆</div>
+          <article class="kpi-card green-card gold-card sete-kpi">
+
+            <div class="kpi-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-star"></use>
+              </svg>
+
+            </div>
 
             <div class="kpi-info">
 
@@ -705,17 +1562,31 @@
                 4.28<span class="small-unit">/5</span>
               </strong>
 
-              <small>Illustrative evaluation result</small>
+              <small>Sample evaluation summary</small>
 
             </div>
 
-            <span class="kpi-decoration">03</span>
+            <span class="kpi-decoration" aria-hidden="true">
+
+              <svg class="ui-icon">
+                <use href="#icon-star"></use>
+              </svg>
+
+            </span>
 
           </article>
 
-          <article class="kpi-card blue-card">
+          <!-- ACADEMIC PROGRESS -->
 
-            <div class="kpi-icon">♧</div>
+          <article class="kpi-card blue-card progress-kpi">
+
+            <div class="kpi-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-trend"></use>
+              </svg>
+
+            </div>
 
             <div class="kpi-info">
 
@@ -727,13 +1598,27 @@
 
             </div>
 
-            <span class="kpi-decoration">04</span>
+            <span class="kpi-decoration" aria-hidden="true">
+
+              <svg class="ui-icon">
+                <use href="#icon-chart"></use>
+              </svg>
+
+            </span>
 
           </article>
 
+          <!-- AT RISK STUDENTS -->
+
           <article class="kpi-card risk-card">
 
-            <div class="kpi-icon">!</div>
+            <div class="kpi-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-alert"></use>
+              </svg>
+
+            </div>
 
             <div class="kpi-info">
 
@@ -747,164 +1632,92 @@
 
             </div>
 
-            <span class="kpi-decoration">05</span>
+            <span class="kpi-decoration" aria-hidden="true">
+
+              <svg class="ui-icon">
+                <use href="#icon-alert"></use>
+              </svg>
+
+            </span>
 
           </article>
 
         </div>
 
         <!-- =================================
-             STUDENT RISK PREDICTION OVERVIEW
+             PRIMARY ANALYTICS CHARTS
         ================================== -->
 
-        <article class="panel ml-overview-panel">
+        <div class="dashboard-grid three-overview-charts">
 
-          <div class="ml-overview-header">
-
-            <div class="ml-overview-heading">
-
-              <span class="eyebrow">
-                PREDICTIVE ANALYTICS
-              </span>
-
-              <h2>Student Risk Prediction</h2>
-
-              <p>
-                Machine learning classification to help faculty identify
-                students who may need additional academic support.
-              </p>
-
-            </div>
-
-            <div
-              class="ml-overview-status connecting"
-              id="mlOverviewStatus"
-            >
-
-              <span></span>
-
-              <span id="mlOverviewStatusText">
-                Connecting to model...
-              </span>
-
-            </div>
-
-          </div>
-
-          <div class="ml-overview-metrics">
-
-            <div class="ml-overview-card">
-
-              <span>Students Analyzed</span>
-
-              <strong id="mlOverviewTotal">—</strong>
-
-            </div>
-
-            <div class="ml-overview-card risk">
-
-              <span>Classified At Risk</span>
-
-              <strong id="mlOverviewRisk">—</strong>
-
-            </div>
-
-            <div class="ml-overview-card safe">
-
-              <span>Classified Not At Risk</span>
-
-              <strong id="mlOverviewSafe">—</strong>
-
-            </div>
-
-          </div>
-
-          <div class="ml-overview-message" id="mlOverviewMessage">
-
-            Waiting for the prediction service to analyze student records.
-
-          </div>
-
-          <div class="ml-overview-actions">
-
-            <button
-              class="button button-outline"
-              type="button"
-              data-go="students"
-            >
-              View Student Predictions →
-            </button>
-
-            <button
-              class="button button-primary"
-              type="button"
-              data-go="prediction"
-            >
-              Predict Student Risk →
-            </button>
-
-          </div>
-
-          <div class="ml-overview-disclaimer">
-
-            <strong>Important:</strong>
-
-            The prediction results are academic decision-support indicators.
-            The model was trained using synthetic data and has not been
-            validated against actual institutional student outcomes.
-            Faculty judgment and appropriate academic review must remain
-            part of every decision.
-
-          </div>
-
-        </article>
-
-        <!-- =================================
-             PRIMARY OVERVIEW CHARTS
-        ================================== -->
-
-        <div class="dashboard-grid two-columns">
+          <!-- ACADEMIC PERFORMANCE -->
 
           <article class="panel">
 
             <div class="panel-header">
 
-              <div>
+              <div class="panel-heading-content">
 
-                <h3>Academic Performance</h3>
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-trend"></use>
+                </svg>
 
-                <p>Illustrative performance across recent terms</p>
+                <div>
+
+                  <h3>Academic Performance</h3>
+
+                  <p>Academic performance across recent terms (sample)</p>
+
+                </div>
 
               </div>
 
-              <button class="text-button" data-go="analytics">
-                View details →
+              <button type="button" class="text-button" data-go="analytics">
+                Details →
               </button>
 
             </div>
 
             <div class="chart-wrap">
 
-              <canvas id="performanceChart"></canvas>
+              <canvas
+                id="performanceChart"
+                role="img"
+                aria-label="Sample academic performance trend"
+              ></canvas>
 
             </div>
 
+            <p class="overview-chart-note">
+              Historical trends support academic performance monitoring.
+            </p>
+
           </article>
+
+          <!-- TEACHING EFFECTIVENESS -->
 
           <article class="panel">
 
             <div class="panel-header">
 
-              <div>
+              <div class="panel-heading-content">
 
-                <h3>Teaching Effectiveness</h3>
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-star"></use>
+                </svg>
 
-                <p>Illustrative student evaluation distribution</p>
+                <div>
+
+                  <h3>Teaching Effectiveness (SETE)</h3>
+
+                  <p>Student evaluation distribution (sample)</p>
+
+                </div>
 
               </div>
 
-              <button class="text-button" data-go="evaluation">
-                View details →
+              <button type="button" class="text-button" data-go="evaluation">
+                Details →
               </button>
 
             </div>
@@ -913,13 +1726,17 @@
 
               <div class="donut-wrap">
 
-                <canvas id="seteChart"></canvas>
+                <canvas
+                  id="seteChart"
+                  role="img"
+                  aria-label="Sample SETE rating distribution"
+                ></canvas>
 
                 <div class="donut-center">
 
                   <strong>4.28</strong>
 
-                  <small>Sample rating</small>
+                  <small>Average Rating</small>
 
                 </div>
 
@@ -928,24 +1745,457 @@
               <div class="legend-list">
 
                 <div>
+
                   <i class="legend-dot green"></i>
+
                   <span>Very Satisfactory</span>
+
                   <strong>72%</strong>
+
                 </div>
 
                 <div>
+
                   <i class="legend-dot teal"></i>
+
                   <span>Satisfactory</span>
+
                   <strong>21%</strong>
+
                 </div>
 
                 <div>
+
                   <i class="legend-dot blue"></i>
+
                   <span>Needs Improvement</span>
+
                   <strong>7%</strong>
+
                 </div>
 
               </div>
+
+            </div>
+
+            <p class="overview-chart-note">
+              Consider response rates and other teaching performance
+              evidence when reviewing SETE results.
+            </p>
+
+          </article>
+
+          <!-- GWA DISTRIBUTION -->
+
+          <article class="panel overview-insight-panel">
+
+            <div class="panel-header">
+
+              <div class="panel-heading-content">
+
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-chart"></use>
+                </svg>
+
+                <div>
+
+                  <h3>GWA Distribution</h3>
+
+                  <p>Distribution by academic standing</p>
+
+                </div>
+
+              </div>
+
+              <button type="button" class="text-button" data-go="students">
+                Records →
+              </button>
+
+            </div>
+
+            <div class="chart-wrap">
+
+              <canvas
+                id="gwaDistributionChart"
+                role="img"
+                aria-label="Student GWA academic standing distribution"
+              ></canvas>
+
+            </div>
+
+            <p class="overview-chart-note">
+              Student standings are grouped into Excellent,
+              Good Standing, Needs Monitoring, and At Risk.
+            </p>
+
+          </article>
+
+        </div>
+
+        <!-- =================================
+             ACADEMIC DECISION SUPPORT
+        ================================== -->
+
+        <div class="section-heading">
+
+          <div>
+
+            <span class="section-mark"></span>
+
+            <h2>Academic Decision Support</h2>
+
+            <small>Monitoring and intervention tools</small>
+
+          </div>
+
+        </div>
+
+        <div class="overview-decision-grid">
+
+          <!-- ACADEMIC ALERTS -->
+
+          <article class="panel overview-alerts-panel">
+
+            <div class="panel-header">
+
+              <div class="panel-heading-content">
+
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-bell"></use>
+                </svg>
+
+                <div>
+
+                  <h3>Academic Alerts</h3>
+
+                  <p>Monitoring and warning criteria</p>
+
+                </div>
+
+              </div>
+
+              <button type="button" class="text-button" data-go="alerts">
+                View All →
+              </button>
+
+            </div>
+
+            <div class="overview-alert-list">
+
+              <button
+                type="button"
+                class="overview-alert-item"
+                data-go="alerts">
+
+                <span class="overview-alert-icon warning">
+
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-alert"></use>
+                  </svg>
+
+                </span>
+
+                <span class="overview-alert-copy">
+
+                  <strong>GWA Above 2.75</strong>
+
+                  <small>
+                    Academic standing may require additional monitoring.
+                  </small>
+
+                </span>
+
+                <svg class="ui-icon overview-alert-arrow" aria-hidden="true">
+                  <use href="#icon-chevron"></use>
+                </svg>
+
+              </button>
+
+              <button
+                type="button"
+                class="overview-alert-item"
+                data-go="alerts">
+
+                <span class="overview-alert-icon info">
+
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-users"></use>
+                  </svg>
+
+                </span>
+
+                <span class="overview-alert-copy">
+
+                  <strong>Attendance Below 80%</strong>
+
+                  <small>
+                    Low attendance may require faculty follow-up.
+                  </small>
+
+                </span>
+
+                <svg class="ui-icon overview-alert-arrow" aria-hidden="true">
+                  <use href="#icon-chevron"></use>
+                </svg>
+
+              </button>
+
+              <button
+                type="button"
+                class="overview-alert-item"
+                data-go="alerts">
+
+                <span class="overview-alert-icon danger">
+
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-trend"></use>
+                  </svg>
+
+                </span>
+
+                <span class="overview-alert-copy">
+
+                  <strong>At Risk — ML Classification</strong>
+
+                  <small>
+                    Review students identified by the prediction model.
+                  </small>
+
+                </span>
+
+                <svg class="ui-icon overview-alert-arrow" aria-hidden="true">
+                  <use href="#icon-chevron"></use>
+                </svg>
+
+              </button>
+
+            </div>
+
+            <p class="overview-chart-note">
+              Open Academic Alerts to review concerns requiring attention.
+            </p>
+
+          </article>
+
+          <!-- MACHINE LEARNING OVERVIEW -->
+
+          <article class="panel ml-overview-panel">
+
+            <div class="ml-overview-header">
+
+              <div class="ml-overview-heading">
+
+                <span class="eyebrow">
+                  PREDICTIVE ANALYTICS
+                </span>
+
+                <h2>
+
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-prediction"></use>
+                  </svg>
+
+                  Student Risk Prediction
+
+                </h2>
+
+                <p>
+                  Identify students who may benefit from additional
+                  academic support using the Decision Tree model.
+                </p>
+
+              </div>
+
+              <div
+                class="ml-overview-status connecting"
+                id="mlOverviewStatus">
+
+                <span></span>
+
+                <span id="mlOverviewStatusText">
+                  Connecting to model...
+                </span>
+
+              </div>
+
+            </div>
+
+            <div class="ml-overview-metrics">
+
+              <div class="ml-overview-card">
+
+                <span>Students Analyzed</span>
+
+                <strong id="mlOverviewTotal">—</strong>
+
+              </div>
+
+              <div class="ml-overview-card risk">
+
+                <span>Classified At Risk</span>
+
+                <strong id="mlOverviewRisk">—</strong>
+
+              </div>
+
+              <div class="ml-overview-card safe">
+
+                <span>Classified Not At Risk</span>
+
+                <strong id="mlOverviewSafe">—</strong>
+
+              </div>
+
+            </div>
+
+            <div class="ml-overview-message" id="mlOverviewMessage">
+
+              Preparing academic risk analysis.
+
+            </div>
+
+            <div class="ml-overview-actions">
+
+              <button
+                class="button button-outline"
+                type="button"
+                data-go="students">
+
+                View Predictions →
+
+              </button>
+
+              <button
+                class="button button-primary"
+                type="button"
+                data-go="prediction">
+
+                <svg class="ui-icon" aria-hidden="true">
+                  <use href="#icon-prediction"></use>
+                </svg>
+
+                New Prediction →
+
+              </button>
+
+            </div>
+
+            <div class="ml-overview-disclaimer">
+
+              <strong>Academic Guidance:</strong>
+
+              Use risk indicators to guide academic monitoring
+              and faculty review.
+
+            </div>
+
+          </article>
+
+          <!-- QUICK ACTIONS -->
+
+          <article class="panel overview-quick-actions">
+
+            <div class="panel-header">
+
+              <div class="panel-heading-content">
+
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-bolt"></use>
+                </svg>
+
+                <div>
+
+                  <h3>Quick Actions</h3>
+
+                  <p>Frequently used tools</p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="quick-action-grid">
+
+              <button type="button" class="quick-action" data-go="students">
+
+                <span>
+
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-users"></use>
+                  </svg>
+
+                </span>
+
+                Student Records
+
+                <b>→</b>
+
+              </button>
+
+              <button type="button" class="quick-action" data-go="evaluation">
+
+                <span>
+
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-star"></use>
+                  </svg>
+
+                </span>
+
+                View SETE Analysis
+
+                <b>→</b>
+
+              </button>
+
+              <button type="button" class="quick-action" data-go="schedule">
+
+                <span>
+
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-calendar"></use>
+                  </svg>
+
+                </span>
+
+                Class Schedule
+
+                <b>→</b>
+
+              </button>
+
+              <button type="button" class="quick-action" data-go="classes">
+
+                <span>
+
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-book"></use>
+                  </svg>
+
+                </span>
+
+                My Classes
+
+                <b>→</b>
+
+              </button>
+
+              <button type="button" class="quick-action" data-go="prediction">
+
+                <span>
+
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-prediction"></use>
+                  </svg>
+
+                </span>
+
+                Student Prediction
+
+                <b>→</b>
+
+              </button>
 
             </div>
 
@@ -962,49 +2212,12 @@
           <h2>Additional Academic Insights</h2>
 
           <p>
-            Explore student academic standing, attendance patterns,
-            and machine learning risk classifications.
+            Explore attendance patterns and academic risk classifications.
           </p>
 
         </div>
 
         <div class="overview-insights-grid">
-
-          <!-- GWA DISTRIBUTION -->
-
-          <article class="panel overview-insight-panel">
-
-            <div class="panel-header">
-
-              <div>
-
-                <h3>Student GWA Distribution</h3>
-
-                <p>Distribution by academic standing</p>
-
-              </div>
-
-              <button class="text-button" data-go="students">
-                View records →
-              </button>
-
-            </div>
-
-            <div class="chart-wrap">
-
-              <canvas id="gwaDistributionChart"></canvas>
-
-            </div>
-
-            <p class="overview-chart-note">
-
-              Student classifications follow the portal's GWA categories:
-              Excellent, Good Standing, Needs Monitoring, and At Risk.
-              Values are based on the currently selected student dataset.
-
-            </p>
-
-          </article>
 
           <!-- ATTENDANCE DISTRIBUTION -->
 
@@ -1012,70 +2225,82 @@
 
             <div class="panel-header">
 
-              <div>
+              <div class="panel-heading-content">
 
-                <h3>Attendance Distribution</h3>
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-clock"></use>
+                </svg>
 
-                <p>Student attendance grouped by percentage</p>
+                <div>
+
+                  <h3>Attendance Distribution</h3>
+
+                  <p>Student attendance grouped by percentage</p>
+
+                </div>
 
               </div>
 
-              <button class="text-button" data-go="students">
-                Review students →
+              <button type="button" class="text-button" data-go="students">
+                Review Students →
               </button>
 
             </div>
 
             <div class="chart-wrap">
 
-              <canvas id="attendanceDistributionChart"></canvas>
+              <canvas
+                id="attendanceDistributionChart"
+                role="img"
+                aria-label="Distribution of student attendance rates"
+              ></canvas>
 
             </div>
 
             <p class="overview-chart-note">
-
-              Attendance groups help identify students who may need
-              attendance monitoring and follow-up.
-
+              Identify attendance patterns that may require
+              academic monitoring and follow-up.
             </p>
 
           </article>
 
-          <!-- ML RISK DISTRIBUTION -->
+          <!-- MACHINE LEARNING RISK DISTRIBUTION -->
 
           <article class="panel overview-insight-panel ml-risk-distribution-panel">
 
             <div class="panel-header">
 
-              <div>
+              <div class="panel-heading-content">
 
-                <h3>ML Risk Classification Distribution</h3>
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-prediction"></use>
+                </svg>
 
-                <p>
-                  Actual classification counts returned by the prediction API
-                </p>
+                <div>
+
+                  <h3>ML Risk Classification</h3>
+
+                  <p>
+                    Academic risk distribution based on model results
+                  </p>
+
+                </div>
 
               </div>
 
-              <button class="text-button" data-go="students">
-                View predictions →
+              <button type="button" class="text-button" data-go="students">
+                View Predictions →
               </button>
 
             </div>
 
-            <div
-              class="ml-gauge-wrap"
-              id="mlRiskDistribution"
-            >
+            <div class="ml-gauge-wrap" id="mlRiskDistribution">
 
               <div class="ml-gauge-wrap-inner">
 
                 <p class="overview-chart-note">
-
-                  Waiting for the prediction service.
-                  No classification percentages are displayed
-                  until analysis is complete.
-
+                  Classification results will appear once
+                  the academic analysis is complete.
                 </p>
 
               </div>
@@ -1084,9 +2309,8 @@
 
             <p class="overview-chart-note" id="mlRiskChartNote">
 
-              Classification distribution is calculated from the prediction
-              results returned by the machine learning API. These are
-              classifications, not calibrated individual probabilities.
+              Distribution of analyzed students classified
+              as At Risk or Not At Risk.
 
             </p>
 
@@ -1095,155 +2319,49 @@
         </div>
 
         <!-- =================================
-             ANNOUNCEMENTS AND QUICK ACTIONS
+             FACULTY WORKSPACE
         ================================== -->
 
-        <div class="dashboard-grid bottom-columns">
+        <div class="section-heading">
 
-          <article class="panel">
+          <div>
 
-            <div class="panel-header">
+            <span class="section-mark"></span>
 
-              <div>
+            <h2>Faculty Workspace</h2>
 
-                <h3>Announcements</h3>
+            <small>Teaching responsibilities and follow-up</small>
 
-                <p>Updates and faculty reminders</p>
-
-              </div>
-
-              <button class="text-button" data-go="alerts">
-                View alerts →
-              </button>
-
-            </div>
-
-            <div class="announcement-list" id="announcementList">
-
-              <div class="announcement">
-
-                <span class="announcement-icon red-bg">!</span>
-
-                <div>
-
-                  <strong>System Maintenance</strong>
-
-                  <p>
-                    The portal will undergo scheduled maintenance this weekend.
-                  </p>
-
-                  <small>November 15, 2026</small>
-
-                </div>
-
-              </div>
-
-              <div class="announcement">
-
-                <span class="announcement-icon teal-bg">i</span>
-
-                <div>
-
-                  <strong>Faculty Development Program</strong>
-
-                  <p>
-                    Check the faculty development schedule and registration details.
-                  </p>
-
-                  <small>November 12, 2026</small>
-
-                </div>
-
-              </div>
-
-              <div class="announcement">
-
-                <span class="announcement-icon green-bg">✓</span>
-
-                <div>
-
-                  <strong>Updated Grading Policy</strong>
-
-                  <p>
-                    Please review the latest grading guidelines and reminders.
-                  </p>
-
-                  <small>November 10, 2026</small>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </article>
-
-          <article class="panel">
-
-            <div class="panel-header">
-
-              <div>
-
-                <h3>Quick Actions</h3>
-
-                <p>Frequently used academic tools</p>
-
-              </div>
-
-            </div>
-
-            <div class="quick-action-grid">
-
-              <button class="quick-action" data-go="students">
-                <span>♙</span>
-                Student Records
-                <b>→</b>
-              </button>
-
-              <button class="quick-action" data-go="schedule">
-                <span>▦</span>
-                Class Schedule
-                <b>→</b>
-              </button>
-
-              <button class="quick-action" data-go="classes">
-                <span>▤</span>
-                My Classes
-                <b>→</b>
-              </button>
-
-              <button class="quick-action" data-go="prediction">
-                <span>◈</span>
-                Student Prediction
-                <b>→</b>
-              </button>
-
-            </div>
-
-          </article>
+          </div>
 
         </div>
 
-        <!-- =================================
-             TEACHING LOAD AND FOLLOW-UP
-        ================================== -->
-
         <div class="dashboard-grid two-columns">
+
+          <!-- TEACHING LOAD -->
 
           <article class="panel">
 
             <div class="panel-header">
 
-              <div>
+              <div class="panel-heading-content">
 
-                <h3>My Teaching Load</h3>
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-book"></use>
+                </svg>
 
-                <p>Current assigned classes</p>
+                <div>
+
+                  <h3>My Teaching Load</h3>
+
+                  <p>Sample teaching assignments</p>
+
+                </div>
 
               </div>
 
-              <button class="text-button" data-go="classes">
-                View classes →
+              <button type="button" class="text-button" data-go="classes">
+                View Classes →
               </button>
 
             </div>
@@ -1252,20 +2370,30 @@
 
           </article>
 
+          <!-- PRIORITY FOLLOW-UP -->
+
           <article class="panel">
 
             <div class="panel-header">
 
-              <div>
+              <div class="panel-heading-content">
 
-                <h3>Priority Follow-up</h3>
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-alert"></use>
+                </svg>
 
-                <p>Items that may need your attention</p>
+                <div>
+
+                  <h3>Priority Follow-up</h3>
+
+                  <p>Sample academic priorities</p>
+
+                </div>
 
               </div>
 
-              <button class="text-button" data-go="alerts">
-                See all →
+              <button type="button" class="text-button" data-go="alerts">
+                View Alerts →
               </button>
 
             </div>
@@ -1278,9 +2406,11 @@
 
                 <p>
 
-                  <strong>Grade submission</strong>
+                  <strong>Grade Submission</strong>
 
-                  <small>2 classes have pending grade entries.</small>
+                  <small>
+                    2 classes have pending grade entries.
+                  </small>
 
                 </p>
 
@@ -1292,9 +2422,11 @@
 
                 <p>
 
-                  <strong>Student consultation</strong>
+                  <strong>Student Consultation</strong>
 
-                  <small>3 students have requested a consultation.</small>
+                  <small>
+                    3 students have requested a consultation.
+                  </small>
 
                 </p>
 
@@ -1306,9 +2438,11 @@
 
                 <p>
 
-                  <strong>SETE evaluation</strong>
+                  <strong>SETE Evaluation</strong>
 
-                  <small>Evaluation period is currently open.</small>
+                  <small>
+                    Review the evaluation period schedule.
+                  </small>
 
                 </p>
 
@@ -1320,11 +2454,111 @@
 
         </div>
 
+        <!-- =================================
+             ANNOUNCEMENTS
+        ================================== -->
+
+        <article class="panel overview-announcements">
+
+          <div class="panel-header">
+
+            <div class="panel-heading-content">
+
+              <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                <use href="#icon-bell"></use>
+              </svg>
+
+              <div>
+
+                <h3>Announcements</h3>
+
+                <p>Sample campus updates and academic reminders</p>
+
+              </div>
+
+            </div>
+
+            <button type="button" class="text-button" data-go="alerts">
+              View Alerts →
+            </button>
+
+          </div>
+
+          <div class="announcement-list" id="announcementList">
+
+            <div class="announcement">
+
+              <span class="announcement-icon red-bg">!</span>
+
+              <div>
+
+                <strong>System Maintenance</strong>
+
+                <p>Scheduled portal maintenance notice.</p>
+
+                <small>November 15, 2026</small>
+
+              </div>
+
+            </div>
+
+            <div class="announcement">
+
+              <span class="announcement-icon teal-bg">i</span>
+
+              <div>
+
+                <strong>Faculty Development Program</strong>
+
+                <p>
+                  Faculty development schedule and registration reminder.
+                </p>
+
+                <small>November 12, 2026</small>
+
+              </div>
+
+            </div>
+
+            <div class="announcement">
+
+              <span class="announcement-icon green-bg">✓</span>
+
+              <div>
+
+                <strong>Updated Grading Policy</strong>
+
+                <p>Review the grading guidelines.</p>
+
+                <small>November 10, 2026</small>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </article>
+
+        <!-- PORTAL FOOTER -->
+
+        <footer class="portal-footer">
+
+          <span>
+            BSUniSync — Academic Analytics &amp; Decision Support
+          </span>
+
+          <span>
+            Faculty Portal
+          </span>
+
+        </footer>
+
       </section>
 
-      <!-- =====================================
-           STUDENT RECORDS
-      ====================================== -->
+      <!-- =========================================
+           STUDENT RECORDS PAGE
+      ========================================= -->
 
       <section class="page" id="page-students">
 
@@ -1332,16 +2566,12 @@
 
           <div>
 
-            <span class="eyebrow">
-              ACADEMIC WORKSPACE
-            </span>
+            <span class="eyebrow">ACADEMIC WORKSPACE</span>
 
             <h1>Student Records</h1>
 
             <p>
-
-              Monitor student academic standing and review individual student records.
-
+              Monitor student academic standing and review individual records.
             </p>
 
           </div>
@@ -1349,18 +2579,31 @@
           <button
             class="button button-primary"
             type="button"
-            data-go="prediction"
-          >
+            data-go="prediction">
+
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-prediction"></use>
+            </svg>
+
             Predict Student Risk
+
           </button>
 
         </div>
+
+        <!-- STUDENT SUMMARY -->
 
         <div class="standing-summary-grid">
 
           <article class="standing-summary-card">
 
-            <div class="standing-summary-icon total-icon">♙</div>
+            <div class="standing-summary-icon total-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-users"></use>
+              </svg>
+
+            </div>
 
             <div>
 
@@ -1374,7 +2617,13 @@
 
           <article class="standing-summary-card excellent-summary">
 
-            <div class="standing-summary-icon excellent-icon">★</div>
+            <div class="standing-summary-icon excellent-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-star"></use>
+              </svg>
+
+            </div>
 
             <div>
 
@@ -1388,7 +2637,13 @@
 
           <article class="standing-summary-card good-summary">
 
-            <div class="standing-summary-icon good-icon">✓</div>
+            <div class="standing-summary-icon good-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-check"></use>
+              </svg>
+
+            </div>
 
             <div>
 
@@ -1402,7 +2657,13 @@
 
           <article class="standing-summary-card monitoring-summary">
 
-            <div class="standing-summary-icon monitoring-icon">◷</div>
+            <div class="standing-summary-icon monitoring-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-clock"></use>
+              </svg>
+
+            </div>
 
             <div>
 
@@ -1416,7 +2677,13 @@
 
           <article class="standing-summary-card risk-summary">
 
-            <div class="standing-summary-icon risk-icon">!</div>
+            <div class="standing-summary-icon risk-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-alert"></use>
+              </svg>
+
+            </div>
 
             <div>
 
@@ -1430,6 +2697,8 @@
 
         </div>
 
+        <!-- STUDENT RECORDS TABLE -->
+
         <article class="panel student-record-panel">
 
           <div class="student-record-heading">
@@ -1439,17 +2708,13 @@
               <h3>Academic Records Overview</h3>
 
               <p>
-
-                Student GWA classifications and machine learning risk predictions.
-
+                Student academic standing and predictive risk classifications.
               </p>
 
             </div>
 
             <span class="record-count" id="studentResultCount">
-
               Loading records...
-
             </span>
 
           </div>
@@ -1463,10 +2728,7 @@
               aria-label="Search student records"
             >
 
-            <select
-              id="studentYearFilter"
-              aria-label="Filter by year level"
-            >
+            <select id="studentYearFilter" aria-label="Filter by year level">
 
               <option value="all">All year levels</option>
               <option>1st Year</option>
@@ -1478,15 +2740,31 @@
 
             <select
               id="studentStandingFilter"
-              aria-label="Filter by academic standing"
-            >
+              aria-label="Filter by academic standing">
 
-              <option value="all">All academic standings</option>
-              <option value="Excellent">Excellent</option>
-              <option value="Good Standing">Good Standing</option>
-              <option value="Needs Monitoring">Needs Monitoring</option>
-              <option value="At Risk">At Risk</option>
-              <option value="No GWA">No GWA</option>
+              <option value="all">
+                All academic standings
+              </option>
+
+              <option value="Excellent">
+                Excellent
+              </option>
+
+              <option value="Good Standing">
+                Good Standing
+              </option>
+
+              <option value="Needs Monitoring">
+                Needs Monitoring
+              </option>
+
+              <option value="At Risk">
+                At Risk
+              </option>
+
+              <option value="No GWA">
+                No GWA
+              </option>
 
             </select>
 
@@ -1559,9 +2837,9 @@
 
       </section>
 
-      <!-- =====================================
-           STUDENT RISK PREDICTION
-      ====================================== -->
+      <!-- =========================================
+           STUDENT RISK PREDICTION PAGE
+      ========================================= -->
 
       <section class="page" id="page-prediction">
 
@@ -1569,17 +2847,13 @@
 
           <div>
 
-            <span class="eyebrow">
-              PREDICTIVE ANALYTICS
-            </span>
+            <span class="eyebrow">PREDICTIVE ANALYTICS</span>
 
             <h1>Student Risk Prediction</h1>
 
             <p>
-
-              Enter student academic information and analyze potential
-              academic risk using the trained Decision Tree model.
-
+              Assess student academic performance and identify
+              potential areas requiring support.
             </p>
 
           </div>
@@ -1587,9 +2861,10 @@
           <button
             class="button button-outline"
             type="button"
-            data-go="students"
-          >
+            data-go="students">
+
             View Student Records
+
           </button>
 
         </div>
@@ -1600,13 +2875,21 @@
 
           <div class="panel-header">
 
-            <div>
+            <div class="panel-heading-content">
 
-              <span class="eyebrow">
-                FACULTY DECISION SUPPORT
-              </span>
+              <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                <use href="#icon-prediction"></use>
+              </svg>
 
-              <h2>Machine Learning Academic Risk Assessment</h2>
+              <div>
+
+                <span class="eyebrow">
+                  FACULTY DECISION SUPPORT
+                </span>
+
+                <h2>Machine Learning Academic Risk Assessment</h2>
+
+              </div>
 
             </div>
 
@@ -1617,327 +2900,352 @@
           </div>
 
           <p>
-
-            The prediction model analyzes previous GWA, current GWA,
-            attendance rate, academic progress, and failed subjects
-            to classify a student as At Risk or Not At Risk.
-
+            Analyze previous GWA, current GWA, attendance rate,
+            academic progress, and failed subjects to identify
+            students who may require academic intervention.
           </p>
 
-          <p class="overview-chart-note">
+          <div class="demonstration-notice">
 
-            Use fictional student information when testing this demonstration.
-            The model was trained using synthetic data and its predictions
-            should not be used as the sole basis for academic decisions.
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-info"></use>
+            </svg>
 
-          </p>
+            <div>
+
+              <strong>Academic Risk Assessment Guidelines</strong>
+
+              <p>
+                Use risk classifications to guide academic support
+                and early intervention. Predictions should be
+                reviewed alongside student circumstances and
+                faculty judgment.
+              </p>
+
+            </div>
+
+          </div>
 
         </article>
 
         <!-- =================================
-             FACULTY INPUT FORM
+             PREDICTION WORKSPACE
         ================================== -->
 
-        <article class="panel prediction-form-panel">
+        <div class="prediction-workspace">
 
-          <div class="panel-header">
+          <!-- STUDENT INPUT FORM -->
 
-            <div>
+          <article class="panel prediction-form-panel">
 
-              <h3>Student Academic Information</h3>
+            <div class="panel-header">
 
-              <p>Complete all required fields before generating a prediction.</p>
+              <div class="panel-heading-content">
+
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-user"></use>
+                </svg>
+
+                <div>
+
+                  <h3>Student Academic Information</h3>
+
+                  <p>Complete all required academic fields.</p>
+
+                </div>
+
+              </div>
+
+              <span class="status-pill info">
+                Faculty Input
+              </span>
 
             </div>
 
-            <span class="status-pill info">
-              Manual Faculty Input
-            </span>
+            <form id="studentPredictionForm">
 
-          </div>
+              <div class="prediction-form-grid">
 
-          <form id="studentPredictionForm">
+                <!-- STUDENT ID -->
 
-            <div class="prediction-form-grid">
+                <label for="predictionStudentId">
 
-              <!-- STUDENT ID -->
+                  Student ID
 
-              <label for="predictionStudentId">
+                  <input
+                    type="text"
+                    id="predictionStudentId"
+                    name="student_id"
+                    placeholder="e.g. 2026-001"
+                    maxlength="50"
+                    autocomplete="off"
+                    required
+                  >
 
-                Student ID
+                  <span class="prediction-field-help">
+                    Enter a unique student identification number.
+                  </span>
 
-                <input
-                  type="text"
-                  id="predictionStudentId"
-                  name="student_id"
-                  placeholder="e.g. 2026-001"
-                  maxlength="50"
-                  autocomplete="off"
-                  required
-                >
+                </label>
 
-                <span class="prediction-field-help">
+                <!-- STUDENT NAME -->
 
-                  Enter a unique student identification number.
+                <label for="predictionStudentName">
 
-                </span>
+                  Student Name
 
-              </label>
+                  <input
+                    type="text"
+                    id="predictionStudentName"
+                    name="student_name"
+                    placeholder="Enter student name"
+                    maxlength="150"
+                    autocomplete="off"
+                    required
+                  >
 
-              <!-- STUDENT NAME -->
+                  <span class="prediction-field-help">
+                    Enter a fictional or non-identifying name.
+                  </span>
 
-              <label for="predictionStudentName">
+                </label>
 
-                Student Name
+                <!-- PREVIOUS GWA -->
 
-                <input
-                  type="text"
-                  id="predictionStudentName"
-                  name="student_name"
-                  placeholder="e.g. Sample Student"
-                  maxlength="150"
-                  autocomplete="off"
-                  required
-                >
+                <label for="predictionPreviousGwa">
 
-                <span class="prediction-field-help">
+                  Previous GWA
 
-                  Enter the student's complete name or a fictional
-                  name for demonstration.
+                  <input
+                    type="number"
+                    id="predictionPreviousGwa"
+                    name="previous_gwa"
+                    min="1.00"
+                    max="5.00"
+                    step="0.01"
+                    inputmode="decimal"
+                    placeholder="e.g. 2.50"
+                    required
+                  >
 
-                </span>
+                  <span class="prediction-field-help">
+                    General Weighted Average from the previous
+                    academic term. Range: 1.00–5.00.
+                  </span>
 
-              </label>
+                </label>
 
-              <!-- PREVIOUS GWA -->
+                <!-- CURRENT GWA -->
 
-              <label for="predictionPreviousGwa">
+                <label for="predictionCurrentGwa">
 
-                Previous GWA
+                  Current GWA
 
-                <input
-                  type="number"
-                  id="predictionPreviousGwa"
-                  name="previous_gwa"
-                  min="1.00"
-                  max="5.00"
-                  step="0.01"
-                  placeholder="e.g. 2.50"
-                  required
-                >
+                  <input
+                    type="number"
+                    id="predictionCurrentGwa"
+                    name="current_gwa"
+                    min="1.00"
+                    max="5.00"
+                    step="0.01"
+                    inputmode="decimal"
+                    placeholder="e.g. 3.20"
+                    required
+                  >
 
-                <span class="prediction-field-help">
+                  <span class="prediction-field-help">
+                    Latest General Weighted Average.
+                    Range: 1.00–5.00.
+                  </span>
 
-                  General Weighted Average from the previous academic term.
-                  Accepted range: 1.00–5.00.
+                </label>
 
-                </span>
+                <!-- ATTENDANCE RATE -->
 
-              </label>
+                <label for="predictionAttendance">
 
-              <!-- CURRENT GWA -->
+                  Attendance Rate (%)
 
-              <label for="predictionCurrentGwa">
+                  <input
+                    type="number"
+                    id="predictionAttendance"
+                    name="attendance_rate"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    inputmode="decimal"
+                    placeholder="e.g. 65"
+                    required
+                  >
 
-                Current GWA
+                  <span class="prediction-field-help">
+                    Percentage of attended classes.
+                    Range: 0–100%.
+                  </span>
 
-                <input
-                  type="number"
-                  id="predictionCurrentGwa"
-                  name="current_gwa"
-                  min="1.00"
-                  max="5.00"
-                  step="0.01"
-                  placeholder="e.g. 3.20"
-                  required
-                >
+                </label>
 
-                <span class="prediction-field-help">
+                <!-- ACADEMIC PROGRESS -->
 
-                  Latest General Weighted Average.
-                  Accepted range: 1.00–5.00.
+                <label for="predictionProgress">
 
-                </span>
+                  Academic Progress (%)
 
-              </label>
+                  <input
+                    type="number"
+                    id="predictionProgress"
+                    name="academic_progress"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    inputmode="decimal"
+                    placeholder="e.g. 55"
+                    required
+                  >
 
-              <!-- ATTENDANCE RATE -->
+                  <span class="prediction-field-help">
+                    Overall academic completion or progress.
+                    Range: 0–100%.
+                  </span>
 
-              <label for="predictionAttendance">
+                </label>
 
-                Attendance Rate (%)
+                <!-- FAILED SUBJECTS -->
 
-                <input
-                  type="number"
-                  id="predictionAttendance"
-                  name="attendance_rate"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  placeholder="e.g. 65"
-                  required
-                >
+                <label for="predictionFailedSubjects">
 
-                <span class="prediction-field-help">
+                  Failed Subjects
 
-                  Percentage of attended classes.
-                  Accepted range: 0–100%.
+                  <input
+                    type="number"
+                    id="predictionFailedSubjects"
+                    name="failed_subjects"
+                    min="0"
+                    step="1"
+                    inputmode="numeric"
+                    placeholder="e.g. 3"
+                    required
+                  >
 
-                </span>
+                  <span class="prediction-field-help">
+                    Total number of failed subjects.
+                    Enter zero if none.
+                  </span>
 
-              </label>
+                </label>
 
-              <!-- ACADEMIC PROGRESS -->
+              </div>
 
-              <label for="predictionProgress">
+              <!-- STUDENT DATA PRIVACY -->
 
-                Academic Progress (%)
+              <div class="prediction-form-note">
 
-                <input
-                  type="number"
-                  id="predictionProgress"
-                  name="academic_progress"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  placeholder="e.g. 55"
-                  required
-                >
+                <strong>Student Information &amp; Privacy</strong>
 
-                <span class="prediction-field-help">
+                <p>
+                  Use fictional or non-identifiable academic
+                  information to protect student privacy.
+                  Only academic indicators are submitted to
+                  the prediction service.
+                </p>
 
-                  Academic completion or progress percentage.
-                  Accepted range: 0–100%.
+                <p>
+                  Student names and IDs remain within the
+                  current browser session.
+                </p>
 
-                </span>
+              </div>
 
-              </label>
+              <div class="prediction-form-actions">
 
-              <!-- FAILED SUBJECTS -->
+                <button
+                  class="button button-outline"
+                  type="reset"
+                  id="resetPredictionForm">
 
-              <label for="predictionFailedSubjects">
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-refresh"></use>
+                  </svg>
 
-                Failed Subjects
+                  Reset Form
 
-                <input
-                  type="number"
-                  id="predictionFailedSubjects"
-                  name="failed_subjects"
-                  min="0"
-                  step="1"
-                  placeholder="e.g. 3"
-                  required
-                >
+                </button>
 
-                <span class="prediction-field-help">
+                <button
+                  class="button button-primary"
+                  type="submit"
+                  id="submitPredictionBtn">
 
-                  Total number of failed subjects.
-                  Enter zero if there are no failed subjects.
+                  Predict Student Risk →
 
-                </span>
+                </button>
 
-              </label>
+              </div>
+
+            </form>
+
+          </article>
+
+          <!-- PREDICTION RESULT -->
+
+          <article class="panel prediction-result-panel">
+
+            <div class="panel-header">
+
+              <div class="panel-heading-content">
+
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-chart"></use>
+                </svg>
+
+                <div>
+
+                  <h3>Prediction Result</h3>
+
+                  <p>Academic risk assessment and classification.</p>
+
+                </div>
+
+              </div>
+
+              <span class="status-pill info" id="predictionResultStatus">
+
+                Awaiting Input
+
+              </span>
 
             </div>
 
-            <div class="prediction-form-note">
+            <div
+              id="predictionResultContent"
+              aria-live="polite"
+              aria-atomic="true">
 
-              <strong>How the prediction works</strong>
+              <div class="prediction-result-placeholder">
 
-              <p>
+                <div class="prediction-placeholder-icon">
 
-                The five academic indicators will be submitted to the
-                BSUniSync prediction API. The trained Decision Tree model
-                will analyze the submitted values and return the student's
-                predicted academic risk classification.
+                  <svg class="ui-icon" aria-hidden="true">
+                    <use href="#icon-prediction"></use>
+                  </svg>
 
-              </p>
+                </div>
 
-              <p>
+                <strong>No prediction generated</strong>
 
-                Student names and identification numbers are retained
-                temporarily in the browser and are not included in the
-                machine learning request.
+                <p>
+                  Complete the student academic information
+                  and select Predict Student Risk to view
+                  the assessment.
+                </p>
 
-              </p>
-
-            </div>
-
-            <div class="prediction-form-actions">
-
-              <button
-                class="button button-outline"
-                type="reset"
-                id="resetPredictionForm"
-              >
-                Reset Form
-              </button>
-
-              <button
-                class="button button-primary"
-                type="submit"
-                id="submitPredictionBtn"
-              >
-                Generate Prediction
-              </button>
+              </div>
 
             </div>
 
-          </form>
+          </article>
 
-        </article>
-
-        <!-- =================================
-             PREDICTION RESULT
-        ================================== -->
-
-        <article class="panel prediction-result-panel">
-
-          <div class="panel-header">
-
-            <div>
-
-              <h3>Prediction Result</h3>
-
-              <p>
-
-                Academic risk classification returned by the trained model.
-
-              </p>
-
-            </div>
-
-            <span
-              class="status-pill info"
-              id="predictionResultStatus"
-            >
-              Awaiting Input
-            </span>
-
-          </div>
-
-          <div
-            id="predictionResultContent"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-
-            <div class="prediction-result-placeholder">
-
-              <strong>No prediction generated</strong>
-
-              <p>
-
-                Complete the student academic information form and
-                select Generate Prediction to view the model's result.
-
-              </p>
-
-            </div>
-
-          </div>
-
-        </article>
+        </div>
 
         <!-- =================================
              PREDICTION HISTORY
@@ -1947,24 +3255,29 @@
 
           <div class="panel-header">
 
-            <div>
+            <div class="panel-heading-content">
 
-              <h3>Prediction History</h3>
+              <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                <use href="#icon-clock"></use>
+              </svg>
 
-              <p>
+              <div>
 
-                Review student risk predictions generated during
-                the current browser session.
+                <h3>Prediction History</h3>
 
-              </p>
+                <p>
+                  Review previous academic risk assessments
+                  and student record updates.
+                </p>
+
+              </div>
 
             </div>
 
-            <span
-              class="record-count"
-              id="predictionHistoryCount"
-            >
+            <span class="record-count" id="predictionHistoryCount">
+
               0 predictions
+
             </span>
 
           </div>
@@ -1981,7 +3294,7 @@
                   <th>Student Name</th>
                   <th>ML Prediction</th>
                   <th>At-Risk Probability</th>
-                  <th>Date & Time</th>
+                  <th>Date &amp; Time</th>
                   <th>Action</th>
 
                 </tr>
@@ -2008,10 +3321,8 @@
 
           <p class="overview-chart-note">
 
-            Prediction history and faculty-entered student records
-            are stored temporarily during the current page session.
-            Refreshing or closing the page clears these records.
-            Permanent database storage is not yet implemented.
+            Records are available during the current session
+            and are cleared when the page is refreshed or closed.
 
           </p>
 
@@ -2019,9 +3330,9 @@
 
       </section>
 
-      <!-- =====================================
-           CLASSES AND SUBJECTS
-      ====================================== -->
+      <!-- =========================================
+           CLASSES AND SUBJECTS PAGE
+      ========================================= -->
 
       <section class="page" id="page-classes">
 
@@ -2029,25 +3340,27 @@
 
           <div>
 
-            <span class="eyebrow">
-              ACADEMIC WORKSPACE
-            </span>
+            <span class="eyebrow">ACADEMIC WORKSPACE</span>
 
-            <h1>Classes & Subjects</h1>
+            <h1>Classes &amp; Subjects</h1>
 
             <p>
-
-              Your assigned subjects, sections, and class information.
-
+              Review assigned subjects, sections, and class information.
             </p>
 
           </div>
 
           <button
             class="button button-primary"
-            data-go="schedule"
-          >
+            type="button"
+            data-go="schedule">
+
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-calendar"></use>
+            </svg>
+
             View Schedule
+
           </button>
 
         </div>
@@ -2084,11 +3397,19 @@
 
           <div class="panel-header">
 
-            <div>
+            <div class="panel-heading-content">
 
-              <h3>Assigned Subjects</h3>
+              <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                <use href="#icon-book"></use>
+              </svg>
 
-              <p>Current academic term</p>
+              <div>
+
+                <h3>Assigned Subjects</h3>
+
+                <p>Sample academic teaching load</p>
+
+              </div>
 
             </div>
 
@@ -2123,9 +3444,9 @@
 
       </section>
 
-      <!-- =====================================
-           TEACHING SCHEDULE
-      ====================================== -->
+      <!-- =========================================
+           TEACHING SCHEDULE PAGE
+      ========================================= -->
 
       <section class="page" id="page-schedule">
 
@@ -2133,16 +3454,12 @@
 
           <div>
 
-            <span class="eyebrow">
-              ACADEMIC WORKSPACE
-            </span>
+            <span class="eyebrow">ACADEMIC WORKSPACE</span>
 
             <h1>Teaching Schedule</h1>
 
             <p>
-
-              Keep track of your class meetings and teaching hours.
-
+              Keep track of class meetings and teaching hours.
             </p>
 
           </div>
@@ -2150,8 +3467,10 @@
           <button
             class="button button-outline"
             id="printSchedule"
-          >
+            type="button">
+
             Print Schedule
+
           </button>
 
         </div>
@@ -2160,16 +3479,26 @@
 
           <div class="panel-header">
 
-            <div>
+            <div class="panel-heading-content">
 
-              <h3>Weekly Class Schedule</h3>
+              <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                <use href="#icon-calendar"></use>
+              </svg>
 
-              <p>Monday to Saturday</p>
+              <div>
+
+                <h3>Weekly Class Schedule</h3>
+
+                <p>Monday to Saturday · Sample timetable</p>
+
+              </div>
 
             </div>
 
             <span class="status-pill info">
+
               1st Semester
+
             </span>
 
           </div>
@@ -2202,9 +3531,9 @@
 
       </section>
 
-      <!-- =====================================
-           ACADEMIC ANALYTICS
-      ====================================== -->
+      <!-- =========================================
+           ACADEMIC ANALYTICS PAGE
+      ========================================= -->
 
       <section class="page" id="page-analytics">
 
@@ -2212,16 +3541,13 @@
 
           <div>
 
-            <span class="eyebrow">
-              ACADEMIC WORKSPACE
-            </span>
+            <span class="eyebrow">ACADEMIC WORKSPACE</span>
 
             <h1>Academic Analytics</h1>
 
             <p>
-
-              Monitor student progress and class performance.
-
+              Monitor student progress and class performance
+              through academic insights.
             </p>
 
           </div>
@@ -2230,15 +3556,25 @@
 
         <div class="dashboard-grid two-columns">
 
+          <!-- PASSING RATE TREND -->
+
           <article class="panel">
 
             <div class="panel-header">
 
-              <div>
+              <div class="panel-heading-content">
 
-                <h3>Passing Rate Trend</h3>
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-trend"></use>
+                </svg>
 
-                <p>Illustrative performance across recent terms</p>
+                <div>
+
+                  <h3>Passing Rate Trend</h3>
+
+                  <p>Academic performance across recent terms (sample)</p>
+
+                </div>
 
               </div>
 
@@ -2246,21 +3582,35 @@
 
             <div class="chart-wrap tall">
 
-              <canvas id="passingTrendChart"></canvas>
+              <canvas
+                id="passingTrendChart"
+                role="img"
+                aria-label="Sample passing rate trend"
+              ></canvas>
 
             </div>
 
           </article>
 
+          <!-- GRADE DISTRIBUTION -->
+
           <article class="panel">
 
             <div class="panel-header">
 
-              <div>
+              <div class="panel-heading-content">
 
-                <h3>Grade Distribution</h3>
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-chart"></use>
+                </svg>
 
-                <p>Illustrative student grade profile</p>
+                <div>
+
+                  <h3>Grade Distribution</h3>
+
+                  <p>Student grade profile</p>
+
+                </div>
 
               </div>
 
@@ -2268,7 +3618,11 @@
 
             <div class="chart-wrap tall">
 
-              <canvas id="gradeChart"></canvas>
+              <canvas
+                id="gradeChart"
+                role="img"
+                aria-label="Student grade distribution"
+              ></canvas>
 
             </div>
 
@@ -2276,15 +3630,25 @@
 
         </div>
 
+        <!-- SUBJECT PERFORMANCE -->
+
         <article class="panel analytics-subject-panel">
 
           <div class="panel-header">
 
-            <div>
+            <div class="panel-heading-content">
 
-              <h3>Subject Performance</h3>
+              <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                <use href="#icon-book"></use>
+              </svg>
 
-              <p>Illustrative passing rate by assigned subject</p>
+              <div>
+
+                <h3>Subject Performance</h3>
+
+                <p>Passing rate by assigned subject (sample)</p>
+
+              </div>
 
             </div>
 
@@ -2292,7 +3656,11 @@
 
           <div class="chart-wrap tall">
 
-            <canvas id="subjectChart"></canvas>
+            <canvas
+              id="subjectChart"
+              role="img"
+              aria-label="Sample subject passing rates"
+            ></canvas>
 
           </div>
 
@@ -2300,9 +3668,9 @@
 
       </section>
 
-      <!-- =====================================
-           TEACHING EVALUATION
-      ====================================== -->
+      <!-- =========================================
+           TEACHING EVALUATION PAGE
+      ========================================= -->
 
       <section class="page" id="page-evaluation">
 
@@ -2310,25 +3678,32 @@
 
           <div>
 
-            <span class="eyebrow">
-              FACULTY WORKSPACE
-            </span>
+            <span class="eyebrow">FACULTY WORKSPACE</span>
 
             <h1>Teaching Evaluation</h1>
 
             <p>
-
-              Review Student Evaluation of Teaching Effectiveness results.
-
+              Review Student Evaluation of Teaching Effectiveness
+              and identify opportunities for instructional improvement.
             </p>
 
           </div>
 
         </div>
 
+        <!-- SETE METRICS -->
+
         <div class="kpi-grid three-kpis">
 
-          <article class="kpi-card green-card">
+          <article class="kpi-card green-card gold-card">
+
+            <div class="kpi-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-star"></use>
+              </svg>
+
+            </div>
 
             <div class="kpi-info">
 
@@ -2336,7 +3711,7 @@
 
               <strong>4.28/5</strong>
 
-              <small>Illustrative sample result</small>
+              <small>Sample evaluation rating</small>
 
             </div>
 
@@ -2344,13 +3719,21 @@
 
           <article class="kpi-card teal-card">
 
+            <div class="kpi-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-users"></use>
+              </svg>
+
+            </div>
+
             <div class="kpi-info">
 
               <span>Response Rate</span>
 
               <strong>68%</strong>
 
-              <small>Illustrative sample result</small>
+              <small>Sample student participation rate</small>
 
             </div>
 
@@ -2358,19 +3741,29 @@
 
           <article class="kpi-card blue-card">
 
+            <div class="kpi-icon">
+
+              <svg class="ui-icon" aria-hidden="true">
+                <use href="#icon-layers"></use>
+              </svg>
+
+            </div>
+
             <div class="kpi-info">
 
               <span>Evaluated Sections</span>
 
               <strong>5/6</strong>
 
-              <small>Illustrative sample result</small>
+              <small>Sample evaluation coverage</small>
 
             </div>
 
           </article>
 
         </div>
+
+        <!-- SETE CHARTS -->
 
         <div class="dashboard-grid two-columns">
 
@@ -2378,11 +3771,19 @@
 
             <div class="panel-header">
 
-              <div>
+              <div class="panel-heading-content">
 
-                <h3>Evaluation Dimensions</h3>
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-chart"></use>
+                </svg>
 
-                <p>Illustrative average rating per dimension</p>
+                <div>
+
+                  <h3>Evaluation Dimensions</h3>
+
+                  <p>Average rating per evaluation dimension (sample)</p>
+
+                </div>
 
               </div>
 
@@ -2390,7 +3791,11 @@
 
             <div class="chart-wrap tall">
 
-              <canvas id="dimensionChart"></canvas>
+              <canvas
+                id="dimensionChart"
+                role="img"
+                aria-label="Sample teaching evaluation dimension ratings"
+              ></canvas>
 
             </div>
 
@@ -2400,11 +3805,19 @@
 
             <div class="panel-header">
 
-              <div>
+              <div class="panel-heading-content">
 
-                <h3>Rating Distribution</h3>
+                <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                  <use href="#icon-star"></use>
+                </svg>
 
-                <p>Illustrative student evaluation summary</p>
+                <div>
+
+                  <h3>Rating Distribution</h3>
+
+                  <p>Student evaluation summary (sample)</p>
+
+                </div>
 
               </div>
 
@@ -2412,7 +3825,11 @@
 
             <div class="chart-wrap tall">
 
-              <canvas id="evaluationChart"></canvas>
+              <canvas
+                id="evaluationChart"
+                role="img"
+                aria-label="Sample teaching evaluation rating distribution"
+              ></canvas>
 
             </div>
 
@@ -2420,11 +3837,51 @@
 
         </div>
 
+        <!-- TEACHING EVALUATION GUIDELINES -->
+
+        <article class="panel">
+
+          <div class="panel-header">
+
+            <div class="panel-heading-content">
+
+              <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                <use href="#icon-info"></use>
+              </svg>
+
+              <div>
+
+                <h3>Teaching Evaluation Guidelines</h3>
+
+                <p>Continuous instructional improvement</p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <p>
+            SETE results support instructional improvement and
+            should be considered alongside response rates,
+            evaluation criteria, academic context, and other
+            available teaching performance evidence.
+            Evaluation ratings should not be the sole basis
+            for faculty performance decisions.
+          </p>
+
+          <p class="overview-chart-note">
+            The displayed ratings are sample evaluation values
+            and do not represent actual confidential university evaluations.
+          </p>
+
+        </article>
+
       </section>
 
-      <!-- =====================================
-           ACADEMIC ALERTS
-      ====================================== -->
+      <!-- =========================================
+           ACADEMIC ALERTS PAGE
+      ========================================= -->
 
       <section class="page" id="page-alerts">
 
@@ -2432,16 +3889,13 @@
 
           <div>
 
-            <span class="eyebrow">
-              FACULTY WORKSPACE
-            </span>
+            <span class="eyebrow">FACULTY WORKSPACE</span>
 
             <h1>Academic Alerts</h1>
 
             <p>
-
-              Items requiring attention and follow-up.
-
+              Review academic concerns and identify
+              students requiring appropriate follow-up.
             </p>
 
           </div>
@@ -2449,17 +3903,25 @@
           <button
             class="button button-outline"
             id="clearAlertsBtn"
-          >
-            Mark all reviewed
+            type="button">
+
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-check"></use>
+            </svg>
+
+            Mark All Reviewed
+
           </button>
 
         </div>
+
+        <!-- ALERT SUMMARY -->
 
         <div class="alert-summary">
 
           <div>
 
-            <strong id="alertTotal">3</strong>
+            <strong id="alertTotal">0</strong>
 
             <span>Open alerts</span>
 
@@ -2467,35 +3929,43 @@
 
           <div>
 
-            <strong>2</strong>
+            <strong>0</strong>
 
-            <span>Grade reminders</span>
+            <span>Urgent alerts</span>
 
           </div>
 
           <div>
 
-            <strong>1</strong>
+            <strong>0</strong>
 
-            <span>Student concern</span>
+            <span>Student concerns</span>
 
           </div>
 
         </div>
 
+        <!-- ALERT LIST -->
+
         <article class="panel">
 
           <div class="panel-header">
 
-            <div>
+            <div class="panel-heading-content">
 
-              <h3>Recent Alerts & Reminders</h3>
+              <svg class="ui-icon panel-title-icon" aria-hidden="true">
+                <use href="#icon-bell"></use>
+              </svg>
 
-              <p>
+              <div>
 
-                Review each item and take appropriate action.
+                <h3>Recent Alerts &amp; Reminders</h3>
 
-              </p>
+                <p>
+                  Review each item and determine the appropriate action.
+                </p>
+
+              </div>
 
             </div>
 
@@ -2507,9 +3977,9 @@
 
       </section>
 
-      <!-- =====================================
-           PROFILE AND SETTINGS
-      ====================================== -->
+      <!-- =========================================
+           PROFILE AND SETTINGS PAGE
+      ========================================= -->
 
       <section class="page" id="page-profile">
 
@@ -2517,16 +3987,12 @@
 
           <div>
 
-            <span class="eyebrow">
-              ACCOUNT
-            </span>
+            <span class="eyebrow">ACCOUNT</span>
 
-            <h1>Profile & Settings</h1>
+            <h1>Profile &amp; Settings</h1>
 
             <p>
-
-              Manage your faculty information and portal preferences.
-
+              Manage your faculty information and workspace preferences.
             </p>
 
           </div>
@@ -2550,6 +4016,8 @@
             </div>
 
           </div>
+
+          <!-- PROFILE SETTINGS FORM -->
 
           <form id="profileForm" class="settings-form">
 
@@ -2607,25 +4075,82 @@
               <select id="themeSelect">
 
                 <option value="dark">
-                  Dark workspace
+                  Dark Workspace
                 </option>
 
                 <option value="light">
-                  Light workspace
+                  Light Workspace
                 </option>
 
               </select>
 
             </label>
 
-            <button
-              class="button button-primary"
-              type="submit"
-            >
+            <button class="button button-primary" type="submit">
+
               Save Changes
+
             </button>
 
           </form>
+
+          <!-- =================================
+               ABOUT BSUNISYNC
+          ================================== -->
+
+          <div class="demonstration-notice">
+
+            <svg class="ui-icon" aria-hidden="true">
+              <use href="#icon-info"></use>
+            </svg>
+
+            <div>
+
+              <strong>About BSUniSync</strong>
+
+              <p>
+                BSUniSync is an academic analytics and
+                decision-support portal designed to support
+                student performance monitoring, teaching
+                effectiveness evaluation, and early
+                identification of academic concerns.
+              </p>
+
+              <p>
+                The current prototype uses sample academic
+                and SETE records and a Decision Tree model
+                trained on synthetic data. The model has not
+                been validated against actual student outcomes.
+              </p>
+
+              <p>
+                Integration with institutional systems,
+                authenticated faculty access, and permanent
+                record storage are proposed future enhancements.
+                The portal is not currently connected to
+                university databases.
+              </p>
+
+              <p>
+                Use fictional or non-identifiable information only.
+                Student records and predictions are retained
+                during the current page session.
+                Display name and theme preferences are stored
+                locally when browser storage is available.
+              </p>
+
+              <p>
+                <strong>Version:</strong> 1.0
+              </p>
+
+              <p>
+                <strong>Project:</strong>
+                BAT 405 — Analytics Application
+              </p>
+
+            </div>
+
+          </div>
 
         </article>
 
@@ -2638,7 +4163,7 @@
 </div>
 
 <!-- =========================================
-     MODAL
+     REUSABLE APPLICATION MODAL
 ========================================= -->
 
 <div class="modal-backdrop hidden" id="modalBackdrop">
@@ -2647,19 +4172,22 @@
     class="modal"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="modalTitle"
-  >
+    aria-labelledby="modalTitle">
 
     <div class="modal-header">
 
       <h2 id="modalTitle">Details</h2>
 
       <button
+        type="button"
         class="icon-button"
         id="modalClose"
-        aria-label="Close"
-      >
-        ×
+        aria-label="Close">
+
+        <svg class="ui-icon" aria-hidden="true">
+          <use href="#icon-close"></use>
+        </svg>
+
       </button>
 
     </div>
@@ -2671,15 +4199,19 @@
       <button
         class="button button-outline"
         id="modalCancel"
-      >
+        type="button">
+
         Close
+
       </button>
 
       <button
         class="button button-primary hidden"
         id="modalConfirm"
-      >
+        type="button">
+
         Confirm
+
       </button>
 
     </div>
@@ -2699,10 +4231,11 @@
 ></div>
 
 <!-- =========================================
-     APPLICATION SCRIPT
+     APPLICATION JAVASCRIPT
 ========================================= -->
 
 <script src="script.js"></script>
 
 </body>
+
 </html>
