@@ -874,6 +874,19 @@
         align-items: flex-start;
       }
     }
+  
+    /* BSUNISYNC_QUICK_ACTIONS_REMOVED: the two remaining panels share the full width. */
+
+    .overview-decision-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    }
+
+    @media (max-width: 1100px) {
+      .overview-decision-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
   </style>
 </head>
 
@@ -1829,77 +1842,7 @@
 
             </article>
 
-            <article class="panel overview-quick-actions">
-
-              <div class="panel-header">
-
-                <div class="panel-heading-content">
-                  <svg class="ui-icon panel-title-icon" aria-hidden="true">
-                    <use href="#icon-bolt"></use>
-                  </svg>
-                  <div>
-                    <h3>Quick Actions</h3>
-                    <p>Frequently used tools</p>
-                  </div>
-                </div>
-
-              </div>
-
-              <div class="quick-action-grid">
-
-                <button type="button" class="quick-action" data-go="students">
-                  <span>
-                    <svg class="ui-icon" aria-hidden="true">
-                      <use href="#icon-users"></use>
-                    </svg>
-                  </span>
-                  Student Records
-                  <b>→</b>
-                </button>
-
-                <button type="button" class="quick-action" data-go="evaluation">
-                  <span>
-                    <svg class="ui-icon" aria-hidden="true">
-                      <use href="#icon-star"></use>
-                    </svg>
-                  </span>
-                  View SETE Analysis
-                  <b>→</b>
-                </button>
-
-                <button type="button" class="quick-action" data-go="schedule">
-                  <span>
-                    <svg class="ui-icon" aria-hidden="true">
-                      <use href="#icon-calendar"></use>
-                    </svg>
-                  </span>
-                  Class Schedule
-                  <b>→</b>
-                </button>
-
-                <button type="button" class="quick-action" data-go="classes">
-                  <span>
-                    <svg class="ui-icon" aria-hidden="true">
-                      <use href="#icon-book"></use>
-                    </svg>
-                  </span>
-                  My Classes
-                  <b>→</b>
-                </button>
-
-                <button type="button" class="quick-action" data-go="prediction">
-                  <span>
-                    <svg class="ui-icon" aria-hidden="true">
-                      <use href="#icon-prediction"></use>
-                    </svg>
-                  </span>
-                  Student Prediction
-                  <b>→</b>
-                </button>
-
-              </div>
-
-            </article>
+            
 
           </div>
 
