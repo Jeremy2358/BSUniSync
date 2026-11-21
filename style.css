@@ -1,3 +1,4 @@
+
 :root {
   --sidebar-bg: #f4f5f7;
   --sidebar-text: #30363c;
@@ -36,10 +37,7 @@ body {
   overflow: hidden;
 }
 
-button,
-input,
-select,
-textarea {
+button, input, select, textarea {
   font: inherit;
 }
 
@@ -594,7 +592,8 @@ textarea:focus {
   padding: 10px 15px;
   font-size: 11px;
   font-weight: 700;
-  transition: background .2s, color .2s, border-color .2s, transform .2s;
+  transition: background .2s, color .2s,
+              border-color .2s, transform .2s;
 }
 
 .button:active {
@@ -632,7 +631,8 @@ textarea:focus {
   color: #75d4dc;
 }
 
-.hidden {
+.hidden,
+[hidden] {
   display: none !important;
 }
 
@@ -749,7 +749,11 @@ textarea:focus {
   min-width: 0;
   padding: 21px;
   margin: 0 0 22px;
-  background: linear-gradient(115deg,var(--surface),var(--surface-soft));
+  background: linear-gradient(
+    115deg,
+    var(--surface),
+    var(--surface-soft)
+  );
   border: 1px solid var(--border);
   border-left: 3px solid var(--teal);
   border-radius: var(--radius);
@@ -942,18 +946,51 @@ textarea:focus {
   min-width: 0;
 }
 
-/*
-  ML risk distribution occupies the full row.
-*/
-
-.overview-insights-grid > .ml-risk-panel {
+.overview-insights-grid > .ml-risk-panel,
+.overview-insights-grid > .ml-risk-distribution-panel {
   grid-column: 1 / -1;
   width: 100%;
   min-width: 0;
 }
 
-.overview-insights-grid .ml-risk-panel {
+.overview-insights-grid .ml-risk-panel,
+.overview-insights-grid .ml-risk-distribution-panel {
   min-width: 0;
+}
+
+.overview-insights-heading {
+  margin: 28px 0 15px;
+}
+
+.overview-insights-heading h2 {
+  margin: 0 0 5px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.overview-insights-heading p {
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.overview-insight-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+.overview-insight-panel .chart-wrap {
+  height: 245px;
+  min-height: 245px;
+}
+
+.overview-chart-note {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
 }
 
 /* =========================================
@@ -1077,8 +1114,6 @@ textarea:focus {
   box-shadow: 0 0 12px rgba(24,139,69,.16);
 }
 
-/* Compatibility with existing distribution class names */
-
 .ml-risk-fill.risk,
 .ml-distribution-fill.risk {
   background: linear-gradient(90deg,#bd2634,#ef626b);
@@ -1175,8 +1210,6 @@ textarea:focus {
 .ml-risk-legend .pending-dot {
   background: #dfb65e;
 }
-
-/* FIXED: Keep the total label and number together */
 
 .ml-risk-total {
   display: flex;
@@ -1338,6 +1371,10 @@ textarea:focus {
   background: var(--blue);
 }
 
+/* =========================================
+   ANNOUNCEMENTS
+========================================= */
+
 .announcement-list {
   display: grid;
   gap: 16px;
@@ -1388,6 +1425,10 @@ textarea:focus {
   color: #87969d;
 }
 
+/* =========================================
+   QUICK ACTIONS
+========================================= */
+
 .quick-action-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1422,6 +1463,10 @@ textarea:focus {
   margin-left: auto;
   color: var(--muted);
 }
+
+/* =========================================
+   TEACHING LOAD AND FOLLOW-UP
+========================================= */
 
 .mini-class-list {
   display: grid;
@@ -1820,7 +1865,7 @@ tbody tr:hover {
 }
 
 /* =========================================
-   OTHER SECTIONS
+   CLASSES, SCHEDULE AND ANALYTICS
 ========================================= */
 
 .stat-strip {
@@ -1855,6 +1900,10 @@ tbody tr:hover {
   margin-top: 4px;
 }
 
+/* =========================================
+   ACADEMIC ALERTS
+========================================= */
+
 .alert-summary {
   display: grid;
   grid-template-columns: repeat(3,1fr);
@@ -1885,6 +1934,36 @@ tbody tr:hover {
   font-size: 10px;
   margin-top: 4px;
 }
+
+.alert-action {
+  margin-top: 9px;
+  padding-left: 0;
+  text-align: left;
+}
+
+.alert-content {
+  min-width: 0;
+}
+
+.empty-alert-state {
+  padding: 35px 15px;
+  text-align: center;
+}
+
+.empty-alert-state strong {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  margin-bottom: 7px;
+}
+
+.empty-alert-state p {
+  font-size: 11px;
+}
+
+/* =========================================
+   PROFILE AND SETTINGS
+========================================= */
 
 .profile-panel {
   max-width: 900px;
@@ -2040,6 +2119,471 @@ tbody tr:hover {
 }
 
 /* =========================================
+   ML API CONNECTION STATUS
+========================================= */
+
+.model-api-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.model-api-indicator {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.model-api-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d6a044;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.model-api-status.online .model-api-dot {
+  background: #35bd7a;
+}
+
+.model-api-status.offline .model-api-dot {
+  background: #e45b63;
+}
+
+.model-retry-button {
+  background: rgba(22,143,160,.12);
+  border: 1px solid rgba(22,143,160,.35);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 9px;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.model-retry-button:hover {
+  background: rgba(22,143,160,.23);
+}
+
+.model-retry-button:disabled {
+  opacity: .5;
+  cursor: wait;
+}
+
+.ml-disclaimer {
+  padding: 0 20px 14px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.ml-badge {
+  display: inline-block;
+  padding: 5px 7px;
+  border-radius: 20px;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.ml-risk {
+  background: rgba(217,35,50,.16);
+  color: #ff7e85;
+}
+
+.ml-safe {
+  background: rgba(24,139,69,.16);
+  color: #63d296;
+}
+
+.ml-pending {
+  background: rgba(201,149,57,.16);
+  color: #e8bc6d;
+}
+
+.ml-unavailable {
+  background: rgba(150,160,165,.14);
+  color: var(--muted);
+}
+
+.ml-score {
+  display: block;
+  color: var(--muted);
+  font-size: 8px;
+  margin-top: 4px;
+}
+
+/* =========================================
+   DATA SOURCE SELECTORS
+========================================= */
+
+#page-overview .welcome-copy {
+  min-width: 0;
+}
+
+#page-overview .filter-row {
+  flex: 0 1 auto;
+}
+
+#recordModeSelect,
+#studentRecordModeSelect {
+  min-width: 170px;
+}
+
+#yearFilter:disabled,
+#semesterFilter:disabled,
+#studentYearFilter:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+#page-students .student-toolbar {
+  flex-wrap: wrap;
+}
+
+#page-students .student-toolbar input {
+  flex: 1 1 210px;
+}
+
+#page-students .student-toolbar select {
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
+#page-students .student-record-heading {
+  flex-wrap: wrap;
+}
+
+/* =========================================
+   FACULTY STUDENT PREDICTION WORKSPACE
+========================================= */
+
+#page-prediction .panel {
+  min-width: 0;
+  margin-bottom: 20px;
+}
+
+#page-prediction .panel-header {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+#page-prediction .prediction-intro {
+  margin: 20px 0;
+}
+
+#page-prediction .prediction-intro h2 {
+  font-size: 17px;
+  margin: 0 0 7px;
+  color: var(--text);
+}
+
+#page-prediction .prediction-intro p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.prediction-form-panel {
+  margin-bottom: 20px;
+}
+
+#studentPredictionForm .prediction-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 18px;
+}
+
+#studentPredictionForm label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+#studentPredictionForm input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 11px 12px;
+  background: var(--surface-soft);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+#studentPredictionForm input::placeholder {
+  color: var(--muted);
+  opacity: .8;
+}
+
+#studentPredictionForm input:focus {
+  outline: 2px solid rgba(22,143,160,.32);
+  border-color: var(--teal);
+}
+
+#studentPredictionForm .prediction-field-help {
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+#studentPredictionForm .prediction-form-note {
+  margin-top: 20px;
+  padding: 14px;
+  background: rgba(22,143,160,.06);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+#studentPredictionForm .prediction-form-note p {
+  margin-top: 6px;
+}
+
+#studentPredictionForm .prediction-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 18px;
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+#studentPredictionForm .button,
+#page-prediction .prediction-result-actions .button {
+  min-height: 40px;
+}
+
+#studentPredictionForm input:disabled,
+#studentPredictionForm button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+/* =========================================
+   PREDICTION LOADING AND EMPTY STATES
+========================================= */
+
+#page-prediction .prediction-result-placeholder,
+#page-prediction .prediction-loading,
+#page-prediction .prediction-history-empty {
+  padding: 32px 14px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+#page-prediction .prediction-loading p,
+#page-prediction .prediction-result-placeholder p {
+  margin-top: 7px;
+}
+
+#page-prediction .prediction-spinner {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 15px;
+  border: 3px solid var(--border);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: prediction-spin .8s linear infinite;
+}
+
+@keyframes prediction-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================
+   PREDICTION ERROR
+========================================= */
+
+#page-prediction .prediction-error {
+  padding: 16px;
+  background: rgba(217,35,50,.08);
+  border: 1px solid rgba(217,35,50,.35);
+  border-radius: 9px;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+#page-prediction .prediction-error p {
+  margin-top: 8px;
+}
+
+/* =========================================
+   PREDICTION RESULTS
+========================================= */
+
+.prediction-result-panel {
+  margin-bottom: 20px;
+}
+
+#page-prediction .prediction-result-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px;
+  margin: 18px 0;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+#page-prediction .prediction-result-classification,
+#page-prediction .prediction-result-score {
+  font-size: clamp(20px,3vw,28px);
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+#page-prediction .prediction-risk-text {
+  color: #ff858b;
+}
+
+#page-prediction .prediction-safe-text {
+  color: #63d296;
+}
+
+#page-prediction .prediction-result-score-label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+#page-prediction .prediction-result-details {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+#page-prediction .prediction-result-detail {
+  min-width: 0;
+  padding: 13px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+#page-prediction .prediction-result-detail span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+
+#page-prediction .prediction-result-detail strong {
+  color: var(--text);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+#page-prediction .prediction-result-note {
+  margin-top: 18px;
+  padding: 14px;
+  background: rgba(22,143,160,.06);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+#page-prediction .prediction-result-note strong,
+#studentPredictionForm .prediction-form-note strong {
+  color: var(--text);
+}
+
+#page-prediction .prediction-result-note p {
+  margin-top: 7px;
+}
+
+#page-prediction .prediction-result-actions,
+.modal .prediction-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.prediction-source-note {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+  margin-top: 10px;
+}
+
+/* =========================================
+   PREDICTION HISTORY
+========================================= */
+
+.prediction-history-panel {
+  margin-bottom: 20px;
+}
+
+#page-prediction .prediction-history-panel .student-table {
+  min-width: 700px;
+}
+
+#page-prediction .prediction-history-panel .student-table th {
+  min-width: 0;
+}
+
+#page-prediction .prediction-history-panel .student-table th:nth-child(2) {
+  min-width: 140px;
+}
+
+#page-prediction .prediction-history-panel .student-table th:nth-child(5) {
+  min-width: 135px;
+}
+
+#page-prediction .prediction-history-panel .overview-chart-note {
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.modal .detail-cell .ml-badge {
+  display: inline-block;
+  margin-bottom: 0;
+}
+
+.modal .detail-cell .ml-score {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.modal .detail-note p {
+  margin-top: 7px;
+}
+
+/* =========================================
    LIGHT THEME
 ========================================= */
 
@@ -2168,11 +2712,90 @@ body.light-theme .notification-item strong {
   color: #253138;
 }
 
+/* LIGHT THEME PREDICTION COLORS */
+
+body.light-theme #page-prediction .prediction-risk-text {
+  color: #b42332;
+}
+
+body.light-theme #page-prediction .prediction-safe-text {
+  color: #176b43;
+}
+
+body.light-theme .ml-badge.ml-risk,
+body.light-theme .standing-risk,
+body.light-theme .status-pill.danger,
+body.light-theme .ml-overview-status.offline {
+  color: #a9202e;
+}
+
+body.light-theme .ml-badge.ml-safe,
+body.light-theme .standing-excellent,
+body.light-theme .status-pill.success {
+  color: #176b43;
+}
+
+body.light-theme .ml-badge.ml-pending,
+body.light-theme .standing-monitoring,
+body.light-theme .status-pill.warning,
+body.light-theme .ml-overview-status.connecting {
+  color: #865a13;
+}
+
+body.light-theme .standing-good,
+body.light-theme .record-count,
+body.light-theme .view-record,
+body.light-theme .text-button {
+  color: #086b76;
+}
+
+body.light-theme .view-record:hover {
+  color: white;
+}
+
+body.light-theme .status-pill.info {
+  color: #225f85;
+}
+
+body.light-theme .standing-none,
+body.light-theme .student-id {
+  color: #52656b;
+}
+
+body.light-theme .record-status {
+  color: #176b43;
+}
+
+body.light-theme .record-status.follow-up {
+  color: #865a13;
+}
+
+body.light-theme .ml-overview-card.risk > strong {
+  color: #b42332;
+}
+
+body.light-theme .ml-overview-card.safe > strong {
+  color: #176b43;
+}
+
+body.light-theme .ml-overview-status.online {
+  color: #176b43;
+}
+
+body.light-theme .eyebrow {
+  color: #087d89;
+}
+
+body.light-theme .welcome-copy h1 span {
+  color: #087d89;
+}
+
 /* =========================================
-   SHORT DESKTOP HEIGHTS
+   RESPONSIVE SIDEBAR HEIGHT
 ========================================= */
 
 @media(max-height:760px) and (min-width:761px) {
+
   .brand {
     height: 112px;
     min-height: 112px;
@@ -2205,9 +2828,11 @@ body.light-theme .notification-item strong {
     padding-top: 10px;
     padding-bottom: 10px;
   }
+
 }
 
 @media(max-height:650px) and (min-width:761px) {
+
   .brand {
     height: 88px;
     min-height: 88px;
@@ -2244,13 +2869,15 @@ body.light-theme .notification-item strong {
     padding: 8px 12px;
     font-size: 8px;
   }
+
 }
 
 /* =========================================
-   RESPONSIVE: MEDIUM DESKTOP
+   RESPONSIVE DESKTOP
 ========================================= */
 
 @media(max-width:1350px) {
+
   .content-area {
     padding: 24px;
   }
@@ -2272,13 +2899,15 @@ body.light-theme .notification-item strong {
     padding: 10px 6px;
     font-size: 9px;
   }
+
 }
 
 /* =========================================
-   RESPONSIVE: TABLET / SMALL LAPTOP
+   RESPONSIVE TABLET
 ========================================= */
 
 @media(max-width:1050px) and (min-width:761px) {
+
   .sidebar {
     width: 230px;
     min-width: 230px;
@@ -2294,7 +2923,8 @@ body.light-theme .notification-item strong {
     grid-template-columns: repeat(2,minmax(0,1fr));
   }
 
-  .overview-insights-grid > .ml-risk-panel {
+  .overview-insights-grid > .ml-risk-panel,
+  .overview-insights-grid > .ml-risk-distribution-panel {
     grid-column: 1 / -1;
   }
 
@@ -2315,13 +2945,28 @@ body.light-theme .notification-item strong {
   .kpi-grid {
     grid-template-columns: repeat(3,minmax(0,1fr));
   }
+
+}
+
+@media(max-width:1050px) {
+
+  #page-overview .welcome-banner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  #page-overview .filter-row {
+    width: 100%;
+  }
+
 }
 
 /* =========================================
-   RESPONSIVE: MOBILE
+   RESPONSIVE MOBILE
 ========================================= */
 
 @media(max-width:760px) {
+
   body {
     overflow-x: hidden;
     overflow-y: auto;
@@ -2437,10 +3082,7 @@ body.light-theme .notification-item strong {
     grid-template-columns: repeat(2,minmax(0,1fr));
   }
 
-  .three-kpis {
-    grid-template-columns: 1fr;
-  }
-
+  .three-kpis,
   .two-columns,
   .bottom-columns {
     grid-template-columns: 1fr;
@@ -2451,7 +3093,8 @@ body.light-theme .notification-item strong {
     gap: 14px;
   }
 
-  .overview-insights-grid > .ml-risk-panel {
+  .overview-insights-grid > .ml-risk-panel,
+  .overview-insights-grid > .ml-risk-distribution-panel {
     grid-column: auto;
   }
 
@@ -2559,13 +3202,74 @@ body.light-theme .notification-item strong {
   .ml-risk-total strong {
     font-size: 15px;
   }
+
+  /* Prediction form responsive layout */
+
+  #studentPredictionForm .prediction-form-grid,
+  #page-prediction .prediction-result-details {
+    grid-template-columns: 1fr;
+  }
+
+  #studentPredictionForm .prediction-form-actions,
+  #page-prediction .prediction-result-actions {
+    flex-direction: column;
+  }
+
+  #studentPredictionForm .prediction-form-actions .button,
+  #page-prediction .prediction-result-actions .button {
+    width: 100%;
+  }
+
+  #recordModeSelect,
+  #studentRecordModeSelect {
+    min-width: 0;
+    width: 100%;
+  }
+
+  #page-overview .filter-row label {
+    flex: 1 1 125px;
+  }
+
+  #page-overview .filter-row select {
+    min-width: 0;
+  }
+
+  #page-students .student-toolbar input {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  #page-students .student-toolbar select {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  #page-prediction .prediction-result-status {
+    align-items: flex-start;
+  }
+
+  .student-record-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .model-api-status {
+    margin-left: 0;
+  }
+
+  .ml-disclaimer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
 }
 
 /* =========================================
-   RESPONSIVE: SMALL MOBILE
+   SMALL MOBILE SCREENS
 ========================================= */
 
 @media(max-width:480px) {
+
   .topbar-brand small {
     display: none;
   }
@@ -2726,13 +3430,49 @@ body.light-theme .notification-item strong {
   .notification-popover {
     right: -45px;
   }
+
+  #page-students .student-record-panel {
+    padding: 0;
+  }
+
+  #page-prediction .prediction-result-status {
+    flex-direction: column;
+  }
+
+  .modal .student-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal .prediction-result-actions .button {
+    width: 100%;
+  }
+
 }
 
 /* =========================================
-   PRINT
+   REDUCED MOTION ACCESSIBILITY
+========================================= */
+
+@media(prefers-reduced-motion:reduce) {
+
+  .page,
+  #page-prediction .prediction-spinner,
+  .ml-overview-status.connecting::before {
+    animation: none !important;
+  }
+
+  .ml-risk-fill {
+    transition: none !important;
+  }
+
+}
+
+/* =========================================
+   PRINT SCHEDULE
 ========================================= */
 
 @media print {
+
   body {
     overflow: visible;
     background: white;
@@ -2787,4 +3527,5 @@ body.light-theme .notification-item strong {
   .text-button {
     display: none !important;
   }
+
 }
