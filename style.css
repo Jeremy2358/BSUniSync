@@ -897,3 +897,28 @@ body.light-theme .brand,body.light-theme .brand-logo{background:transparent;box-
   }
 
 }
+/* =========================================
+   FIX: TWO-COLUMN ACADEMIC DECISION SUPPORT
+   ========================================= */
+
+#page-overview .overview-decision-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) !important;
+  width: 100%;
+  gap: 16px;
+}
+
+#page-overview .overview-decision-grid > .overview-alerts-panel,
+#page-overview .overview-decision-grid > .ml-overview-panel {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  grid-column: auto !important;
+}
+
+/* Stack panels on smaller screens */
+@media (max-width: 1050px) {
+  #page-overview .overview-decision-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
