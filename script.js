@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let modelApiMessage = "Connecting to prediction service...";
   let modelApiLoading = false;
   let individualPredictionLoading = false;
-
   let predictionHistory = [];
   let predictionSequence = 0;
 
@@ -72,7 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let i = 0; i < group.count; i++) {
       const steps = Math.round((group.max - group.min) * 100);
       const value = group.min + ((i * 7) % (steps + 1)) / 100;
-
       generatedGwaValues.push(
         Number(Math.min(value, group.max).toFixed(2))
       );
@@ -81,16 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let generatedIndex = 0;
 
-  for (
-    let i = 0;
-    i < firstNames.length && generatedIndex < 334;
-    i++
-  ) {
-    for (
-      let j = 0;
-      j < lastNames.length && generatedIndex < 334;
-      j++
-    ) {
+  for (let i = 0; i < firstNames.length && generatedIndex < 334; i++) {
+    for (let j = 0; j < lastNames.length && generatedIndex < 334; j++) {
       const name = `${firstNames[i]} ${lastNames[j]}`;
 
       if (students.some(student => student.name === name)) {
@@ -98,12 +88,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const gwa = generatedGwaValues[generatedIndex];
-
       const year = [
-        "1st Year",
-        "2nd Year",
-        "3rd Year",
-        "4th Year"
+        "1st Year","2nd Year","3rd Year","4th Year"
       ][generatedIndex % 4];
 
       let attendance;
@@ -131,34 +117,26 @@ document.addEventListener("DOMContentLoaded", () => {
         gwa,
         attendance,
         progress,
-        status:
-          gwa > 2.75 || attendance < 80
-            ? "For Follow-up"
-            : "Active"
+        status: gwa > 2.75 || attendance < 80
+          ? "For Follow-up"
+          : "Active"
       });
 
       generatedIndex++;
     }
   }
 
-  students.forEach((student, index) => {
+  students.forEach((student,index) => {
     student.academicYear = index < 8
       ? "2025-2026"
-      : [
-          "2023-2024",
-          "2024-2025",
-          "2025-2026"
-        ][index % 3];
+      : ["2023-2024","2024-2025","2025-2026"][index % 3];
 
     student.semester = index % 2 === 0 ? "1" : "2";
 
     const previousVariation = ((index % 7) - 3) * 0.12;
 
     student.previousGwa = Number(
-      Math.max(
-        1,
-        Math.min(5, student.gwa + previousVariation)
-      ).toFixed(2)
+      Math.max(1,Math.min(5,student.gwa + previousVariation)).toFixed(2)
     );
 
     if (student.gwa <= 1.50) {
@@ -177,17 +155,11 @@ document.addEventListener("DOMContentLoaded", () => {
     student.source = "demonstration";
   });
 
-  // Faculty-entered records are kept separate from
-  // demonstration student records.
-
   const facultyStudents = [];
-
   let recordMode = "demonstration";
 
   function getActiveStudents() {
-    return recordMode === "faculty"
-      ? facultyStudents
-      : students;
+    return recordMode === "faculty" ? facultyStudents : students;
   }
 
   // ==================================================
@@ -272,11 +244,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==================================================
 
   let notificationsRead = false;
-
   const chartInstances = {};
 
   const escapeHTML = value =>
-    String(value ?? "").replace(/[&<>"']/g, char => ({
+    String(value ?? "").replace(/[&<>"']/g,char => ({
       "&":"&amp;",
       "<":"&lt;",
       ">":"&gt;",
@@ -284,27 +255,21 @@ document.addEventListener("DOMContentLoaded", () => {
       "'":"&#39;"
     })[char]);
 
-  function setText(selector, value) {
+  function setText(selector,value) {
     const element = $(selector);
-
-    if (element) {
-      element.textContent = value;
-    }
+    if (element) element.textContent = value;
   }
 
   function showToast(message) {
     const container = $("#toastContainer");
-
     if (!container) return;
 
     const toast = document.createElement("div");
-
     toast.className = "toast";
     toast.textContent = message;
 
     container.appendChild(toast);
-
-    setTimeout(() => toast.remove(), 3500);
+    setTimeout(() => toast.remove(),3500);
   }
 
   function getStanding(gwa) {
@@ -346,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .toUpperCase();
   }
 
-  function getPercentage(part, total) {
+  function getPercentage(part,total) {
     return total ? part / total * 100 : 0;
   }
 
@@ -357,7 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return "Not available";
     }
 
-    return date.toLocaleString("en-PH", {
+    return date.toLocaleString("en-PH",{
       year:"numeric",
       month:"short",
       day:"numeric",
@@ -379,14 +344,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==================================================
-  // DASHBOARD FILTERS AND KPI SUMMARY
+  // DASHBOARD FILTERS AND KPIS
   // ==================================================
 
   function getDashboardStudents() {
     const records = getActiveStudents();
-
-    // Faculty form does not currently ask for academic
-    // year or semester, so no invented values are used.
 
     if (recordMode === "faculty") {
       return records;
@@ -411,10 +373,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const averageProgress = total
       ? records.reduce(
-          (sum, student) =>
-            sum + Number(student.progress || 0),
-          0
-        ) / total
+        (sum,student) => sum + Number(student.progress || 0),0
+      ) / total
       : 0;
 
     const gwaRisk = records.filter(student =>
@@ -427,10 +387,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const averageAttendance = total
       ? records.reduce(
-          (sum, student) =>
-            sum + Number(student.attendance || 0),
-          0
-        ) / total
+        (sum,student) => sum + Number(student.attendance || 0),0
+      ) / total
       : 0;
 
     return {
@@ -448,30 +406,23 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateDashboardKPIs() {
     const summary = getDashboardSummary();
 
-    setText(
-      "#kpiStudents",
-      summary.total.toLocaleString()
-    );
+    setText("#kpiStudents",summary.total.toLocaleString());
 
     setText(
       "#kpiPassing",
-      summary.total
-        ? `${summary.passingRate.toFixed(1)}%`
-        : "—"
+      summary.total ? `${summary.passingRate.toFixed(1)}%` : "—"
     );
 
     setText(
       "#kpiCompletion",
-      summary.total
-        ? `${summary.averageProgress.toFixed(1)}%`
-        : "—"
+      summary.total ? `${summary.averageProgress.toFixed(1)}%` : "—"
     );
 
     const riskCount = recordMode === "faculty"
       ? summary.mlRisk
       : summary.gwaRisk;
 
-    setText("#kpiAtRisk", riskCount.toLocaleString());
+    setText("#kpiAtRisk",riskCount.toLocaleString());
 
     setText(
       "#kpiAtRiskDetail",
@@ -480,16 +431,14 @@ document.addEventListener("DOMContentLoaded", () => {
         : `${riskCount} students with GWA above 2.75 in this selection`
     );
 
-    const totalLabel =
-      $("#kpiStudents")?.closest(".kpi-info")
-        ?.querySelector("small");
+    const totalLabel = $("#kpiStudents")?.closest(".kpi-info")
+      ?.querySelector("small");
 
     if (totalLabel) {
       totalLabel.textContent = getSourceLabel();
     }
 
-    const passingCard =
-      $("#kpiPassing")?.closest(".kpi-info");
+    const passingCard = $("#kpiPassing")?.closest(".kpi-info");
 
     if (passingCard) {
       const title = passingCard.querySelector("span");
@@ -499,8 +448,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (note) note.textContent = "Students with GWA of 3.00 or better";
     }
 
-    const completionCard =
-      $("#kpiCompletion")?.closest(".kpi-info");
+    const completionCard = $("#kpiCompletion")?.closest(".kpi-info");
 
     if (completionCard) {
       const title = completionCard.querySelector("span");
@@ -524,19 +472,15 @@ document.addEventListener("DOMContentLoaded", () => {
       label.innerHTML = `
         Data Source
         <select id="recordModeSelect">
-          <option value="demonstration">
-            Demonstration Data
-          </option>
-          <option value="faculty">
-            Faculty-entered Data
-          </option>
+          <option value="demonstration">Demonstration Data</option>
+          <option value="faculty">Faculty-entered Data</option>
         </select>
       `;
 
       filterRow.prepend(label);
     }
 
-    $("#recordModeSelect")?.addEventListener("change", event => {
+    $("#recordModeSelect")?.addEventListener("change",event => {
       setRecordMode(event.target.value);
     });
 
@@ -546,29 +490,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const select = document.createElement("select");
 
       select.id = "studentRecordModeSelect";
-      select.setAttribute("aria-label", "Student data source");
+      select.setAttribute("aria-label","Student data source");
 
       select.innerHTML = `
-        <option value="demonstration">
-          Demonstration Records
-        </option>
-        <option value="faculty">
-          Faculty-entered Records
-        </option>
+        <option value="demonstration">Demonstration Records</option>
+        <option value="faculty">Faculty-entered Records</option>
       `;
 
       studentToolbar.appendChild(select);
 
-      select.addEventListener("change", event => {
+      select.addEventListener("change",event => {
         setRecordMode(event.target.value);
       });
     }
   }
 
   function setRecordMode(mode) {
-    recordMode = mode === "faculty"
-      ? "faculty"
-      : "demonstration";
+    recordMode = mode === "faculty" ? "faculty" : "demonstration";
 
     if ($("#recordModeSelect")) {
       $("#recordModeSelect").value = recordMode;
@@ -588,8 +526,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if ($("#studentYearFilter")) {
       $("#studentYearFilter").value = "all";
-      $("#studentYearFilter").disabled =
-        recordMode === "faculty";
+      $("#studentYearFilter").disabled = recordMode === "faculty";
     }
 
     if ($("#studentSearch")) {
@@ -603,39 +540,37 @@ document.addEventListener("DOMContentLoaded", () => {
     const disclaimer = $("#mlDisclaimer");
 
     if (disclaimer) {
-      disclaimer.textContent =
-        recordMode === "faculty"
-          ? "Predictions below use faculty-entered academic inputs. These records are temporary and must be reviewed by faculty."
-          : "ML predictions use synthetic demonstration inputs. Model scores are not calibrated probabilities and should only support human review.";
+      disclaimer.textContent = recordMode === "faculty"
+        ? "Predictions below use faculty-entered academic inputs. These records are temporary and must be reviewed by faculty."
+        : "ML predictions use synthetic demonstration inputs. Model scores are not calibrated probabilities and should only support human review.";
     }
 
     const overviewDisclaimer = $(".ml-overview-disclaimer");
 
     if (overviewDisclaimer) {
-      overviewDisclaimer.innerHTML =
-        recordMode === "faculty"
-          ? `
-            <strong>Important:</strong>
-            This view uses faculty-entered academic information.
-            Predictions support academic review and are not
-            definitive judgments. The model has not been
-            validated against actual institutional outcomes.
-            Records are temporary for this demonstration session.
-          `
-          : `
-            <strong>Important:</strong>
-            This view uses synthetic demonstration student
-            records and simulated historical inputs.
-            Predictions are decision-support indicators only.
-            Faculty judgment and academic review remain necessary.
-          `;
+      overviewDisclaimer.innerHTML = recordMode === "faculty"
+        ? `
+          <strong>Important:</strong>
+          This view uses faculty-entered academic information.
+          Predictions support academic review and are not definitive
+          judgments. The model has not been validated against actual
+          institutional outcomes. Records are temporary for this
+          demonstration session.
+        `
+        : `
+          <strong>Important:</strong>
+          This view uses synthetic demonstration student records
+          and simulated historical inputs. Predictions are
+          decision-support indicators only. Faculty judgment
+          and academic review remain necessary.
+        `;
     }
 
     refreshAcademicViews();
   }
 
   // ==================================================
-  // SHARED MODEL API REQUEST
+  // MODEL API REQUEST
   // ==================================================
 
   function createModelInput(student) {
@@ -654,18 +589,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const controller = new AbortController();
-
-    const timeout = setTimeout(
-      () => controller.abort(),
-      API_TIMEOUT
-    );
+    const timeout = setTimeout(() => controller.abort(),API_TIMEOUT);
 
     try {
       const payload = {
         students:records.map(createModelInput)
       };
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(API_URL,{
         method:"POST",
         headers:{
           "Content-Type":"application/json",
@@ -680,9 +611,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
           const errorData = await response.json();
-
-          const rawDetail =
-            errorData.detail || errorData.message || "";
+          const rawDetail = errorData.detail || errorData.message || "";
 
           detail = typeof rawDetail === "string"
             ? rawDetail
@@ -693,18 +622,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         throw new Error(
-          `API returned HTTP ${response.status}${
-            detail ? `: ${detail}` : ""
-          }`
+          `API returned HTTP ${response.status}${detail ? `: ${detail}` : ""}`
         );
       }
 
       const data = await response.json();
 
-      return normalizePredictionResponse(
-        data,
-        records.length
-      );
+      return normalizePredictionResponse(data,records.length);
 
     } catch (error) {
       if (error.name === "AbortError") {
@@ -735,8 +659,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const explicitPercent =
-      typeof value === "string" &&
-      value.trim().endsWith("%");
+      typeof value === "string" && value.trim().endsWith("%");
 
     let number = explicitPercent
       ? Number(value.trim().slice(0,-1))
@@ -757,15 +680,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return number;
   }
 
-  function normalizePredictionResponse(data, expectedCount) {
+  function normalizePredictionResponse(data,expectedCount) {
     const predictions =
       Array.isArray(data) ? data :
       Array.isArray(data?.predictions) ? data.predictions :
       Array.isArray(data?.results) ? data.results :
       Array.isArray(data?.data?.predictions) ? data.data.predictions :
       Array.isArray(data?.data?.results) ? data.data.results :
-      Array.isArray(data?.data) ? data.data :
-      null;
+      Array.isArray(data?.data) ? data.data : null;
 
     if (!predictions) {
       throw new Error(
@@ -782,11 +704,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const validatedResults = new Array(expectedCount);
     const receivedIndexes = new Set();
 
-    predictions.forEach((result, position) => {
+    predictions.forEach((result,position) => {
       if (!result || typeof result !== "object") {
-        throw new Error(
-          `Prediction result ${position + 1} is invalid.`
-        );
+        throw new Error(`Prediction result ${position + 1} is invalid.`);
       }
 
       const rawIndex =
@@ -797,20 +717,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const index = Number(rawIndex);
 
-      if (
-        !Number.isInteger(index) ||
-        index < 0 ||
-        index >= expectedCount
-      ) {
-        throw new Error(
-          `Invalid student index at result ${position + 1}.`
-        );
+      if (!Number.isInteger(index) || index < 0 || index >= expectedCount) {
+        throw new Error(`Invalid student index at result ${position + 1}.`);
       }
 
       if (receivedIndexes.has(index)) {
-        throw new Error(
-          `Duplicate prediction result at index ${index}.`
-        );
+        throw new Error(`Duplicate prediction result at index ${index}.`);
       }
 
       const rawPrediction =
@@ -829,34 +741,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let prediction;
 
-      if ([
-        "at risk",
-        "risk",
-        "1",
-        "true",
-        "high risk"
-      ].includes(normalizedLabel)) {
+      if (["at risk","risk","1","true","high risk"].includes(normalizedLabel)) {
         prediction = "At Risk";
-
       } else if ([
-        "not at risk",
-        "not risk",
-        "safe",
-        "0",
-        "false",
-        "low risk",
-        "no risk"
+        "not at risk","not risk","safe","0","false","low risk","no risk"
       ].includes(normalizedLabel)) {
         prediction = "Not At Risk";
-
       } else {
-        throw new Error(
-          `Unsupported prediction label: ${String(rawPrediction)}`
-        );
+        throw new Error(`Unsupported prediction label: ${String(rawPrediction)}`);
       }
-
-      // Explicit at-risk probabilities are distinguished
-      // from generic model confidence or model scores.
 
       let rawScore =
         result.at_risk_probability ??
@@ -868,11 +761,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let scoreLabel = "At-risk Probability";
 
       if (rawScore === null) {
-        rawScore =
-          result.risk_score ??
-          result.riskScore ??
-          null;
-
+        rawScore = result.risk_score ?? result.riskScore ?? null;
         scoreLabel = "Model Risk Score";
       }
 
@@ -892,11 +781,7 @@ document.addEventListener("DOMContentLoaded", () => {
           rawScore["At Risk"] ??
           rawScore["at_risk"] ??
           rawScore.risk ??
-          (
-            Array.isArray(rawScore)
-              ? null
-              : rawScore["1"]
-          ) ??
+          (Array.isArray(rawScore) ? null : rawScore["1"]) ??
           null;
 
         if (explicitRisk !== null) {
@@ -910,7 +795,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const score = normalizePercent(rawScore);
 
       receivedIndexes.add(index);
-
       validatedResults[index] = {
         prediction,
         score,
@@ -919,9 +803,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (receivedIndexes.size !== expectedCount) {
-      throw new Error(
-        "The API did not return all required prediction results."
-      );
+      throw new Error("The API did not return all required prediction results.");
     }
 
     return validatedResults;
@@ -931,23 +813,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // MODEL API STATUS
   // ==================================================
 
-  function updateModelApiStatus(status, message) {
+  function updateModelApiStatus(status,message) {
     modelApiStatus = status;
     modelApiMessage = message;
 
     const container = $("#modelApiStatus");
 
     if (container) {
-      container.classList.remove(
-        "online",
-        "offline",
-        "connecting"
-      );
-
+      container.classList.remove("online","offline","connecting");
       container.classList.add(status);
 
-      const messageElement =
-        container.querySelector(".model-api-message");
+      const messageElement = container.querySelector(".model-api-message");
 
       if (messageElement) {
         messageElement.textContent = message;
@@ -957,16 +833,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const retryButton = $("#retryModelBtn");
 
     if (retryButton) {
-      retryButton.disabled =
-        modelApiLoading || individualPredictionLoading;
-
-      retryButton.textContent =
-        modelApiLoading ? "Connecting..." : "Retry";
-
-      retryButton.classList.toggle(
-        "hidden",
-        status === "online"
-      );
+      retryButton.disabled = modelApiLoading || individualPredictionLoading;
+      retryButton.textContent = modelApiLoading ? "Connecting..." : "Retry";
+      retryButton.classList.toggle("hidden",status === "online");
     }
 
     refreshMLOverview();
@@ -980,23 +849,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return {
       analyzed:analyzed.length,
-      risk:analyzed.filter(student =>
-        student.mlPrediction === "At Risk"
-      ).length,
-      safe:analyzed.filter(student =>
-        student.mlPrediction === "Not At Risk"
-      ).length
+      risk:analyzed.filter(student => student.mlPrediction === "At Risk").length,
+      safe:analyzed.filter(student => student.mlPrediction === "Not At Risk").length
     };
   }
 
   function refreshMLOverview() {
     const distribution = getMLRiskDistribution();
-
     const statusElement = $("#mlOverviewStatus");
 
     if (statusElement) {
-      statusElement.className =
-        `ml-overview-status ${modelApiStatus}`;
+      statusElement.className = `ml-overview-status ${modelApiStatus}`;
     }
 
     setText(
@@ -1008,20 +871,9 @@ document.addEventListener("DOMContentLoaded", () => {
           : "Connecting..."
     );
 
-    setText(
-      "#mlOverviewTotal",
-      distribution.analyzed.toLocaleString()
-    );
-
-    setText(
-      "#mlOverviewRisk",
-      distribution.risk.toLocaleString()
-    );
-
-    setText(
-      "#mlOverviewSafe",
-      distribution.safe.toLocaleString()
-    );
+    setText("#mlOverviewTotal",distribution.analyzed.toLocaleString());
+    setText("#mlOverviewRisk",distribution.risk.toLocaleString());
+    setText("#mlOverviewSafe",distribution.safe.toLocaleString());
 
     setText(
       "#mlOverviewMessage",
@@ -1045,16 +897,9 @@ document.addEventListener("DOMContentLoaded", () => {
       status.innerHTML = `
         <div class="model-api-indicator">
           <span class="model-api-dot"></span>
-          <span class="model-api-message">
-            Connecting to prediction service...
-          </span>
+          <span class="model-api-message">Connecting to prediction service...</span>
         </div>
-
-        <button
-          type="button"
-          id="retryModelBtn"
-          class="model-retry-button"
-        >
+        <button type="button" id="retryModelBtn" class="model-retry-button">
           Retry
         </button>
       `;
@@ -1062,19 +907,13 @@ document.addEventListener("DOMContentLoaded", () => {
       heading.appendChild(status);
     }
 
-    const tableHead =
-      $("#page-students .student-table thead tr");
+    const tableHead = $("#page-students .student-table thead tr");
 
     if (tableHead && !$("#mlPredictionHeader")) {
       const header = document.createElement("th");
-
       header.id = "mlPredictionHeader";
       header.textContent = "ML Prediction";
-
-      tableHead.insertBefore(
-        header,
-        tableHead.lastElementChild
-      );
+      tableHead.insertBefore(header,tableHead.lastElementChild);
     }
 
     const guide = $(".standing-guide");
@@ -1084,18 +923,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       disclaimer.id = "mlDisclaimer";
       disclaimer.className = "ml-disclaimer";
+
       disclaimer.textContent =
         "ML predictions use synthetic demonstration inputs. Model scores are not calibrated probabilities and should only support human review.";
 
-      guide.insertAdjacentElement(
-        "afterend",
-        disclaimer
-      );
+      guide.insertAdjacentElement("afterend",disclaimer);
     }
 
     if (!$("#mlDynamicStyles")) {
       const style = document.createElement("style");
-
       style.id = "mlDynamicStyles";
 
       style.textContent = `
@@ -1249,13 +1085,8 @@ document.addEventListener("DOMContentLoaded", () => {
           flex-shrink:0;
         }
 
-        .ml-risk-dot.danger {
-          background:#e34b55;
-        }
-
-        .ml-risk-dot.success {
-          background:#2eb879;
-        }
+        .ml-risk-dot.danger {background:#e34b55;}
+        .ml-risk-dot.success {background:#2eb879;}
 
         .ml-risk-values {
           display:flex;
@@ -1359,9 +1190,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         @keyframes prediction-spin {
-          to {
-            transform:rotate(360deg);
-          }
+          to {transform:rotate(360deg);}
         }
 
         .prediction-error {
@@ -1374,13 +1203,8 @@ document.addEventListener("DOMContentLoaded", () => {
           line-height:1.8;
         }
 
-        .prediction-risk-text {
-          color:#ed666f;
-        }
-
-        .prediction-safe-text {
-          color:#40ba7c;
-        }
+        .prediction-risk-text {color:#ed666f;}
+        .prediction-safe-text {color:#40ba7c;}
 
         .prediction-result-score-label {
           display:block;
@@ -1442,9 +1266,7 @@ document.addEventListener("DOMContentLoaded", () => {
             flex-direction:column;
           }
 
-          .model-api-status {
-            margin-left:0;
-          }
+          .model-api-status {margin-left:0;}
 
           .overview-insights-grid {
             grid-template-columns:minmax(0,1fr);
@@ -1460,48 +1282,26 @@ document.addEventListener("DOMContentLoaded", () => {
             padding:24px 16px;
           }
 
-          .ml-risk-distribution {
-            gap:25px;
-          }
-
-          .ml-risk-label {
-            font-size:13px;
-          }
-
-          .ml-risk-count {
-            font-size:21px;
-          }
-
-          .ml-risk-percent {
-            font-size:12px;
-          }
-
-          .ml-risk-track {
-            height:17px;
-          }
-
-          .prediction-result-actions {
-            flex-direction:column;
-          }
+          .ml-risk-distribution {gap:25px;}
+          .ml-risk-label {font-size:13px;}
+          .ml-risk-count {font-size:21px;}
+          .ml-risk-percent {font-size:12px;}
+          .ml-risk-track {height:17px;}
+          .prediction-result-actions {flex-direction:column;}
         }
       `;
 
       document.head.appendChild(style);
     }
 
-    $("#retryModelBtn")?.addEventListener(
-      "click",
-      () => {
-        if (recordMode === "faculty") {
-          showPage("prediction");
-          showToast(
-            "Submit the student form to retry an individual prediction."
-          );
-        } else {
-          runBatchPredictions();
-        }
+    $("#retryModelBtn")?.addEventListener("click",() => {
+      if (recordMode === "faculty") {
+        showPage("prediction");
+        showToast("Submit the student form to retry an individual prediction.");
+      } else {
+        runBatchPredictions();
       }
-    );
+    });
 
     initializeMLRiskDistribution();
   }
@@ -1509,16 +1309,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function getMLBadge(student) {
     if (!student.mlPrediction) {
       return modelApiStatus === "offline"
-        ? `
-          <span class="ml-badge ml-unavailable">
-            Unavailable
-          </span>
-        `
-        : `
-          <span class="ml-badge ml-pending">
-            Pending
-          </span>
-        `;
+        ? `<span class="ml-badge ml-unavailable">Unavailable</span>`
+        : `<span class="ml-badge ml-pending">Pending</span>`;
     }
 
     const isRisk = student.mlPrediction === "At Risk";
@@ -1527,7 +1319,6 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="ml-badge ${isRisk ? "ml-risk" : "ml-safe"}">
         ${escapeHTML(student.mlPrediction)}
       </span>
-
       <small class="ml-score">
         ${escapeHTML(student.mlScoreLabel || "Model Score")}:
         ${formatScore(student.mlScore)}
@@ -1549,65 +1340,44 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
 
           <div class="ml-risk-row" data-ml-risk-row hidden>
-
             <div class="ml-risk-row-top">
-
               <div class="ml-risk-label">
                 <span class="ml-risk-dot danger"></span>
                 At Risk
               </div>
 
               <div class="ml-risk-values">
-                <strong class="ml-risk-count" data-ml-risk-count>
-                  0
-                </strong>
-
-                <span class="ml-risk-percent" data-ml-risk-percent>
-                  0%
-                </span>
+                <strong class="ml-risk-count" data-ml-risk-count>0</strong>
+                <span class="ml-risk-percent" data-ml-risk-percent>0%</span>
               </div>
-
             </div>
 
             <div class="ml-risk-track">
               <div class="ml-risk-fill danger" data-ml-risk-bar></div>
             </div>
-
           </div>
 
           <div class="ml-risk-row" data-ml-safe-row hidden>
-
             <div class="ml-risk-row-top">
-
               <div class="ml-risk-label">
                 <span class="ml-risk-dot success"></span>
                 Not At Risk
               </div>
 
               <div class="ml-risk-values">
-                <strong class="ml-risk-count" data-ml-safe-count>
-                  0
-                </strong>
-
-                <span class="ml-risk-percent" data-ml-safe-percent>
-                  0%
-                </span>
+                <strong class="ml-risk-count" data-ml-safe-count>0</strong>
+                <span class="ml-risk-percent" data-ml-safe-percent>0%</span>
               </div>
-
             </div>
 
             <div class="ml-risk-track">
               <div class="ml-risk-fill success" data-ml-safe-bar></div>
             </div>
-
           </div>
 
           <div class="ml-risk-total" data-ml-total hidden>
             <span>Total analyzed students</span>
-
-            <strong data-ml-analyzed-count>
-              0
-            </strong>
+            <strong data-ml-analyzed-count>0</strong>
           </div>
 
         </div>
@@ -1619,35 +1389,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateMLRiskChart() {
     const distribution = getMLRiskDistribution();
-
     const hasPredictions = distribution.analyzed > 0;
 
     const riskPercentage = getPercentage(
-      distribution.risk,
-      distribution.analyzed
+      distribution.risk,distribution.analyzed
     );
 
     const safePercentage = getPercentage(
-      distribution.safe,
-      distribution.analyzed
+      distribution.safe,distribution.analyzed
     );
 
     $$(".ml-gauge-wrap").forEach(container => {
-      const riskRow =
-        container.querySelector("[data-ml-risk-row]");
+      const riskRow = container.querySelector("[data-ml-risk-row]");
+      const safeRow = container.querySelector("[data-ml-safe-row]");
+      const totalRow = container.querySelector("[data-ml-total]");
+      const empty = container.querySelector("[data-ml-empty]");
 
-      const safeRow =
-        container.querySelector("[data-ml-safe-row]");
-
-      const totalRow =
-        container.querySelector("[data-ml-total]");
-
-      const empty =
-        container.querySelector("[data-ml-empty]");
-
-      if (!riskRow || !safeRow || !totalRow) {
-        return;
-      }
+      if (!riskRow || !safeRow || !totalRow) return;
 
       riskRow.hidden = !hasPredictions;
       safeRow.hidden = !hasPredictions;
@@ -1656,41 +1414,33 @@ document.addEventListener("DOMContentLoaded", () => {
       if (empty) {
         empty.hidden = hasPredictions;
 
-        empty.textContent =
-          recordMode === "faculty"
-            ? "Submit student academic information to generate the first prediction."
-            : modelApiStatus === "offline"
-              ? "The prediction service is currently unavailable."
-              : "Waiting for demonstration prediction results.";
+        empty.textContent = recordMode === "faculty"
+          ? "Submit student academic information to generate the first prediction."
+          : modelApiStatus === "offline"
+            ? "The prediction service is currently unavailable."
+            : "Waiting for demonstration prediction results.";
       }
 
-      container.querySelector(
-        "[data-ml-risk-count]"
-      ).textContent = distribution.risk;
+      container.querySelector("[data-ml-risk-count]").textContent =
+        distribution.risk;
 
-      container.querySelector(
-        "[data-ml-safe-count]"
-      ).textContent = distribution.safe;
+      container.querySelector("[data-ml-safe-count]").textContent =
+        distribution.safe;
 
-      container.querySelector(
-        "[data-ml-risk-percent]"
-      ).textContent = `${riskPercentage.toFixed(1)}%`;
+      container.querySelector("[data-ml-risk-percent]").textContent =
+        `${riskPercentage.toFixed(1)}%`;
 
-      container.querySelector(
-        "[data-ml-safe-percent]"
-      ).textContent = `${safePercentage.toFixed(1)}%`;
+      container.querySelector("[data-ml-safe-percent]").textContent =
+        `${safePercentage.toFixed(1)}%`;
 
-      container.querySelector(
-        "[data-ml-risk-bar]"
-      ).style.width = `${riskPercentage}%`;
+      container.querySelector("[data-ml-risk-bar]").style.width =
+        `${riskPercentage}%`;
 
-      container.querySelector(
-        "[data-ml-safe-bar]"
-      ).style.width = `${safePercentage}%`;
+      container.querySelector("[data-ml-safe-bar]").style.width =
+        `${safePercentage}%`;
 
-      container.querySelector(
-        "[data-ml-analyzed-count]"
-      ).textContent = distribution.analyzed;
+      container.querySelector("[data-ml-analyzed-count]").textContent =
+        distribution.analyzed;
     });
 
     setText(
@@ -1708,9 +1458,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==================================================
 
   async function runBatchPredictions() {
-    if (modelApiLoading || individualPredictionLoading) {
-      return;
-    }
+    if (modelApiLoading || individualPredictionLoading) return;
 
     modelApiLoading = true;
 
@@ -1734,13 +1482,10 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
       refreshAcademicViews();
-
-      showToast(
-        "Demonstration ML predictions received."
-      );
+      showToast("Demonstration ML predictions received.");
 
     } catch (error) {
-      console.error("Demonstration prediction failed:", error);
+      console.error("Demonstration prediction failed:",error);
 
       updateModelApiStatus(
         "offline",
@@ -1751,21 +1496,363 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } finally {
       modelApiLoading = false;
-
-      updateModelApiStatus(
-        modelApiStatus,
-        modelApiMessage
-      );
-
+      updateModelApiStatus(modelApiStatus,modelApiMessage);
       updateMLRiskChart();
     }
   }
 
   // ==================================================
   // FACULTY STUDENT INPUT FORM
+  // REAL-TIME INPUT VALIDATION
   // ==================================================
 
   const predictionForm = $("#studentPredictionForm");
+
+  const predictionRules = [
+    {
+      id:"predictionStudentId",
+      label:"Student ID",
+      maxLength:50
+    },
+    {
+      id:"predictionStudentName",
+      label:"Student name",
+      maxLength:150
+    },
+    {
+      id:"predictionPreviousGwa",
+      label:"Previous GWA",
+      min:1,
+      max:5,
+      decimals:2,
+      format:true
+    },
+    {
+      id:"predictionCurrentGwa",
+      label:"Current GWA",
+      min:1,
+      max:5,
+      decimals:2,
+      format:true
+    },
+    {
+      id:"predictionAttendance",
+      label:"Attendance rate",
+      min:0,
+      max:100,
+      decimals:2
+    },
+    {
+      id:"predictionProgress",
+      label:"Academic progress",
+      min:0,
+      max:100,
+      decimals:2
+    },
+    {
+      id:"predictionFailedSubjects",
+      label:"Failed subjects",
+      min:0,
+      max:Number.MAX_SAFE_INTEGER,
+      decimals:0
+    }
+  ];
+
+  const predictionFields = [];
+
+  function predictionRangeMessage(rule) {
+    if (rule.decimals === 0) {
+      return "Enter a non-negative whole number within the supported range.";
+    }
+
+    return `Enter ${rule.min.toFixed(2)} to ${rule.max.toFixed(2)} with up to two decimal places.`;
+  }
+
+  function isAllowedPredictionEdit(value,rule) {
+    if (value === "") return true;
+
+    if (rule.decimals === undefined) {
+      return value.length <= rule.maxLength;
+    }
+
+    const pattern = rule.decimals === 0
+      ? /^(0|[1-9]\d*)$/
+      : /^(0|[1-9]\d*)(\.\d{0,2})?$/;
+
+    if (!pattern.test(value)) {
+      return false;
+    }
+
+    const number = Number(value);
+
+    return (
+      Number.isFinite(number) &&
+      number >= rule.min &&
+      number <= rule.max &&
+      (rule.decimals !== 0 || Number.isSafeInteger(number))
+    );
+  }
+
+  function getPredictionFieldError(field) {
+    const {input,rule,rejected} = field;
+
+    if (rejected) return rejected;
+
+    const value = input.value;
+
+    if (!value.trim()) {
+      return `${rule.label} is required.`;
+    }
+
+    if (!isAllowedPredictionEdit(value,rule)) {
+      return rule.decimals === undefined
+        ? `Use at most ${rule.maxLength} characters.`
+        : predictionRangeMessage(rule);
+    }
+
+    if (
+      rule.decimals !== undefined &&
+      value.endsWith(".")
+    ) {
+      return "Complete the decimal value.";
+    }
+
+    return "";
+  }
+
+  function updatePredictionValidation(showAll = false) {
+    let valid = predictionFields.length === predictionRules.length;
+
+    predictionFields.forEach(field => {
+      const error = getPredictionFieldError(field);
+
+      if (error) valid = false;
+
+      field.input.setCustomValidity(error);
+
+      const visible = Boolean(
+        error &&
+        (showAll || field.touched || field.rejected)
+      );
+
+      field.input.setAttribute("aria-invalid",String(visible));
+      field.message.textContent = visible ? error : "";
+      field.message.hidden = !visible;
+    });
+
+    const submit = $("#submitPredictionBtn");
+
+    if (submit) {
+      submit.disabled = individualPredictionLoading || !valid;
+    }
+
+    return valid;
+  }
+
+  function resetPredictionValidation() {
+    predictionFields.forEach(field => {
+      field.last = isAllowedPredictionEdit(
+        field.input.value,field.rule
+      ) ? field.input.value : "";
+
+      field.touched = false;
+      field.rejected = "";
+    });
+
+    updatePredictionValidation();
+  }
+
+  function initializePredictionValidation() {
+    if (!predictionForm || predictionFields.length) return;
+
+    const style = document.createElement("style");
+
+    style.id = "predictionValidationStyles";
+
+    style.textContent = `
+      #studentPredictionForm input[aria-invalid="true"] {
+        border-color:var(--red);
+        box-shadow:0 0 0 2px rgba(217,35,50,.15);
+      }
+
+      #studentPredictionForm input[aria-invalid="true"]:focus {
+        outline-color:rgba(217,35,50,.45);
+        border-color:var(--red);
+      }
+
+      #studentPredictionForm .prediction-field-error {
+        display:block;
+        color:#ff858b;
+        font-size:11px;
+        font-weight:500;
+        line-height:1.5;
+      }
+
+      #studentPredictionForm .prediction-field-error[hidden] {
+        display:none !important;
+      }
+
+      body.light-theme
+      #studentPredictionForm .prediction-field-error {
+        color:#b42332;
+      }
+
+      #studentPredictionForm #submitPredictionBtn:disabled {
+        opacity:.5;
+        cursor:not-allowed;
+      }
+
+      #studentPredictionForm[aria-busy="true"]
+      #submitPredictionBtn:disabled {
+        cursor:wait;
+      }
+    `;
+
+    document.head.appendChild(style);
+
+    predictionRules.forEach(rule => {
+      const input = document.getElementById(rule.id);
+
+      if (!input) return;
+
+      input.required = true;
+
+      if (rule.decimals !== undefined) {
+        // Text input with a numeric keyboard allows
+        // inspection of complete values before insertion.
+
+        input.type = "text";
+        input.inputMode = rule.decimals === 0
+          ? "numeric"
+          : "decimal";
+
+        input.autocomplete = "off";
+        input.spellcheck = false;
+
+      } else {
+        input.maxLength = rule.maxLength;
+      }
+
+      const message = document.createElement("span");
+
+      message.id = `${rule.id}Error`;
+      message.className = "prediction-field-error";
+      message.setAttribute("aria-live","polite");
+      message.hidden = true;
+
+      input.insertAdjacentElement("afterend",message);
+
+      const describedBy =
+        input.getAttribute("aria-describedby") || "";
+
+      input.setAttribute(
+        "aria-describedby",
+        `${describedBy} ${message.id}`.trim()
+      );
+
+      const field = {
+        rule,
+        input,
+        message,
+        last:input.value,
+        touched:false,
+        rejected:""
+      };
+
+      predictionFields.push(field);
+
+      function rejectEdit() {
+        field.touched = true;
+
+        field.rejected =
+          `Value not entered. ${predictionRangeMessage(rule)} Edit this field to continue.`;
+
+        updatePredictionValidation();
+      }
+
+      function proposedValue(text) {
+        const start = input.selectionStart ?? input.value.length;
+        const end = input.selectionEnd ?? start;
+
+        return (
+          input.value.slice(0,start) +
+          text +
+          input.value.slice(end)
+        );
+      }
+
+      if (rule.decimals !== undefined) {
+        input.addEventListener("beforeinput",event => {
+          if (
+            event.cancelable &&
+            !event.isComposing &&
+            event.inputType?.startsWith("insert") &&
+            event.data !== null &&
+            !isAllowedPredictionEdit(
+              proposedValue(event.data),rule
+            )
+          ) {
+            event.preventDefault();
+            rejectEdit();
+          }
+        });
+
+        input.addEventListener("paste",event => {
+          const text = event.clipboardData?.getData("text");
+
+          if (
+            text !== undefined &&
+            !isAllowedPredictionEdit(proposedValue(text),rule)
+          ) {
+            event.preventDefault();
+            rejectEdit();
+          }
+        });
+      }
+
+      input.addEventListener("input",() => {
+        field.touched = true;
+
+        if (
+          rule.decimals !== undefined &&
+          !isAllowedPredictionEdit(input.value,rule)
+        ) {
+          input.value = field.last;
+          rejectEdit();
+          return;
+        }
+
+        field.last = input.value;
+        field.rejected = "";
+
+        updatePredictionValidation();
+      });
+
+      input.addEventListener("blur",() => {
+        field.touched = true;
+
+        if (
+          !field.rejected &&
+          rule.decimals > 0 &&
+          input.value &&
+          isAllowedPredictionEdit(input.value,rule)
+        ) {
+          if (rule.format) {
+            input.value = Number(input.value).toFixed(2);
+
+          } else if (input.value.endsWith(".")) {
+            input.value = input.value.slice(0,-1);
+          }
+
+          field.last = input.value;
+        }
+
+        updatePredictionValidation();
+      });
+    });
+
+    resetPredictionValidation();
+  }
 
   function readPredictionForm() {
     const studentId =
@@ -1827,15 +1914,11 @@ document.addEventListener("DOMContentLoaded", () => {
         value < field.min ||
         value > field.max
       ) {
-        throw new Error(
-          `${field.name} contains an invalid value.`
-        );
+        throw new Error(`${field.name} contains an invalid value.`);
       }
 
-      if (field.integer && !Number.isInteger(value)) {
-        throw new Error(
-          `${field.name} must be a whole number.`
-        );
+      if (field.integer && !Number.isSafeInteger(value)) {
+        throw new Error(`${field.name} must be a valid whole number.`);
       }
 
       return value;
@@ -1864,9 +1947,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function setPredictionLoading(loading) {
     individualPredictionLoading = loading;
 
+    predictionForm?.setAttribute("aria-busy",String(loading));
+
     if (predictionForm) {
-      predictionForm
-        .querySelectorAll("input,button,select")
+      predictionForm.querySelectorAll("input,button,select")
         .forEach(element => {
           element.disabled = loading;
         });
@@ -1874,13 +1958,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setText(
       "#submitPredictionBtn",
-      loading
-        ? "Analyzing Student..."
-        : "Predict Student Risk →"
+      loading ? "Analyzing Student..." : "Predict Student Risk →"
     );
+
+    updatePredictionValidation();
   }
 
-  function setPredictionResultStatus(label, type) {
+  function setPredictionResultStatus(label,type) {
     const status = $("#predictionResultStatus");
 
     if (!status) return;
@@ -1890,7 +1974,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderPredictionLoading() {
-    setPredictionResultStatus("Analyzing", "warning");
+    setPredictionResultStatus("Analyzing","warning");
 
     const content = $("#predictionResultContent");
 
@@ -1918,10 +2002,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderPredictionError(message) {
-    setPredictionResultStatus(
-      "Prediction Failed",
-      "danger"
-    );
+    setPredictionResultStatus("Prediction Failed","danger");
 
     const content = $("#predictionResultContent");
 
@@ -1946,10 +2027,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetPredictionResult() {
-    setPredictionResultStatus(
-      "Awaiting Input",
-      "info"
-    );
+    setPredictionResultStatus("Awaiting Input","info");
 
     const content = $("#predictionResultContent");
 
@@ -1957,16 +2035,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     content.innerHTML = `
       <div class="prediction-result-placeholder">
-
-        <p>
-          <strong>No prediction available yet.</strong>
-        </p>
+        <p><strong>No prediction available yet.</strong></p>
 
         <p>
           Enter the student's academic information
           and submit the form to generate a prediction.
         </p>
-
       </div>
     `;
   }
@@ -1975,14 +2049,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // INDIVIDUAL FACULTY PREDICTION
   // ==================================================
 
-  predictionForm?.addEventListener("submit", async event => {
+  predictionForm?.addEventListener("submit",async event => {
     event.preventDefault();
 
-    if (individualPredictionLoading) {
-      return;
-    }
+    if (individualPredictionLoading) return;
 
-    if (!predictionForm.reportValidity()) {
+    if (
+      !updatePredictionValidation(true) ||
+      !predictionForm.reportValidity()
+    ) {
       return;
     }
 
@@ -2000,21 +2075,16 @@ document.addEventListener("DOMContentLoaded", () => {
     renderPredictionLoading();
 
     try {
-      // A single student is sent using the existing
-      // batch endpoint and confirmed input field names.
-
       const results = await requestPredictions([student]);
-
       const result = results[0];
 
       student.mlPrediction = result.prediction;
       student.mlScore = result.score;
       student.mlScoreLabel = result.scoreLabel;
 
-      student.status =
-        result.prediction === "At Risk"
-          ? "For Follow-up"
-          : "Active";
+      student.status = result.prediction === "At Risk"
+        ? "For Follow-up"
+        : "Active";
 
       student.predictionDate = new Date().toISOString();
 
@@ -2023,27 +2093,17 @@ document.addEventListener("DOMContentLoaded", () => {
         predictionId:++predictionSequence
       };
 
-      // Latest result is used in Student Records.
-      // Earlier results remain in Prediction History.
-
-      const existingIndex = facultyStudents.findIndex(
-        item =>
-          item.id.toLowerCase() === student.id.toLowerCase()
+      const existingIndex = facultyStudents.findIndex(item =>
+        item.id.toLowerCase() === student.id.toLowerCase()
       );
 
       if (existingIndex >= 0) {
-        facultyStudents[existingIndex] = {
-          ...predictionRecord
-        };
+        facultyStudents[existingIndex] = {...predictionRecord};
       } else {
-        facultyStudents.push({
-          ...predictionRecord
-        });
+        facultyStudents.push({...predictionRecord});
       }
 
-      predictionHistory.unshift({
-        ...predictionRecord
-      });
+      predictionHistory.unshift({...predictionRecord});
 
       updateModelApiStatus(
         "online",
@@ -2055,12 +2115,10 @@ document.addEventListener("DOMContentLoaded", () => {
       renderPredictionResult(predictionRecord);
       renderPredictionHistory();
 
-      showToast(
-        `Prediction completed: ${result.prediction}.`
-      );
+      showToast(`Prediction completed: ${result.prediction}.`);
 
     } catch (error) {
-      console.error("Individual prediction failed:", error);
+      console.error("Individual prediction failed:",error);
 
       updateModelApiStatus(
         "offline",
@@ -2071,31 +2129,29 @@ document.addEventListener("DOMContentLoaded", () => {
         error.message || "Unable to contact the prediction API."
       );
 
-      showToast(
-        "Prediction failed. Please try again."
-      );
+      showToast("Prediction failed. Please try again.");
 
     } finally {
       setPredictionLoading(false);
-
-      updateModelApiStatus(
-        modelApiStatus,
-        modelApiMessage
-      );
+      updateModelApiStatus(modelApiStatus,modelApiMessage);
     }
   });
 
-  predictionForm?.addEventListener("reset", () => {
-    if (!individualPredictionLoading) {
-      resetPredictionResult();
+  predictionForm?.addEventListener("reset",event => {
+    if (individualPredictionLoading) {
+      event.preventDefault();
+      return;
     }
+
+    resetPredictionResult();
+    queueMicrotask(resetPredictionValidation);
   });
 
   // ==================================================
   // ACTUAL PREDICTION RESULT DISPLAY
   // ==================================================
 
-  function predictionDetail(label, value) {
+  function predictionDetail(label,value) {
     return `
       <div class="prediction-result-detail">
         <span>${escapeHTML(label)}</span>
@@ -2111,36 +2167,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isRisk = record.mlPrediction === "At Risk";
 
-    setPredictionResultStatus(
-      "Prediction Completed",
-      "success"
-    );
+    setPredictionResultStatus("Prediction Completed","success");
 
     content.innerHTML = `
       <div class="prediction-result-status">
 
         <div>
-
-          <span class="eyebrow">
-            DECISION TREE CLASSIFICATION
-          </span>
+          <span class="eyebrow">DECISION TREE CLASSIFICATION</span>
 
           <div class="prediction-result-classification ${
-            isRisk
-              ? "prediction-risk-text"
-              : "prediction-safe-text"
+            isRisk ? "prediction-risk-text" : "prediction-safe-text"
           }">
             ${escapeHTML(record.mlPrediction)}
           </div>
-
         </div>
 
         <div>
-
           <div class="prediction-result-score ${
-            isRisk
-              ? "prediction-risk-text"
-              : "prediction-safe-text"
+            isRisk ? "prediction-risk-text" : "prediction-safe-text"
           }">
             ${formatScore(record.mlScore)}
           </div>
@@ -2148,67 +2192,26 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="prediction-result-score-label">
             ${escapeHTML(record.mlScoreLabel)}
           </span>
-
         </div>
 
       </div>
 
       <div class="prediction-result-details">
 
-        ${predictionDetail(
-          "Student ID",
-          record.id
-        )}
-
-        ${predictionDetail(
-          "Student Name",
-          record.name
-        )}
-
-        ${predictionDetail(
-          "Previous GWA",
-          Number(record.previousGwa).toFixed(2)
-        )}
-
-        ${predictionDetail(
-          "Current GWA",
-          Number(record.gwa).toFixed(2)
-        )}
-
-        ${predictionDetail(
-          "Attendance Rate",
-          `${record.attendance}%`
-        )}
-
-        ${predictionDetail(
-          "Academic Progress",
-          `${record.progress}%`
-        )}
-
-        ${predictionDetail(
-          "Failed Subjects",
-          record.failedSubjects
-        )}
-
-        ${predictionDetail(
-          "GWA-based Standing",
-          getStanding(record.gwa)
-        )}
-
-        ${predictionDetail(
-          "Prediction Date",
-          formatDate(record.predictionDate)
-        )}
-
-        ${predictionDetail(
-          "Prediction Source",
-          "Machine Learning API"
-        )}
+        ${predictionDetail("Student ID",record.id)}
+        ${predictionDetail("Student Name",record.name)}
+        ${predictionDetail("Previous GWA",Number(record.previousGwa).toFixed(2))}
+        ${predictionDetail("Current GWA",Number(record.gwa).toFixed(2))}
+        ${predictionDetail("Attendance Rate",`${record.attendance}%`)}
+        ${predictionDetail("Academic Progress",`${record.progress}%`)}
+        ${predictionDetail("Failed Subjects",record.failedSubjects)}
+        ${predictionDetail("GWA-based Standing",getStanding(record.gwa))}
+        ${predictionDetail("Prediction Date",formatDate(record.predictionDate))}
+        ${predictionDetail("Prediction Source","Machine Learning API")}
 
       </div>
 
       <div class="prediction-result-note">
-
         <strong>Suggested Faculty Action</strong>
 
         <p>
@@ -2220,36 +2223,30 @@ document.addEventListener("DOMContentLoaded", () => {
         </p>
 
         <p>
-          The result was returned by the trained
-          Decision Tree model using the submitted
-          academic information. It is not a definitive
-          judgment or a calibrated forecast of future
+          The result was returned by the trained Decision Tree model
+          using the submitted academic information. It is not a
+          definitive judgment or a calibrated forecast of future
           academic failure.
         </p>
 
         <p>
-          This prediction is available during the
-          current page session. Permanent database
-          storage has not yet been implemented.
+          This prediction is available during the current page
+          session. Permanent database storage has not yet been
+          implemented.
         </p>
-
       </div>
 
       <div class="prediction-result-actions">
 
-        <button
-          type="button"
+        <button type="button"
           class="button button-outline"
-          data-prediction-action="records"
-        >
+          data-prediction-action="records">
           View Student Records
         </button>
 
-        <button
-          type="button"
+        <button type="button"
           class="button button-primary"
-          data-prediction-action="new"
-        >
+          data-prediction-action="new">
           New Prediction
         </button>
 
@@ -2257,32 +2254,26 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  $("#predictionResultContent")?.addEventListener(
-    "click",
-    event => {
-      const button = event.target.closest(
-        "[data-prediction-action]"
-      );
+  $("#predictionResultContent")?.addEventListener("click",event => {
+    const button = event.target.closest("[data-prediction-action]");
 
-      if (!button) return;
+    if (!button) return;
 
-      if (button.dataset.predictionAction === "records") {
-        setRecordMode("faculty");
-        showPage("students");
-      }
-
-      if (button.dataset.predictionAction === "new") {
-        predictionForm?.reset();
-
-        $("#predictionStudentId")?.focus();
-
-        predictionForm?.scrollIntoView({
-          behavior:"smooth",
-          block:"start"
-        });
-      }
+    if (button.dataset.predictionAction === "records") {
+      setRecordMode("faculty");
+      showPage("students");
     }
-  );
+
+    if (button.dataset.predictionAction === "new") {
+      predictionForm?.reset();
+      $("#predictionStudentId")?.focus();
+
+      predictionForm?.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+      });
+    }
+  });
 
   // ==================================================
   // PREDICTION HISTORY
@@ -2294,9 +2285,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setText(
       "#predictionHistoryCount",
       `${predictionHistory.length} ${
-        predictionHistory.length === 1
-          ? "record"
-          : "records"
+        predictionHistory.length === 1 ? "record" : "records"
       }`
     );
 
@@ -2320,21 +2309,15 @@ document.addEventListener("DOMContentLoaded", () => {
     table.innerHTML = predictionHistory.map(record => `
       <tr>
 
-        <td class="student-id">
-          ${escapeHTML(record.id)}
-        </td>
+        <td class="student-id">${escapeHTML(record.id)}</td>
 
         <td>
-          <span class="student-name">
-            ${escapeHTML(record.name)}
-          </span>
+          <span class="student-name">${escapeHTML(record.name)}</span>
         </td>
 
         <td>
           <span class="ml-badge ${
-            record.mlPrediction === "At Risk"
-              ? "ml-risk"
-              : "ml-safe"
+            record.mlPrediction === "At Risk" ? "ml-risk" : "ml-safe"
           }">
             ${escapeHTML(record.mlPrediction)}
           </span>
@@ -2342,21 +2325,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         <td>
           <strong>${formatScore(record.mlScore)}</strong>
+
           <small class="ml-score">
             ${escapeHTML(record.mlScoreLabel)}
           </small>
         </td>
 
-        <td>
-          ${escapeHTML(formatDate(record.predictionDate))}
-        </td>
+        <td>${escapeHTML(formatDate(record.predictionDate))}</td>
 
         <td>
-          <button
-            class="view-record"
+          <button class="view-record"
             type="button"
-            data-prediction-id="${record.predictionId}"
-          >
+            data-prediction-id="${record.predictionId}">
             View
           </button>
         </td>
@@ -2365,34 +2345,24 @@ document.addEventListener("DOMContentLoaded", () => {
     `).join("");
   }
 
-  $("#predictionHistoryTable")?.addEventListener(
-    "click",
-    event => {
-      const button = event.target.closest(
-        "[data-prediction-id]"
-      );
+  $("#predictionHistoryTable")?.addEventListener("click",event => {
+    const button = event.target.closest("[data-prediction-id]");
 
-      if (!button) return;
+    if (!button) return;
 
-      const predictionId = Number(
-        button.dataset.predictionId
-      );
+    const predictionId = Number(button.dataset.predictionId);
 
-      const record = predictionHistory.find(
-        item => item.predictionId === predictionId
-      );
+    const record = predictionHistory.find(item =>
+      item.predictionId === predictionId
+    );
 
-      if (record) {
-        openStudentRecordDetails(
-          record,
-          "Student Prediction History"
-        );
-      }
+    if (record) {
+      openStudentRecordDetails(record,"Student Prediction History");
     }
-  );
+  });
 
   // ==================================================
-  // STUDENT SUMMARY
+  // STUDENT RECORDS
   // ==================================================
 
   function renderStudentSummary() {
@@ -2415,27 +2385,19 @@ document.addEventListener("DOMContentLoaded", () => {
       if (standing === "At Risk") counts.risk++;
     });
 
-    setText("#studentTotalCount", counts.total);
-    setText("#excellentCount", counts.excellent);
-    setText("#goodStandingCount", counts.good);
-    setText("#monitoringCount", counts.monitoring);
-    setText("#studentRiskCount", counts.risk);
+    setText("#studentTotalCount",counts.total);
+    setText("#excellentCount",counts.excellent);
+    setText("#goodStandingCount",counts.good);
+    setText("#monitoringCount",counts.monitoring);
+    setText("#studentRiskCount",counts.risk);
   }
 
-  // ==================================================
-  // STUDENT RECORDS TABLE
-  // ==================================================
-
   function renderStudents() {
-    const query = (
-      $("#studentSearch")?.value || ""
-    ).trim().toLowerCase();
+    const query = ($("#studentSearch")?.value || "")
+      .trim().toLowerCase();
 
-    const year =
-      $("#studentYearFilter")?.value || "all";
-
-    const standingFilter =
-      $("#studentStandingFilter")?.value || "all";
+    const year = $("#studentYearFilter")?.value || "all";
+    const standingFilter = $("#studentStandingFilter")?.value || "all";
 
     const filtered = getActiveStudents().filter(student => {
       const standing = getStanding(student.gwa);
@@ -2449,15 +2411,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       return (
         matchesQuery &&
-        (
-          recordMode === "faculty" ||
-          year === "all" ||
-          student.year === year
-        ) &&
-        (
-          standingFilter === "all" ||
-          standing === standingFilter
-        )
+        (recordMode === "faculty" || year === "all" || student.year === year) &&
+        (standingFilter === "all" || standing === standingFilter)
       );
     });
 
@@ -2477,8 +2432,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <tr>
           <td colspan="9" class="empty-row">
             ${
-              recordMode === "faculty" &&
-              facultyStudents.length === 0
+              recordMode === "faculty" && facultyStudents.length === 0
                 ? "No faculty-entered records yet. Submit a student prediction to create a record."
                 : "No student records match your search or filters."
             }
@@ -2491,34 +2445,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tbody.innerHTML = filtered.map(student => {
       const standing = getStanding(student.gwa);
-
-      const statusClass =
-        student.status === "Active"
-          ? ""
-          : "follow-up";
+      const statusClass = student.status === "Active" ? "" : "follow-up";
 
       return `
         <tr>
 
-          <td class="student-id">
-            ${escapeHTML(student.id)}
-          </td>
+          <td class="student-id">${escapeHTML(student.id)}</td>
 
           <td>
-            <span class="student-name">
-              ${escapeHTML(student.name)}
-            </span>
+            <span class="student-name">${escapeHTML(student.name)}</span>
           </td>
 
           <td>${escapeHTML(student.program)}</td>
-
           <td>${escapeHTML(student.year)}</td>
 
-          <td>
-            <strong>
-              ${Number(student.gwa).toFixed(2)}
-            </strong>
-          </td>
+          <td><strong>${Number(student.gwa).toFixed(2)}</strong></td>
 
           <td>
             <span class="standing-badge ${standingClass(standing)}">
@@ -2532,16 +2473,12 @@ document.addEventListener("DOMContentLoaded", () => {
             </span>
           </td>
 
-          <td>
-            ${getMLBadge(student)}
-          </td>
+          <td>${getMLBadge(student)}</td>
 
           <td>
-            <button
-              class="view-record"
+            <button class="view-record"
               type="button"
-              data-student-id="${escapeHTML(student.id)}"
-            >
+              data-student-id="${escapeHTML(student.id)}">
               View
             </button>
           </td>
@@ -2552,27 +2489,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openStudentRecord(studentId) {
-    const student = getActiveStudents().find(
-      item => item.id === studentId
-    );
+    const student = getActiveStudents().find(item => item.id === studentId);
 
     if (!student) return;
 
-    openStudentRecordDetails(
-      student,
-      "Student Academic Record"
-    );
+    openStudentRecordDetails(student,"Student Academic Record");
   }
 
-  function openStudentRecordDetails(
-    student,
-    title = "Student Academic Record"
-  ) {
+  function openStudentRecordDetails(student,title = "Student Academic Record") {
     const modalBody = $("#modalBody");
 
     if (!modalBody) return;
 
-    setText("#modalTitle", title);
+    setText("#modalTitle",title);
 
     const standing = getStanding(student.gwa);
 
@@ -2588,9 +2517,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ["Academic Progress",`${student.progress}%`],
       ["Failed Subjects",student.failedSubjects],
       ["Record Status",student.status],
-      ["Data Source",student.source === "faculty"
-        ? "Faculty-entered"
-        : "Demonstration"]
+      ["Data Source",student.source === "faculty" ? "Faculty-entered" : "Demonstration"]
     ];
 
     modalBody.innerHTML = `
@@ -2604,13 +2531,8 @@ document.addEventListener("DOMContentLoaded", () => {
         `).join("")}
 
         <div class="detail-cell">
-
           <span>Machine Learning Prediction</span>
-
-          <strong>
-            ${getMLBadge(student)}
-          </strong>
-
+          <strong>${getMLBadge(student)}</strong>
         </div>
 
         ${
@@ -2633,9 +2555,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <strong>Academic Decision Support</strong>
 
         <p>
-          The GWA-based academic standing and
-          machine learning classification are
-          separate academic indicators.
+          The GWA-based academic standing and machine learning
+          classification are separate academic indicators.
         </p>
 
         <p>
@@ -2647,20 +2568,16 @@ document.addEventListener("DOMContentLoaded", () => {
         </p>
 
         <p>
-          ML predictions must be reviewed by faculty
-          before academic interventions are decided.
+          ML predictions must be reviewed by faculty before
+          academic interventions are decided.
         </p>
 
         <div class="prediction-result-actions">
-
-          <button
-            type="button"
+          <button type="button"
             class="button button-primary"
-            id="predictSelectedStudentBtn"
-          >
+            id="predictSelectedStudentBtn">
             Use Student Data for Prediction
           </button>
-
         </div>
 
       </div>
@@ -2668,21 +2585,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $("#modalBackdrop")?.classList.remove("hidden");
 
-    $("#predictSelectedStudentBtn")?.addEventListener(
-      "click",
-      () => {
-        if (individualPredictionLoading) {
-          showToast(
-            "An individual prediction is already running."
-          );
-          return;
-        }
-
-        fillPredictionForm(student);
-        closeModal();
-        showPage("prediction");
+    $("#predictSelectedStudentBtn")?.addEventListener("click",() => {
+      if (individualPredictionLoading) {
+        showToast("An individual prediction is already running.");
+        return;
       }
-    );
+
+      fillPredictionForm(student);
+      closeModal();
+      showPage("prediction");
+    });
   }
 
   function fillPredictionForm(student) {
@@ -2704,6 +2616,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    resetPredictionValidation();
     resetPredictionResult();
 
     showToast(
@@ -2713,10 +2626,8 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  $("#studentTable")?.addEventListener("click", event => {
-    const button = event.target.closest(
-      "[data-student-id]"
-    );
+  $("#studentTable")?.addEventListener("click",event => {
+    const button = event.target.closest("[data-student-id]");
 
     if (button) {
       openStudentRecord(button.dataset.studentId);
@@ -2728,19 +2639,12 @@ document.addEventListener("DOMContentLoaded", () => {
     "#studentYearFilter",
     "#studentStandingFilter"
   ].forEach(selector => {
-    $(selector)?.addEventListener(
-      "input",
-      renderStudents
-    );
-
-    $(selector)?.addEventListener(
-      "change",
-      renderStudents
-    );
+    $(selector)?.addEventListener("input",renderStudents);
+    $(selector)?.addEventListener("change",renderStudents);
   });
 
   // ==================================================
-  // CLASS RECORDS
+  // CLASSES AND SCHEDULE
   // ==================================================
 
   function renderClasses() {
@@ -2754,6 +2658,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <td>${escapeHTML(item.section)}</td>
           <td>${item.students}</td>
           <td>${escapeHTML(item.schedule)}</td>
+
           <td>
             <span class="status-pill success">
               ${escapeHTML(item.status)}
@@ -2768,7 +2673,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (miniClassList) {
       miniClassList.innerHTML = classes.map(item => `
         <div class="mini-class-item">
-
           <div>
             <strong>
               ${escapeHTML(item.code)} · ${escapeHTML(item.name)}
@@ -2780,7 +2684,6 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
 
           <b>${item.students}</b>
-
         </div>
       `).join("");
     }
@@ -2792,12 +2695,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!table) return;
 
     const dayOrder = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday"
+      "Monday","Tuesday","Wednesday",
+      "Thursday","Friday","Saturday"
     ];
 
     const ordered = [...schedule].sort((a,b) =>
@@ -2816,7 +2715,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==================================================
-  // ACADEMIC ALERTS
+  // ACADEMIC ALERTS AND NOTIFICATIONS
   // ==================================================
 
   let alerts = [];
@@ -2841,18 +2740,16 @@ document.addEventListener("DOMContentLoaded", () => {
       nextAlerts.push({
         id:`${recordMode}-risk-${riskStudents.length}`,
         title:"Student Academic Risk",
-        description:
-          recordMode === "faculty"
-            ? `${riskStudents.length} faculty-entered students were classified At Risk by the Decision Tree model.`
-            : `${riskStudents.length} demonstration students have a GWA above 2.75.`,
+
+        description:recordMode === "faculty"
+          ? `${riskStudents.length} faculty-entered students were classified At Risk by the Decision Tree model.`
+          : `${riskStudents.length} demonstration students have a GWA above 2.75.`,
+
         type:"Urgent",
         date:getSourceLabel(),
         actionLabel:"Review Student Records",
         target:"students",
-        filter:
-          recordMode === "faculty"
-            ? "all"
-            : "At Risk"
+        filter:recordMode === "faculty" ? "all" : "At Risk"
       });
     }
 
@@ -2860,8 +2757,7 @@ document.addEventListener("DOMContentLoaded", () => {
       nextAlerts.push({
         id:`${recordMode}-attendance-${attendanceStudents.length}`,
         title:"Student Attendance Concern",
-        description:
-          `${attendanceStudents.length} students have attendance below 80% and may require follow-up.`,
+        description:`${attendanceStudents.length} students have attendance below 80% and may require follow-up.`,
         type:"Student Concern",
         date:getSourceLabel(),
         actionLabel:"Review Student Records",
@@ -2873,8 +2769,7 @@ document.addEventListener("DOMContentLoaded", () => {
     nextAlerts.push({
       id:"sete",
       title:"Teaching Evaluation Summary",
-      description:
-        "The illustrative SETE rating is 4.28 out of 5. Review the evaluation results.",
+      description:"The illustrative SETE rating is 4.28 out of 5. Review the evaluation results.",
       type:"Reminder",
       date:"Illustrative evaluation summary",
       actionLabel:"View Teaching Evaluation",
@@ -2891,27 +2786,20 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderAlerts() {
     const openAlerts = alerts.filter(alert => alert.open);
 
-    setText("#alertTotal", openAlerts.length);
+    setText("#alertTotal",openAlerts.length);
 
     const alertNavCount = $("#alertNavCount");
 
     if (alertNavCount) {
       alertNavCount.textContent = openAlerts.length;
-
-      alertNavCount.classList.toggle(
-        "hidden",
-        openAlerts.length === 0
-      );
+      alertNavCount.classList.toggle("hidden",openAlerts.length === 0);
     }
 
     const summaryItems = $$(".alert-summary > div");
 
     if (summaryItems[1]) {
-      const strong =
-        summaryItems[1].querySelector("strong");
-
-      const span =
-        summaryItems[1].querySelector("span");
+      const strong = summaryItems[1].querySelector("strong");
+      const span = summaryItems[1].querySelector("span");
 
       if (strong) {
         strong.textContent = openAlerts.filter(
@@ -2919,14 +2807,11 @@ document.addEventListener("DOMContentLoaded", () => {
         ).length;
       }
 
-      if (span) {
-        span.textContent = "Urgent alerts";
-      }
+      if (span) span.textContent = "Urgent alerts";
     }
 
     if (summaryItems[2]) {
-      const strong =
-        summaryItems[2].querySelector("strong");
+      const strong = summaryItems[2].querySelector("strong");
 
       if (strong) {
         strong.textContent = openAlerts.filter(
@@ -2944,23 +2829,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <div class="alert-content">
 
-              <strong>
-                ${escapeHTML(alert.title)}
-              </strong>
+              <strong>${escapeHTML(alert.title)}</strong>
+              <p>${escapeHTML(alert.description)}</p>
+              <p>${escapeHTML(alert.date)}</p>
 
-              <p>
-                ${escapeHTML(alert.description)}
-              </p>
-
-              <p>
-                ${escapeHTML(alert.date)}
-              </p>
-
-              <button
-                class="text-button alert-action"
+              <button class="text-button alert-action"
                 data-alert-target="${escapeHTML(alert.target)}"
-                data-alert-filter="${escapeHTML(alert.filter)}"
-              >
+                data-alert-filter="${escapeHTML(alert.filter)}">
                 ${escapeHTML(alert.actionLabel)} →
               </button>
 
@@ -2991,20 +2866,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderNotifications() {
     const openAlerts = alerts.filter(alert => alert.open);
-
     const notificationItems = $("#notificationItems");
 
     if (notificationItems) {
       notificationItems.innerHTML = openAlerts.length
         ? openAlerts.map(alert => `
           <div class="notification-item">
-
-            <strong>
-              ${escapeHTML(alert.title)}
-            </strong>
-
+            <strong>${escapeHTML(alert.title)}</strong>
             ${escapeHTML(alert.description)}
-
           </div>
         `).join("")
         : `
@@ -3017,125 +2886,87 @@ document.addEventListener("DOMContentLoaded", () => {
     const dot = $("#notificationDot");
 
     if (dot) {
-      dot.classList.toggle(
-        "hidden",
-        notificationsRead || !openAlerts.length
-      );
-
+      dot.classList.toggle("hidden",notificationsRead || !openAlerts.length);
       dot.textContent = openAlerts.length;
     }
   }
 
-  $("#fullAlertList")?.addEventListener(
-    "click",
-    event => {
-      const button = event.target.closest(
-        "[data-alert-target]"
-      );
+  $("#fullAlertList")?.addEventListener("click",event => {
+    const button = event.target.closest("[data-alert-target]");
 
-      if (!button) return;
+    if (!button) return;
 
-      const target = button.dataset.alertTarget;
-      const filter = button.dataset.alertFilter;
+    const target = button.dataset.alertTarget;
+    const filter = button.dataset.alertFilter;
 
-      if (target === "students") {
-        if ($("#studentSearch")) {
-          $("#studentSearch").value = "";
-        }
+    if (target === "students") {
+      if ($("#studentSearch")) $("#studentSearch").value = "";
+      if ($("#studentYearFilter")) $("#studentYearFilter").value = "all";
 
-        if ($("#studentYearFilter")) {
-          $("#studentYearFilter").value = "all";
-        }
-
-        if ($("#studentStandingFilter")) {
-          $("#studentStandingFilter").value =
-            filter || "all";
-        }
-
-        renderStudents();
+      if ($("#studentStandingFilter")) {
+        $("#studentStandingFilter").value = filter || "all";
       }
 
-      showPage(target);
+      renderStudents();
     }
-  );
 
-  $("#clearAlertsBtn")?.addEventListener(
-    "click",
-    () => {
-      alerts.forEach(alert => {
-        reviewedAlerts.add(alert.id);
-      });
+    showPage(target);
+  });
 
-      buildAlerts();
-      renderAlerts();
+  $("#clearAlertsBtn")?.addEventListener("click",() => {
+    alerts.forEach(alert => reviewedAlerts.add(alert.id));
 
-      showToast("All alerts marked as reviewed.");
-    }
-  );
+    buildAlerts();
+    renderAlerts();
+    showToast("All alerts marked as reviewed.");
+  });
 
-  $("#markReadBtn")?.addEventListener(
-    "click",
-    () => {
-      notificationsRead = true;
+  $("#markReadBtn")?.addEventListener("click",() => {
+    notificationsRead = true;
+    renderNotifications();
+    showToast("Notifications marked as read.");
+  });
 
-      renderNotifications();
+  $("#notificationBtn")?.addEventListener("click",() => {
+    $("#notificationPopover")?.classList.toggle("hidden");
+  });
 
-      showToast("Notifications marked as read.");
-    }
-  );
-
-  $("#notificationBtn")?.addEventListener(
-    "click",
-    () => {
-      $("#notificationPopover")?.classList.toggle("hidden");
-    }
-  );
-
-  document.addEventListener("click", event => {
+  document.addEventListener("click",event => {
     if (!event.target.closest(".notification-wrap")) {
       $("#notificationPopover")?.classList.add("hidden");
     }
   });
 
   // ==================================================
-  // MODALS AND NAVIGATION
+  // MODAL CONTROLS
   // ==================================================
 
   function closeModal() {
     $("#modalBackdrop")?.classList.add("hidden");
   }
 
-  $("#modalClose")?.addEventListener(
-    "click",
-    closeModal
-  );
+  $("#modalClose")?.addEventListener("click",closeModal);
+  $("#modalCancel")?.addEventListener("click",closeModal);
 
-  $("#modalCancel")?.addEventListener(
-    "click",
-    closeModal
-  );
-
-  $("#modalBackdrop")?.addEventListener(
-    "click",
-    event => {
-      if (event.target === $("#modalBackdrop")) {
-        closeModal();
-      }
+  $("#modalBackdrop")?.addEventListener("click",event => {
+    if (event.target === $("#modalBackdrop")) {
+      closeModal();
     }
-  );
+  });
 
-  document.addEventListener("keydown", event => {
+  document.addEventListener("keydown",event => {
     if (event.key === "Escape") {
       closeModal();
-
       $("#notificationPopover")?.classList.add("hidden");
     }
   });
 
+  // ==================================================
+  // PAGE NAVIGATION
+  // ==================================================
+
   function showPage(pageName) {
-    const target = document.getElementById(
-      `page-${pageName}`
-    );
+    const target = document.getElementById(`page-${pageName}`);
 
     if (!target) return;
 
@@ -3147,8 +2978,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $$(".nav-link[data-page]").forEach(link => {
       link.classList.toggle(
-        "active",
-        link.dataset.page === pageName
+        "active",link.dataset.page === pageName
       );
     });
 
@@ -3178,6 +3008,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (pageName === "prediction") {
       renderPredictionHistory();
+      updatePredictionValidation();
     }
 
     if (pageName === "analytics") {
@@ -3190,113 +3021,79 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   $$(".nav-link[data-page]").forEach(link => {
-    link.addEventListener(
-      "click",
-      () => showPage(link.dataset.page)
-    );
+    link.addEventListener("click",() => showPage(link.dataset.page));
   });
 
   $$("[data-go]").forEach(button => {
-    button.addEventListener(
-      "click",
-      () => showPage(button.dataset.go)
-    );
+    button.addEventListener("click",() => showPage(button.dataset.go));
   });
 
-  $("#menuToggle")?.addEventListener(
-    "click",
-    () => {
-      $("#sidebar")?.classList.toggle("open");
+  $("#menuToggle")?.addEventListener("click",() => {
+    $("#sidebar")?.classList.toggle("open");
+  });
+
+  $("#profileTrigger")?.addEventListener("click",() => {
+    showPage("profile");
+  });
+
+  $("#signOutBtn")?.addEventListener("click",() => {
+    if (individualPredictionLoading) {
+      showToast("Please wait for the current prediction to finish.");
+      return;
     }
-  );
 
-  $("#profileTrigger")?.addEventListener(
-    "click",
-    () => showPage("profile")
-  );
+    if (
+      confirm(
+        "Sign out of the demonstration portal? Temporary faculty-entered records will be cleared."
+      )
+    ) {
+      facultyStudents.length = 0;
+      predictionHistory = [];
+      predictionSequence = 0;
 
-  $("#signOutBtn")?.addEventListener(
-    "click",
-    () => {
-      if (individualPredictionLoading) {
-        showToast(
-          "Please wait for the current prediction to finish."
-        );
-        return;
-      }
+      predictionForm?.reset();
 
-      if (
-        confirm(
-          "Sign out of the demonstration portal? Temporary faculty-entered records will be cleared."
-        )
-      ) {
-        facultyStudents.length = 0;
-        predictionHistory = [];
-        predictionSequence = 0;
+      resetPredictionResult();
+      renderPredictionHistory();
+      setRecordMode("demonstration");
+      showPage("overview");
 
-        predictionForm?.reset();
-
-        resetPredictionResult();
-        renderPredictionHistory();
-
-        setRecordMode("demonstration");
-        showPage("overview");
-
-        showToast(
-          "Temporary faculty records cleared. This is a demonstration portal."
-        );
-      }
+      showToast(
+        "Temporary faculty records cleared. This is a demonstration portal."
+      );
     }
-  );
+  });
 
-  $("#globalSearch")?.addEventListener(
-    "keydown",
-    event => {
-      if (event.key !== "Enter") return;
+  $("#globalSearch")?.addEventListener("keydown",event => {
+    if (event.key !== "Enter") return;
 
-      const query = event.target.value.trim();
+    const query = event.target.value.trim();
 
-      if (!query) return;
+    if (!query) return;
 
-      if ($("#studentSearch")) {
-        $("#studentSearch").value = query;
-      }
+    if ($("#studentSearch")) $("#studentSearch").value = query;
+    if ($("#studentYearFilter")) $("#studentYearFilter").value = "all";
+    if ($("#studentStandingFilter")) $("#studentStandingFilter").value = "all";
 
-      if ($("#studentYearFilter")) {
-        $("#studentYearFilter").value = "all";
-      }
-
-      if ($("#studentStandingFilter")) {
-        $("#studentStandingFilter").value = "all";
-      }
-
-      renderStudents();
-      showPage("students");
-    }
-  );
+    renderStudents();
+    showPage("students");
+  });
 
   // ==================================================
-  // DASHBOARD FILTER EVENTS
+  // DASHBOARD FILTER CONTROLS
   // ==================================================
 
   function updateDashboardFilters() {
-    const year =
-      $("#yearFilter")?.value || "all";
+    const year = $("#yearFilter")?.value || "all";
+    const semester = $("#semesterFilter")?.value || "all";
 
-    const semester =
-      $("#semesterFilter")?.value || "all";
+    const yearLabel = year === "all" ? "All Academic Years" : year;
 
-    const yearLabel =
-      year === "all"
-        ? "All Academic Years"
-        : year;
-
-    const semesterLabel =
-      semester === "all"
-        ? "Both Semesters"
-        : semester === "1"
-          ? "1st Semester"
-          : "2nd Semester";
+    const semesterLabel = semester === "all"
+      ? "Both Semesters"
+      : semester === "1"
+        ? "1st Semester"
+        : "2nd Semester";
 
     setText(
       "#lastUpdated",
@@ -3317,35 +3114,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  $("#yearFilter")?.addEventListener(
-    "change",
-    updateDashboardFilters
-  );
+  $("#yearFilter")?.addEventListener("change",updateDashboardFilters);
+  $("#semesterFilter")?.addEventListener("change",updateDashboardFilters);
 
-  $("#semesterFilter")?.addEventListener(
-    "change",
-    updateDashboardFilters
-  );
+  $("#resetFilters")?.addEventListener("click",() => {
+    if ($("#yearFilter")) $("#yearFilter").value = "2025-2026";
+    if ($("#semesterFilter")) $("#semesterFilter").value = "all";
 
-  $("#resetFilters")?.addEventListener(
-    "click",
-    () => {
-      if ($("#yearFilter")) {
-        $("#yearFilter").value = "2025-2026";
-      }
-
-      if ($("#semesterFilter")) {
-        $("#semesterFilter").value = "all";
-      }
-
-      updateDashboardFilters();
-
-      showToast("Dashboard filters have been reset.");
-    }
-  );
+    updateDashboardFilters();
+    showToast("Dashboard filters have been reset.");
+  });
 
   // ==================================================
-  // CHART.JS UTILITIES
+  // CHART UTILITIES
   // ==================================================
 
   function chartAvailable() {
@@ -3368,10 +3149,7 @@ document.addEventListener("DOMContentLoaded", () => {
         legend:{
           labels:{
             color:chartTextColor(),
-            font:{
-              family:"Inter",
-              size:10
-            }
+            font:{family:"Inter",size:10}
           }
         }
       },
@@ -3380,33 +3158,23 @@ document.addEventListener("DOMContentLoaded", () => {
         x:{
           ticks:{
             color:chartTextColor(),
-            font:{
-              family:"Inter",
-              size:9
-            }
+            font:{family:"Inter",size:9}
           },
-          grid:{
-            color:"rgba(150,160,165,.10)"
-          }
+          grid:{color:"rgba(150,160,165,.10)"}
         },
 
         y:{
           ticks:{
             color:chartTextColor(),
-            font:{
-              family:"Inter",
-              size:9
-            }
+            font:{family:"Inter",size:9}
           },
-          grid:{
-            color:"rgba(150,160,165,.10)"
-          }
+          grid:{color:"rgba(150,160,165,.10)"}
         }
       }
     };
   }
 
-  function createChart(id, config) {
+  function createChart(id,config) {
     if (!chartAvailable()) return;
 
     const canvas = document.getElementById(id);
@@ -3428,9 +3196,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function resizePageCharts(pageId) {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        const page = document.getElementById(
-          `page-${pageId}`
-        );
+        const page = document.getElementById(`page-${pageId}`);
 
         if (!page) return;
 
@@ -3459,9 +3225,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return {
       categories,
       counts:categories.map(category =>
-        records.filter(student =>
-          getStanding(student.gwa) === category
-        ).length
+        records.filter(student => getStanding(student.gwa) === category).length
       )
     };
   }
@@ -3478,23 +3242,18 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
 
       counts:[
+        records.filter(student => student.attendance < 70).length,
+
         records.filter(student =>
-          student.attendance < 70
+          student.attendance >= 70 && student.attendance < 80
         ).length,
 
         records.filter(student =>
-          student.attendance >= 70 &&
-          student.attendance < 80
+          student.attendance >= 80 && student.attendance < 90
         ).length,
 
         records.filter(student =>
-          student.attendance >= 80 &&
-          student.attendance < 90
-        ).length,
-
-        records.filter(student =>
-          student.attendance >= 90 &&
-          student.attendance <= 100
+          student.attendance >= 90 && student.attendance <= 100
         ).length
       ]
     };
@@ -3502,14 +3261,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function distributionTooltip(context) {
     const total = context.dataset.data.reduce(
-      (sum,value) => sum + Number(value),
-      0
+      (sum,value) => sum + Number(value),0
     );
 
-    const percentage = getPercentage(
-      Number(context.raw),
-      total
-    );
+    const percentage = getPercentage(Number(context.raw),total);
 
     return ` ${context.label}: ${context.raw} students (${percentage.toFixed(1)}%)`;
   }
@@ -3523,7 +3278,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!chartAvailable()) return;
 
-    createChart("performanceChart", {
+    createChart("performanceChart",{
       type:"line",
 
       data:{
@@ -3564,9 +3319,7 @@ document.addEventListener("DOMContentLoaded", () => {
               callback:value => value + "%"
             },
 
-            grid:{
-              color:"rgba(150,160,165,.10)"
-            }
+            grid:{color:"rgba(150,160,165,.10)"}
           },
 
           x:{
@@ -3577,7 +3330,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    createChart("seteChart", {
+    createChart("seteChart",{
       type:"doughnut",
 
       data:{
@@ -3589,11 +3342,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         datasets:[{
           data:[72,21,7],
-          backgroundColor:[
-            "#188b45",
-            "#168fa0",
-            "#398bb6"
-          ],
+          backgroundColor:["#188b45","#168fa0","#398bb6"],
           borderWidth:0,
           hoverOffset:5
         }]
@@ -3611,7 +3360,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const gwaDistribution = getGwaDistribution();
 
-    createChart("gwaDistributionChart", {
+    createChart("gwaDistributionChart",{
       type:"doughnut",
 
       data:{
@@ -3620,16 +3369,18 @@ document.addEventListener("DOMContentLoaded", () => {
         datasets:[{
           label:"Number of Students",
           data:gwaDistribution.counts,
+
           backgroundColor:[
             "#188b45",
             "#168fa0",
             "#c99539",
             "#d92332"
           ],
-          borderColor:
-            getComputedStyle(document.body)
-              .getPropertyValue("--surface")
-              .trim() || "#222b32",
+
+          borderColor:getComputedStyle(document.body)
+            .getPropertyValue("--surface")
+            .trim() || "#222b32",
+
           borderWidth:3,
           hoverOffset:9,
           spacing:2
@@ -3656,27 +3407,20 @@ document.addEventListener("DOMContentLoaded", () => {
               padding:14,
               usePointStyle:true,
               pointStyle:"circle",
-
-              font:{
-                family:"Inter",
-                size:9
-              }
+              font:{family:"Inter",size:9}
             }
           },
 
           tooltip:{
-            callbacks:{
-              label:distributionTooltip
-            }
+            callbacks:{label:distributionTooltip}
           }
         }
       }
     });
 
-    const attendanceDistribution =
-      getAttendanceDistribution();
+    const attendanceDistribution = getAttendanceDistribution();
 
-    createChart("attendanceDistributionChart", {
+    createChart("attendanceDistributionChart",{
       type:"polarArea",
 
       data:{
@@ -3718,13 +3462,8 @@ document.addEventListener("DOMContentLoaded", () => {
               backdropColor:"transparent"
             },
 
-            grid:{
-              color:"rgba(150,160,165,.10)"
-            },
-
-            angleLines:{
-              color:"rgba(150,160,165,.10)"
-            }
+            grid:{color:"rgba(150,160,165,.10)"},
+            angleLines:{color:"rgba(150,160,165,.10)"}
           }
         },
 
@@ -3737,28 +3476,20 @@ document.addEventListener("DOMContentLoaded", () => {
               padding:13,
               usePointStyle:true,
               pointStyle:"circle",
-
-              font:{
-                family:"Inter",
-                size:9
-              }
+              font:{family:"Inter",size:9}
             }
           },
 
           tooltip:{
-            callbacks:{
-              label:distributionTooltip
-            }
+            callbacks:{label:distributionTooltip}
           }
         }
       }
     });
 
-    const chartNote = $(
-      "#gwaDistributionChart"
-    )?.closest(".panel")?.querySelector(
-      ".overview-chart-note"
-    );
+    const chartNote = $("#gwaDistributionChart")
+      ?.closest(".panel")
+      ?.querySelector(".overview-chart-note");
 
     if (chartNote) {
       chartNote.textContent =
@@ -3769,13 +3500,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==================================================
-  // ACADEMIC ANALYTICS CHARTS
+  // ANALYTICS CHARTS
   // ==================================================
 
   function renderAnalyticsCharts() {
     if (!chartAvailable()) return;
 
-    createChart("passingTrendChart", {
+    createChart("passingTrendChart",{
       type:"line",
 
       data:{
@@ -3811,19 +3542,12 @@ document.addEventListener("DOMContentLoaded", () => {
               callback:value => value + "%"
             },
 
-            grid:{
-              color:"rgba(150,160,165,.10)"
-            }
+            grid:{color:"rgba(150,160,165,.10)"}
           },
 
           x:{
-            ticks:{
-              color:chartTextColor()
-            },
-
-            grid:{
-              display:false
-            }
+            ticks:{color:chartTextColor()},
+            grid:{display:false}
           }
         }
       }
@@ -3831,7 +3555,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const records = getDashboardStudents();
 
-    createChart("gradeChart", {
+    createChart("gradeChart",{
       type:"bar",
 
       data:{
@@ -3847,28 +3571,21 @@ document.addEventListener("DOMContentLoaded", () => {
           label:"Students",
 
           data:[
+            records.filter(student => student.gwa <= 1.50).length,
+
             records.filter(student =>
-              student.gwa <= 1.50
+              student.gwa > 1.50 && student.gwa <= 2.00
             ).length,
 
             records.filter(student =>
-              student.gwa > 1.50 &&
-              student.gwa <= 2.00
+              student.gwa > 2.00 && student.gwa <= 2.25
             ).length,
 
             records.filter(student =>
-              student.gwa > 2.00 &&
-              student.gwa <= 2.25
+              student.gwa > 2.25 && student.gwa <= 2.75
             ).length,
 
-            records.filter(student =>
-              student.gwa > 2.25 &&
-              student.gwa <= 2.75
-            ).length,
-
-            records.filter(student =>
-              student.gwa > 2.75
-            ).length
+            records.filter(student => student.gwa > 2.75).length
           ],
 
           backgroundColor:[
@@ -3900,9 +3617,7 @@ document.addEventListener("DOMContentLoaded", () => {
               precision:0
             },
 
-            grid:{
-              color:"rgba(150,160,165,.10)"
-            }
+            grid:{color:"rgba(150,160,165,.10)"}
           },
 
           x:{
@@ -3912,15 +3627,13 @@ document.addEventListener("DOMContentLoaded", () => {
               minRotation:0
             },
 
-            grid:{
-              display:false
-            }
+            grid:{display:false}
           }
         }
       }
     });
 
-    createChart("subjectChart", {
+    createChart("subjectChart",{
       type:"bar",
 
       data:{
@@ -3973,15 +3686,12 @@ document.addEventListener("DOMContentLoaded", () => {
               stepSize:20
             },
 
-            grid:{
-              color:"rgba(150,160,165,.10)"
-            }
+            grid:{color:"rgba(150,160,165,.10)"}
           },
 
           y:{
             ticks:{
               color:chartTextColor(),
-
               font:{
                 family:"Inter",
                 size:11,
@@ -3989,9 +3699,7 @@ document.addEventListener("DOMContentLoaded", () => {
               }
             },
 
-            grid:{
-              display:false
-            }
+            grid:{display:false}
           }
         }
       }
@@ -4007,7 +3715,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderEvaluationCharts() {
     if (!chartAvailable()) return;
 
-    createChart("dimensionChart", {
+    createChart("dimensionChart",{
       type:"bar",
 
       data:{
@@ -4053,9 +3761,7 @@ document.addEventListener("DOMContentLoaded", () => {
               stepSize:1
             },
 
-            grid:{
-              color:"rgba(150,160,165,.10)"
-            }
+            grid:{color:"rgba(150,160,165,.10)"}
           },
 
           x:{
@@ -4064,15 +3770,13 @@ document.addEventListener("DOMContentLoaded", () => {
               font:{size:8}
             },
 
-            grid:{
-              display:false
-            }
+            grid:{display:false}
           }
         }
       }
     });
 
-    createChart("evaluationChart", {
+    createChart("evaluationChart",{
       type:"doughnut",
 
       data:{
@@ -4084,13 +3788,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         datasets:[{
           data:[72,21,7],
-
-          backgroundColor:[
-            "#188b45",
-            "#168fa0",
-            "#398bb6"
-          ],
-
+          backgroundColor:["#188b45","#168fa0","#398bb6"],
           borderWidth:0
         }]
       },
@@ -4118,17 +3816,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==================================================
-  // REFRESH ALL ACADEMIC VIEWS
+  // REFRESH ACADEMIC VIEWS
   // ==================================================
 
   function refreshAcademicViews() {
     renderStudentSummary();
     renderStudents();
-
     buildAlerts();
-
     notificationsRead = false;
-
     renderAlerts();
     refreshMLOverview();
     updateDashboardFilters();
@@ -4136,7 +3831,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==================================================
-  // PROFILE AND THEME SETTINGS
+  // PROFILE AND ACCOUNT SETTINGS
   // ==================================================
 
   let savedProfile = {};
@@ -4155,14 +3850,12 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  const initialName =
-    typeof savedProfile.name === "string"
-      ? savedProfile.name
-      : "Faculty Member";
+  const initialName = typeof savedProfile.name === "string"
+    ? savedProfile.name
+    : "Faculty Member";
 
   function updateFacultyName(name) {
-    const cleanName =
-      String(name || "").trim() || "Faculty Member";
+    const cleanName = String(name || "").trim() || "Faculty Member";
 
     setText("#welcomeName",cleanName);
     setText("#topFacultyName",cleanName);
@@ -4194,10 +3887,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function refreshActiveCharts() {
-    const pageName = $(".page.active")?.id.replace(
-      "page-",
-      ""
-    );
+    const pageName = $(".page.active")?.id.replace("page-","");
 
     if (pageName === "overview") {
       renderDashboardCharts();
@@ -4212,66 +3902,52 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  $("#profileForm")?.addEventListener(
-    "submit",
-    event => {
-      event.preventDefault();
+  $("#profileForm")?.addEventListener("submit",event => {
+    event.preventDefault();
 
-      const name =
-        $("#facultyName")?.value.trim() ||
-        "Faculty Member";
+    const name = $("#facultyName")?.value.trim() || "Faculty Member";
+    const theme = $("#themeSelect")?.value || "dark";
 
-      const theme =
-        $("#themeSelect")?.value || "dark";
+    let storageSaved = true;
 
-      let storageSaved = true;
-
-      try {
-        localStorage.setItem(
-          "bsunisyncProfile",
-          JSON.stringify({
-            name,
-            theme
-          })
-        );
-
-      } catch (error) {
-        storageSaved = false;
-      }
-
-      updateFacultyName(name);
-
-      document.body.classList.toggle(
-        "light-theme",
-        theme === "light"
+    try {
+      localStorage.setItem(
+        "bsunisyncProfile",
+        JSON.stringify({name,theme})
       );
 
-      refreshActiveCharts();
-
-      showToast(
-        storageSaved
-          ? "Profile and settings saved successfully."
-          : "Settings applied for this page. Browser storage is unavailable."
-      );
+    } catch (error) {
+      storageSaved = false;
     }
-  );
 
-  $("#themeSelect")?.addEventListener(
-    "change",
-    event => {
-      document.body.classList.toggle(
-        "light-theme",
-        event.target.value === "light"
-      );
+    updateFacultyName(name);
 
-      refreshActiveCharts();
-    }
-  );
+    document.body.classList.toggle(
+      "light-theme",
+      theme === "light"
+    );
 
-  $("#printSchedule")?.addEventListener(
-    "click",
-    () => window.print()
-  );
+    refreshActiveCharts();
+
+    showToast(
+      storageSaved
+        ? "Profile and settings saved successfully."
+        : "Settings applied for this page. Browser storage is unavailable."
+    );
+  });
+
+  $("#themeSelect")?.addEventListener("change",event => {
+    document.body.classList.toggle(
+      "light-theme",
+      event.target.value === "light"
+    );
+
+    refreshActiveCharts();
+  });
+
+  $("#printSchedule")?.addEventListener("click",() => {
+    window.print();
+  });
 
   // ==================================================
   // INITIALIZE APPLICATION
@@ -4279,25 +3955,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initializeRecordMode();
   addMLInterface();
+  initializePredictionValidation();
 
   renderClasses();
   renderSchedule();
   renderPredictionHistory();
-
   resetPredictionResult();
 
-  const predictionFormNote =
-    $(".prediction-form-note");
+  const predictionFormNote = $(".prediction-form-note");
 
   if (predictionFormNote) {
     predictionFormNote.innerHTML = `
       <strong>Model Input:</strong>
+
       The Decision Tree model uses Previous GWA,
       Current GWA, Attendance Rate, Academic Progress,
       and Failed Subjects.
 
-      Student ID and name identify the temporary
-      browser record and are not submitted to the API.
+      Student ID and name identify the temporary browser
+      record and are not submitted to the API.
 
       <p>
         Use fictional or authorized academic information
@@ -4306,28 +3982,27 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  const predictionHistoryNote =
-    $(".prediction-history-panel .overview-chart-note");
+  const predictionHistoryNote = $(
+    ".prediction-history-panel .overview-chart-note"
+  );
 
   if (predictionHistoryNote) {
     predictionHistoryNote.textContent =
       "Prediction history is available during the current page session. Refreshing or closing the page clears temporary faculty-entered records. Permanent database storage is not yet implemented.";
   }
 
-  const performanceDescription =
-    $("#performanceChart")
-      ?.closest(".panel")
-      ?.querySelector(".panel-header p");
+  const performanceDescription = $("#performanceChart")
+    ?.closest(".panel")
+    ?.querySelector(".panel-header p");
 
   if (performanceDescription) {
     performanceDescription.textContent =
       "Illustrative student performance across recent terms";
   }
 
-  const gradeDescription =
-    $("#gradeChart")
-      ?.closest(".panel")
-      ?.querySelector(".panel-header p");
+  const gradeDescription = $("#gradeChart")
+    ?.closest(".panel")
+    ?.querySelector(".panel-header p");
 
   if (gradeDescription) {
     gradeDescription.textContent =
@@ -4335,29 +4010,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   setRecordMode("demonstration");
-
   runBatchPredictions();
 
-  // ==================================================
-  // WINDOW AND PAGE EVENTS
-  // ==================================================
-
-  window.addEventListener("resize", () => {
+  window.addEventListener("resize",() => {
     Object.values(chartInstances).forEach(chart => {
-      if (chart) {
-        chart.resize();
-      }
+      if (chart) chart.resize();
     });
   });
 
-  document.addEventListener(
-    "visibilitychange",
-    () => {
-      if (document.hidden) return;
+  document.addEventListener("visibilitychange",() => {
+    if (document.hidden) return;
 
-      refreshActiveCharts();
-      updateMLRiskChart();
-    }
-  );
+    refreshActiveCharts();
+    updateMLRiskChart();
+  });
 
 });
